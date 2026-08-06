@@ -46,7 +46,7 @@ export default function LandingPage() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-orange opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-orange"></span>
           </span>
-          <span className="text-primary-orange uppercase tracking-wider text-xs font-bold">Agent 22 is Live</span>
+          <span className="text-primary-orange uppercase tracking-wider text-xs font-bold">AI-Powered Platform</span>
         </div>
         
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-8 animate-fade-in-up text-sidebar leading-[1.1]" style={{ animationDelay: '0.2s' }}>
@@ -114,7 +114,7 @@ export default function LandingPage() {
       <div className="py-24 bg-white relative z-10 w-full">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-sidebar mb-4">How Agent 22 Works</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-sidebar mb-4">How DigiconFX Works</h2>
             <p className="text-text-secondary max-w-2xl mx-auto text-lg">From natural language requirements to production-ready Kafka APIs in three simple steps.</p>
           </div>
           
@@ -141,7 +141,7 @@ export default function LandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-sidebar mb-3">2. AI Orchestration</h3>
-              <p className="text-text-secondary text-sm">Agent 22 analyzes the requirements, maps them to enterprise standards, and generates optimized Kafka topics and code.</p>
+              <p className="text-text-secondary text-sm">DigiconFX analyzes the requirements, maps them to enterprise standards, and generates optimized Kafka topics and code.</p>
             </div>
 
             {/* Step 3 */}
@@ -170,7 +170,7 @@ export default function LandingPage() {
                 Accelerate your <span className="text-primary-orange">Event-Driven</span> Architecture
               </h2>
               <p className="text-text-secondary text-lg mb-8 leading-relaxed">
-                Building and maintaining Kafka APIs at an enterprise scale can be bottlenecked by manual schema creation, boilerplate coding, and strict compliance checks. DigiconFX Agent 22 removes these barriers entirely.
+                Building and maintaining Kafka APIs at an enterprise scale can be bottlenecked by manual schema creation, boilerplate coding, and strict compliance checks. DigiconFX removes these barriers entirely.
               </p>
               <ul className="space-y-5 mb-8">
                 {[
@@ -217,7 +217,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-3">
-                      <span className="font-semibold text-primary-orange">Agent 22 AI</span>
+                      <span className="font-semibold text-primary-orange">DigiconFX AI</span>
                       <span className="text-primary-orange font-bold">Minutes</span>
                     </div>
                     <div className="w-full bg-border-light rounded-full h-3">

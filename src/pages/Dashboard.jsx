@@ -4,6 +4,7 @@ import Loader from '../components/Loader';
 import StatusBadge from '../components/StatusBadge';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ClockIcon, ArchiveBoxArrowDownIcon, CheckBadgeIcon, BuildingLibraryIcon, ShieldCheckIcon, CheckCircleIcon, ClipboardDocumentCheckIcon, ExclamationTriangleIcon, MagnifyingGlassIcon, ArchiveBoxIcon, RocketLaunchIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -24,13 +25,13 @@ export default function Dashboard() {
 
   return (
     <div className="animate-fade-in-up">
-      {user?.id === 'developer' && <DeveloperDashboard requests={requests} />}
-      {user?.id === 'architect' && <ArchitectDashboard requests={requests} />}
-      {user?.id === 'techlead' && <TechLeadDashboard requests={requests} />}
-      {user?.id === 'devops' && <DevOpsDashboard requests={requests} />}
+      {user?.role === 'developer' && <DeveloperDashboard requests={requests} />}
+      {user?.role === 'architect' && <ArchitectDashboard requests={requests} />}
+      {user?.role === 'techlead' && <TechLeadDashboard requests={requests} />}
+      {user?.role === 'devops' && <DevOpsDashboard requests={requests} />}
       
       {/* Fallback */}
-      {!['developer', 'architect', 'techlead', 'devops'].includes(user?.id) && <DeveloperDashboard requests={requests} />}
+      {!['developer', 'architect', 'techlead', 'devops'].includes(user?.role) && <DeveloperDashboard requests={requests} />}
     </div>
   );
 }
@@ -46,9 +47,9 @@ function DeveloperDashboard({ requests }) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <MetricCard title="Active Configurations" value={activeGenerations} icon="⏳" />
-        <MetricCard title="Ready to Download" value={readyToDownload} icon="📦" gradient={true} />
-        <MetricCard title="Schema Validations" value="100%" icon="✨" />
+        <MetricCard title="Active Configurations" value={activeGenerations} icon={<ClockIcon className="w-8 h-8" />} />
+        <MetricCard title="Ready to Download" value={readyToDownload} icon={<ArchiveBoxArrowDownIcon className="w-8 h-8" />} gradient={true} />
+        <MetricCard title="Schema Validations" value="100%" icon={<CheckBadgeIcon className="w-8 h-8" />} />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
@@ -84,9 +85,9 @@ function ArchitectDashboard({ requests }) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <MetricCard title="Total Blueprints" value={blueprintReviews} icon="🏗️" />
-        <MetricCard title="Pattern Compliance" value="98%" icon="🛡️" gradient={true} />
-        <MetricCard title="Processor-Handler Separation" value="Valid" icon="✅" />
+        <MetricCard title="Total Blueprints" value={blueprintReviews} icon={<BuildingLibraryIcon className="w-8 h-8" />} />
+        <MetricCard title="Pattern Compliance" value="98%" icon={<ShieldCheckIcon className="w-8 h-8" />} gradient={true} />
+        <MetricCard title="Processor-Handler Separation" value="Valid" icon={<CheckCircleIcon className="w-8 h-8" />} />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
@@ -124,10 +125,10 @@ function TechLeadDashboard({ requests }) {
             <h3 className="text-white/80 text-sm font-semibold uppercase tracking-wider">Pending Approvals</h3>
             <p className="text-4xl font-extrabold mt-2">{pendingApprovals}</p>
           </div>
-          <div className="text-3xl bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/30">📋</div>
+          <div className="text-3xl bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/30"><ClipboardDocumentCheckIcon className="w-8 h-8" /></div>
         </div>
-        <MetricCard title="Validation Warnings" value="0" icon="⚠️" />
-        <MetricCard title="Traceability Score" value="100%" icon="🔍" />
+        <MetricCard title="Validation Warnings" value="0" icon={<ExclamationTriangleIcon className="w-8 h-8" />} />
+        <MetricCard title="Traceability Score" value="100%" icon={<MagnifyingGlassIcon className="w-8 h-8" />} />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
@@ -154,9 +155,9 @@ function DevOpsDashboard({ requests }) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <MetricCard title="Deployment Packages" value={packagedCount} icon="⚙️" gradient={true} />
-        <MetricCard title="CI/CD Pipelines" value="Active" icon="🚀" />
-        <MetricCard title="Config Conventions" value="Valid" icon="📝" />
+        <MetricCard title="Deployment Packages" value={packagedCount} icon={<ArchiveBoxIcon className="w-8 h-8" />} gradient={true} />
+        <MetricCard title="CI/CD Pipelines" value="Active" icon={<RocketLaunchIcon className="w-8 h-8" />} />
+        <MetricCard title="Config Conventions" value="Valid" icon={<DocumentTextIcon className="w-8 h-8" />} />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">

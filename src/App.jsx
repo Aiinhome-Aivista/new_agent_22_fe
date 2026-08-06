@@ -45,7 +45,7 @@ function App() {
           </Route>
           
           <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
-            <Route path="reviewer/dashboard" element={<ReviewerDashboard />} />
+            <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
             <Route path="validation" element={<ValidationReportPage />} />
             <Route path="review/queue" element={<ReviewApprovalPage />} />
           </Route>

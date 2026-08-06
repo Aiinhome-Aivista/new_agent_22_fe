@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { getDashboardMetrics } from '../api/api';
 import Loader from '../components/Loader';
 import { useNavigate } from 'react-router-dom';
+import { CodeBracketIcon, ArrowPathIcon, ArchiveBoxArrowDownIcon } from '@heroicons/react/24/outline';
 
 export default function DeveloperDashboard() {
   const { user } = useAuth();
@@ -30,7 +31,7 @@ export default function DeveloperDashboard() {
             <h3 className="text-white/90 text-xs font-bold uppercase tracking-wider">My Requests</h3>
             <p className="text-4xl font-extrabold mt-2">{metrics.my_requests}</p>
           </div>
-          <div className="text-3xl bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/30">💻</div>
+          <div className="text-3xl bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/30"><CodeBracketIcon className="w-8 h-8" /></div>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
@@ -38,7 +39,7 @@ export default function DeveloperDashboard() {
             <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Generation Statuses</h3>
             <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.generation_status?.length || 0} active</p>
           </div>
-          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors">🔄</div>
+          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors"><ArrowPathIcon className="w-8 h-8" /></div>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
@@ -46,7 +47,7 @@ export default function DeveloperDashboard() {
             <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Package Downloads</h3>
             <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.downloads}</p>
           </div>
-          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors">📦</div>
+          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors"><ArchiveBoxArrowDownIcon className="w-8 h-8" /></div>
         </div>
       </div>
       

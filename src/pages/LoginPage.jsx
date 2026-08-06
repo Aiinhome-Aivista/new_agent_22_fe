@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -8,13 +9,14 @@ export default function LoginPage() {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const hardcodedPersonas = [
-    { name: 'Engagement Manager', email: 'manager@example.com', password: 'password123', icon: 'EM', color: 'border-emerald-600 text-emerald-600 bg-emerald-50' },
-    { name: 'Project Lead', email: 'lead@example.com', password: 'password123', icon: 'PL', color: 'border-blue-600 text-blue-600 bg-blue-50' },
-    { name: 'PMO', email: 'reviewer@example.com', password: 'password123', icon: 'QR', color: 'border-purple-600 text-purple-600 bg-purple-50' },
-    { name: 'Finance', email: 'finance@example.com', password: 'password123', icon: 'FC', color: 'border-amber-600 text-amber-600 bg-amber-50' }
+    { name: 'Rahul Ghosh', role: 'Developer', email: 'developer@example.com', password: 'password123', icon: 'RG', color: 'border-emerald-600 text-emerald-600 bg-emerald-50' },
+    { name: 'Sanjib Sau', role: 'Solution Architect', email: 'architect@example.com', password: 'password123', icon: 'SS', color: 'border-blue-600 text-blue-600 bg-blue-50' },
+    { name: 'Sneha Sen', role: 'Tech Lead', email: 'techlead@example.com', password: 'password123', icon: 'SS', color: 'border-purple-600 text-purple-600 bg-purple-50' },
+    { name: 'Rakesh Singh', role: 'Platform / DevOps', email: 'devops@example.com', password: 'password123', icon: 'RS', color: 'border-amber-600 text-amber-600 bg-amber-50' }
   ];
 
   const [personas] = useState(hardcodedPersonas);
@@ -43,10 +45,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-bg-light text-text-primary flex flex-col justify-center items-center font-sans py-12 px-4 relative">
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
       
-      <div className="w-full max-w-md bg-white rounded-2xl p-8 border border-border-light shadow-xl relative z-10 animate-fade-in-up">
+      <div className="w-full max-w-md bg-gradient-to-br from-white to-input-bg rounded-2xl p-8 border border-border-light shadow-xl relative z-10 animate-fade-in-up">
         
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-primary-orange tracking-tight">Agent 22 Portal</h1>
+        <div className="flex justify-center items-center gap-3 mb-8 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-orange to-button-orange flex items-center justify-center text-white font-bold text-2xl shadow-[0_4px_10px_rgba(255,90,20,0.3)] hover:shadow-[0_4px_15px_rgba(255,90,20,0.5)] transition-all">
+            D
+          </div>
+          <span className="text-3xl font-extrabold tracking-tight text-sidebar">
+            Digicon<span className="text-primary-orange">FX</span>
+          </span>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">
@@ -65,13 +72,24 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-text-secondary mb-2">Password</label>
             <div className="relative">
               <input 
-                type="password" 
+                type={showPassword ? "text" : "password"} 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 bg-input-bg border border-border-light rounded-lg text-text-primary focus:ring-1 focus:ring-primary-orange focus:border-border-orange outline-none transition-all tracking-widest placeholder:text-placeholder"
+                className="w-full p-3 pr-12 bg-input-bg border border-border-light rounded-lg text-text-primary focus:ring-1 focus:ring-primary-orange focus:border-border-orange outline-none transition-all tracking-widest placeholder:text-placeholder"
                 placeholder="•••••••••••"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-placeholder hover:text-text-secondary transition-colors focus:outline-none"
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
             </div>
           </div>
           
@@ -115,7 +133,7 @@ export default function LoginPage() {
                   </div>
                   <div className="overflow-hidden">
                     <div className="text-xs font-bold text-text-primary truncate">{p.name}</div>
-                    <div className="text-[10px] text-text-secondary truncate">{p.email}</div>
+                    <div className="text-[10px] text-text-secondary truncate">{p.role}</div>
                   </div>
                 </button>
               ))}

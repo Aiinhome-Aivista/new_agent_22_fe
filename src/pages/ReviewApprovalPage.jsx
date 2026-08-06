@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Navbar from '../components/Navbar';
 import ProgressStepper from '../components/ProgressStepper';
 import { addReview } from '../api/api';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -31,7 +30,6 @@ export default function ReviewApprovalPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <Navbar title={`Request #${id} - Review & Approval (HITL)`} />
       <ProgressStepper />
       <div className="p-8 max-w-2xl mx-auto w-full">
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow border border-border-light space-y-6">

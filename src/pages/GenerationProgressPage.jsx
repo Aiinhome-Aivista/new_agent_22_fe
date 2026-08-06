@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
 import ProgressStepper from '../components/ProgressStepper';
 import { getWorkflowStatus, getGeneratedFiles } from '../api/api';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -25,7 +24,6 @@ export default function GenerationProgressPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <Navbar title={`Request #${id} - Generation Progress`} />
       <ProgressStepper />
       <div className="p-8 flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">

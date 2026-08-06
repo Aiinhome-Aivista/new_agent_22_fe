@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Navbar from '../components/Navbar';
 import { createRequest, runWorkflow } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,7 +41,6 @@ export default function NewRequestPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <Navbar title="New Generation Request" />
       <div className="p-8 max-w-3xl mx-auto w-full">
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow border border-border-light space-y-6">
           {error && <div className="bg-red-50 text-red-600 p-3 rounded text-sm">{error}</div>}

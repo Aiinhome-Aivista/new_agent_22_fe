@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Navbar from '../components/Navbar';
 import { getAuditLogs } from '../api/api';
 import Loader from '../components/Loader';
 
@@ -24,7 +23,6 @@ export default function AuditTrailPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <Navbar title="Audit Trail" />
       <div className="p-8 flex-1 flex flex-col h-full">
         <form onSubmit={handleSearch} className="mb-6 flex gap-4">
           <input 

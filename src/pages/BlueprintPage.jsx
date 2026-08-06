@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
 import ProgressStepper from '../components/ProgressStepper';
 import FileTree from '../components/FileTree';
 import { getBlueprint, approveBlueprint } from '../api/api';
@@ -32,7 +31,6 @@ export default function BlueprintPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <Navbar title={`Request #${id} - Code Blueprint`} />
       <ProgressStepper />
       <div className="p-8 flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">

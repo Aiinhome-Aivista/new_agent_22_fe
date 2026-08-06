@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 import { askAdvisor } from '../api/api';
 
 export default function AdvisorChatPage() {
@@ -38,7 +37,6 @@ export default function AdvisorChatPage() {
 
   return (
     <div className="flex flex-col h-full bg-bg-light relative">
-      <Navbar title="Advisor Chat" />
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none"></div>
 
       <div className="flex-1 flex flex-col p-6 max-w-5xl mx-auto w-full relative z-10">

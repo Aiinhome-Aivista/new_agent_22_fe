@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
 import ProgressStepper from '../components/ProgressStepper';
 import { getValidationResults } from '../api/api';
 import Loader from '../components/Loader';
@@ -30,7 +29,6 @@ export default function ValidationReportPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <Navbar title={`Request #${id} - Validation Report`} />
       <ProgressStepper />
       <div className="p-8 flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">

@@ -14,7 +14,7 @@ export default function GenerationProgressPage() {
     // Find job id by polling logic usually, but here we'll just fetch latest job for request
     // Alternatively, we can just fetch generated files
     const fetchStatus = () => {
-      // For simplicity, we just fetch files
+      if (!id || id === 'undefined') return;
       getGeneratedFiles(id).then(data => setFiles(data.data || [])).catch(console.error);
     };
     

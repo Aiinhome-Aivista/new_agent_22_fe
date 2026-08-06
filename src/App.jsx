@@ -13,6 +13,7 @@ import PackagesPage from './pages/PackagesPage';
 import ReviewApprovalPage from './pages/ReviewApprovalPage';
 import AuditTrailPage from './pages/AuditTrailPage';
 import AdvisorChatPage from './pages/AdvisorChatPage';
+import PlaceholderPage from './pages/PlaceholderPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import DeveloperDashboard from './pages/DeveloperDashboard';
@@ -60,6 +61,9 @@ function App() {
             <Route path="chat" element={<AdvisorChatPage />} />
             <Route path="packages" element={<PackagesPage />} />
           </Route>
+
+          {/* Catch-all for under construction pages */}
+          <Route path="*" element={<PlaceholderPage />} />
         </Route>
       </Routes>
     </AuthProvider>

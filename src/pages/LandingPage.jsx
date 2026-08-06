@@ -1,7 +1,16 @@
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useEffect } from 'react';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user && user.dashboard) {
+      navigate(user.dashboard);
+    }
+  }, [user, navigate]);
   
   return (
     <div className="min-h-screen bg-bg-light text-text-primary overflow-hidden relative font-sans flex flex-col">

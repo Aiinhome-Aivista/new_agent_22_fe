@@ -25,10 +25,10 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         
-        <Route path="/" element={<MainLayout />}>
+        <Route element={<MainLayout />}>
           {/* Default redirect to login or role dashboard handled by ProtectedRoute/AuthContext */}
           
           <Route element={<ProtectedRoute allowedRoles={['developer']} />}>

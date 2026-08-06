@@ -32,7 +32,7 @@ export default function LoginPage() {
     
     const result = await login(email, password);
     if (result.success) {
-      navigate(result.dashboard || '/');
+      navigate(result.dashboard || '/', { replace: true });
     } else {
       setError(result.message);
       setLoading(false);

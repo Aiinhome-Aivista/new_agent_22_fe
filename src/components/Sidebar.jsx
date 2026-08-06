@@ -1,13 +1,15 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+import * as Icons from '@heroicons/react/24/outline';
+
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate('/landing');
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -22,21 +24,25 @@ export default function Sidebar() {
       </div>
       
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
-        {user && user.menu && user.menu.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center px-4 py-3 rounded-xl transition-all font-medium text-sm ${
-                isActive 
-                  ? 'bg-primary-orange text-white shadow-[0_4px_12px_rgba(255,90,20,0.4)]' 
-                  : 'text-gray-300 hover:bg-white/10 hover:text-white hover:translate-x-1'
-              }`
-            }
-          >
-            {item.name}
-          </NavLink>
-        ))}
+        {user && user.menu && user.menu.map((item) => {
+          const Icon = Icons[item.icon] || Icons.DocumentIcon;
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
+                  isActive 
+                    ? 'bg-primary-orange text-white shadow-[0_4px_12px_rgba(255,90,20,0.4)]' 
+                    : 'text-gray-300 hover:bg-white/10 hover:text-white hover:translate-x-1'
+                }`
+              }
+            >
+              <Icon className="w-5 h-5" />
+              {item.name}
+            </NavLink>
+          );
+        })}
       </nav>
       
       <div className="p-4 border-t border-white/10 mt-auto">

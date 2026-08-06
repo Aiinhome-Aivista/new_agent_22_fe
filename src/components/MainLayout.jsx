@@ -8,7 +8,7 @@ export default function MainLayout() {
   const location = useLocation();
 
   if (!user) {
-    return <Navigate to="/landing" />;
+    return <Navigate to="/login" replace />;
   }
 
   // Derive a simple title from the pathname

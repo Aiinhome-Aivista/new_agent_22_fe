@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardMetrics } from '../api/api';
+import Loader from '../components/Loader';
 
 export default function DeveloperDashboard() {
   const { user } = useAuth();
@@ -12,32 +13,52 @@ export default function DeveloperDashboard() {
     }).catch(console.error);
   }, []);
 
-  if (!metrics) return <div className="p-8 text-white">Loading Developer Metrics...</div>;
+  if (!metrics) return <Loader />;
 
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="text-2xl font-bold text-white mb-6">Developer Portal</h1>
-      <div className="grid grid-cols-3 gap-6">
-        <div className="bg-[#131B2F] border border-gray-800 p-6 rounded-xl">
-          <div className="text-gray-400 text-sm mb-2">My Requests</div>
-          <div className="text-3xl font-bold text-primary-orange">{metrics.my_requests}</div>
+    <div className="animate-fade-in-up">
+      <div className="mb-8">
+        <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Developer Portal</h1>
+        <p className="text-text-secondary mt-1">Manage your generation requests and package downloads.</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-gradient-to-br from-primary-orange to-button-orange p-6 rounded-2xl shadow-[0_8px_30px_rgba(255,90,20,0.2)] text-white flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(255,90,20,0.3)]">
+          <div>
+            <h3 className="text-white/90 text-xs font-bold uppercase tracking-wider">My Requests</h3>
+            <p className="text-4xl font-extrabold mt-2">{metrics.my_requests}</p>
+          </div>
+          <div className="text-3xl bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/30">💻</div>
         </div>
-        <div className="bg-[#131B2F] border border-gray-800 p-6 rounded-xl">
-          <div className="text-gray-400 text-sm mb-2">Generation Statuses</div>
-          <div className="text-3xl font-bold text-blue-400">{metrics.generation_status?.length || 0} active</div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
+          <div>
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Generation Statuses</h3>
+            <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.generation_status?.length || 0} active</p>
+          </div>
+          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors">🔄</div>
         </div>
-        <div className="bg-[#131B2F] border border-gray-800 p-6 rounded-xl">
-          <div className="text-gray-400 text-sm mb-2">Package Downloads</div>
-          <div className="text-3xl font-bold text-emerald-400">{metrics.downloads}</div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
+          <div>
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Package Downloads</h3>
+            <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.downloads}</p>
+          </div>
+          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors">📦</div>
         </div>
       </div>
       
-      <div className="bg-[#131B2F] border border-gray-800 p-6 rounded-xl mt-8 text-white">
-        <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
-        <p className="text-sm text-gray-400 mb-4">Generate new Kafka schemas, trace packages, or interact with the AI Advisor.</p>
-        <button className="bg-primary-orange hover:bg-hover-orange px-4 py-2 rounded text-sm font-bold shadow-md transition-colors">
-          + New Generation Request
-        </button>
+      <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-input-bg rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/4"></div>
+        <div className="p-8 relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-xl font-extrabold text-sidebar mb-2">Quick Actions</h2>
+            <p className="text-sm text-text-secondary">Generate new Kafka schemas, trace packages, or interact with the AI Advisor.</p>
+          </div>
+          <button className="flex items-center gap-2 bg-primary-orange hover:bg-hover-orange text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_4px_14px_rgba(255,90,20,0.3)] hover:shadow-[0_6px_20px_rgba(255,90,20,0.4)] transition-all hover:-translate-y-0.5 whitespace-nowrap">
+            + New Generation Request
+          </button>
+        </div>
       </div>
     </div>
   );

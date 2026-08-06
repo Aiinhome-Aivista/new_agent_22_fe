@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardMetrics } from '../api/api';
+import Loader from '../components/Loader';
 
 export default function ReviewerDashboard() {
   const { user } = useAuth();
@@ -12,28 +13,49 @@ export default function ReviewerDashboard() {
     }).catch(console.error);
   }, []);
 
-  if (!metrics) return <div className="p-8 text-white">Loading Reviewer Metrics...</div>;
+  if (!metrics) return <Loader />;
 
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="text-2xl font-bold text-white mb-6">Review & Approval Portal</h1>
-      <div className="grid grid-cols-4 gap-6">
-        <div className="bg-[#131B2F] border border-gray-800 p-6 rounded-xl">
-          <div className="text-gray-400 text-sm mb-2">Pending Reviews</div>
-          <div className="text-3xl font-bold text-amber-500">{metrics.pending_reviews}</div>
+    <div className="animate-fade-in-up">
+      <div className="mb-8">
+        <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Review & Approval Portal</h1>
+        <p className="text-text-secondary mt-1">Manage validation reports and process code approvals.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        
+        <div className="bg-gradient-to-br from-primary-orange to-button-orange p-6 rounded-2xl shadow-[0_8px_30px_rgba(255,90,20,0.2)] text-white flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(255,90,20,0.3)]">
+          <div>
+            <h3 className="text-white/90 text-xs font-bold uppercase tracking-wider">Pending Reviews</h3>
+            <p className="text-4xl font-extrabold mt-2">{metrics.pending_reviews}</p>
+          </div>
+          <div className="text-3xl bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/30">📋</div>
         </div>
-        <div className="bg-[#131B2F] border border-gray-800 p-6 rounded-xl">
-          <div className="text-gray-400 text-sm mb-2">Validation Reports</div>
-          <div className="text-3xl font-bold text-blue-400">{metrics.validation_reports}</div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
+          <div>
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Validation Reports</h3>
+            <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.validation_reports}</p>
+          </div>
+          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors">✨</div>
         </div>
-        <div className="bg-[#131B2F] border border-gray-800 p-6 rounded-xl">
-          <div className="text-gray-400 text-sm mb-2">Total Approvals</div>
-          <div className="text-3xl font-bold text-emerald-500">{metrics.approvals}</div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
+          <div>
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Total Approvals</h3>
+            <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.approvals}</p>
+          </div>
+          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors">✅</div>
         </div>
-        <div className="bg-[#131B2F] border border-gray-800 p-6 rounded-xl">
-          <div className="text-gray-400 text-sm mb-2">Total Rejected</div>
-          <div className="text-3xl font-bold text-red-500">{metrics.rejected}</div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
+          <div>
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Total Rejected</h3>
+            <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.rejected}</p>
+          </div>
+          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors">❌</div>
         </div>
+
       </div>
     </div>
   );

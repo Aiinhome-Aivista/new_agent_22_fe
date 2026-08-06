@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
 import { getRequests } from '../api/api';
 import Loader from '../components/Loader';
 import StatusBadge from '../components/StatusBadge';
@@ -24,17 +23,14 @@ export default function Dashboard() {
   if (loading) return <Loader />;
 
   return (
-    <div className="flex flex-col h-full animate-fade-in-up">
-      <Navbar title={`${user?.role || 'User'} Dashboard`} />
-      <div className="p-8">
-        {user?.id === 'developer' && <DeveloperDashboard requests={requests} />}
-        {user?.id === 'architect' && <ArchitectDashboard requests={requests} />}
-        {user?.id === 'techlead' && <TechLeadDashboard requests={requests} />}
-        {user?.id === 'devops' && <DevOpsDashboard requests={requests} />}
-        
-        {/* Fallback */}
-        {!['developer', 'architect', 'techlead', 'devops'].includes(user?.id) && <DeveloperDashboard requests={requests} />}
-      </div>
+    <div className="animate-fade-in-up">
+      {user?.id === 'developer' && <DeveloperDashboard requests={requests} />}
+      {user?.id === 'architect' && <ArchitectDashboard requests={requests} />}
+      {user?.id === 'techlead' && <TechLeadDashboard requests={requests} />}
+      {user?.id === 'devops' && <DevOpsDashboard requests={requests} />}
+      
+      {/* Fallback */}
+      {!['developer', 'architect', 'techlead', 'devops'].includes(user?.id) && <DeveloperDashboard requests={requests} />}
     </div>
   );
 }
@@ -51,21 +47,25 @@ function DeveloperDashboard({ requests }) {
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <MetricCard title="Active Configurations" value={activeGenerations} icon="⏳" />
-        <MetricCard title="Ready to Download" value={readyToDownload} icon="📦" />
+        <MetricCard title="Ready to Download" value={readyToDownload} icon="📦" gradient={true} />
         <MetricCard title="Schema Validations" value="100%" icon="✨" />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-border-light overflow-hidden">
-        <div className="p-6 border-b border-border-light flex justify-between items-center bg-gray-50">
-          <div>
-            <h2 className="font-bold text-gray-800 text-lg">My Skeletons</h2>
-            <p className="text-sm text-gray-500">Provide topics and schemas, trigger AI generation, and download code.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
+        <div className="p-6 md:p-8 border-b border-border-light/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-input-bg rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/4"></div>
+          <div className="relative z-10">
+            <h2 className="font-extrabold text-sidebar text-2xl">My Skeletons</h2>
+            <p className="text-sm text-text-secondary mt-1">Provide topics and schemas, trigger AI generation, and download code.</p>
           </div>
           <button 
             onClick={() => navigate('/requests/new')}
-            className="bg-primary-orange hover:bg-hover-orange text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md transition-all"
+            className="relative z-10 flex items-center gap-2 bg-primary-orange hover:bg-hover-orange text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_4px_14px_rgba(255,90,20,0.3)] hover:shadow-[0_6px_20px_rgba(255,90,20,0.4)] transition-all hover:-translate-y-0.5 whitespace-nowrap"
           >
-            + New Microservice Skeleton
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            </svg>
+            New Microservice Skeleton
           </button>
         </div>
         <RequestTable requests={requests} role="developer" navigate={navigate} />
@@ -85,14 +85,17 @@ function ArchitectDashboard({ requests }) {
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <MetricCard title="Total Blueprints" value={blueprintReviews} icon="🏗️" />
-        <MetricCard title="Pattern Compliance" value="98%" icon="🛡️" />
+        <MetricCard title="Pattern Compliance" value="98%" icon="🛡️" gradient={true} />
         <MetricCard title="Processor-Handler Separation" value="Valid" icon="✅" />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-border-light overflow-hidden">
-        <div className="p-6 border-b border-border-light bg-gray-50">
-          <h2 className="font-bold text-gray-800 text-lg">Architecture Blueprints</h2>
-          <p className="text-sm text-gray-500">Review generated designs against messaging patterns and standards.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
+        <div className="p-6 md:p-8 border-b border-border-light/60 bg-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/4"></div>
+          <div className="relative z-10">
+            <h2 className="font-extrabold text-sidebar text-2xl">Architecture Blueprints</h2>
+            <p className="text-sm text-text-secondary mt-1">Review generated designs against messaging patterns and standards.</p>
+          </div>
         </div>
         <RequestTable requests={requests} role="architect" navigate={navigate} />
       </div>
@@ -116,23 +119,24 @@ function TechLeadDashboard({ requests }) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gradient-to-r from-green-600 to-emerald-500 p-6 rounded-xl shadow-md text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-green-100 text-sm font-medium">Pending Approvals</h3>
-              <p className="text-4xl font-extrabold mt-2">{pendingApprovals}</p>
-            </div>
-            <div className="text-4xl opacity-50">📋</div>
+        <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-6 rounded-2xl shadow-[0_8px_30px_rgba(16,185,129,0.2)] text-white flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(16,185,129,0.3)]">
+          <div>
+            <h3 className="text-white/80 text-sm font-semibold uppercase tracking-wider">Pending Approvals</h3>
+            <p className="text-4xl font-extrabold mt-2">{pendingApprovals}</p>
           </div>
+          <div className="text-3xl bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/30">📋</div>
         </div>
         <MetricCard title="Validation Warnings" value="0" icon="⚠️" />
         <MetricCard title="Traceability Score" value="100%" icon="🔍" />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-border-light overflow-hidden">
-        <div className="p-6 border-b border-border-light bg-gray-50">
-          <h2 className="font-bold text-gray-800 text-lg">Commit Review Queue</h2>
-          <p className="text-sm text-gray-500">Review validation reports and approve repository commits.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
+        <div className="p-6 md:p-8 border-b border-border-light/60 bg-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-green-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/4"></div>
+          <div className="relative z-10">
+            <h2 className="font-extrabold text-sidebar text-2xl">Commit Review Queue</h2>
+            <p className="text-sm text-text-secondary mt-1">Review validation reports and approve repository commits.</p>
+          </div>
         </div>
         <RequestTable requests={sortedRequests} role="techlead" navigate={navigate} />
       </div>
@@ -150,15 +154,18 @@ function DevOpsDashboard({ requests }) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <MetricCard title="Deployment Packages" value={packagedCount} icon="⚙️" />
+        <MetricCard title="Deployment Packages" value={packagedCount} icon="⚙️" gradient={true} />
         <MetricCard title="CI/CD Pipelines" value="Active" icon="🚀" />
         <MetricCard title="Config Conventions" value="Valid" icon="📝" />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-border-light overflow-hidden">
-        <div className="p-6 border-b border-border-light bg-gray-50">
-          <h2 className="font-bold text-gray-800 text-lg">Deployment Readiness</h2>
-          <p className="text-sm text-gray-500">Inspect packaging, YAML configurations, and environment variables.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
+        <div className="p-6 md:p-8 border-b border-border-light/60 bg-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-purple-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/4"></div>
+          <div className="relative z-10">
+            <h2 className="font-extrabold text-sidebar text-2xl">Deployment Readiness</h2>
+            <p className="text-sm text-text-secondary mt-1">Inspect packaging, YAML configurations, and environment variables.</p>
+          </div>
         </div>
         <RequestTable requests={requests} role="devops" navigate={navigate} />
       </div>
@@ -169,90 +176,109 @@ function DevOpsDashboard({ requests }) {
 // -------------------------------------------------------------
 // SHARED COMPONENTS
 // -------------------------------------------------------------
-function MetricCard({ title, value, icon }) {
-  return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-border-light flex justify-between items-start transition-transform hover:-translate-y-1 hover:shadow-md">
-      <div>
-        <h3 className="text-gray-500 text-sm font-medium">{title}</h3>
-        <p className="text-3xl font-extrabold text-gray-900 mt-2">{value}</p>
+function MetricCard({ title, value, icon, gradient = false }) {
+  if (gradient) {
+    return (
+      <div className="bg-gradient-to-br from-primary-orange to-button-orange p-6 rounded-2xl shadow-[0_8px_30px_rgba(255,90,20,0.2)] text-white flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(255,90,20,0.3)]">
+        <div>
+          <h3 className="text-white/90 text-xs font-bold uppercase tracking-wider">{title}</h3>
+          <p className="text-4xl font-extrabold mt-2">{value}</p>
+        </div>
+        <div className="text-3xl bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/30">{icon}</div>
       </div>
-      <div className="text-3xl bg-gray-50 p-3 rounded-lg border border-gray-100">{icon}</div>
+    );
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
+      <div>
+        <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">{title}</h3>
+        <p className="text-4xl font-extrabold text-sidebar mt-2">{value}</p>
+      </div>
+      <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors">{icon}</div>
     </div>
   );
 }
 
 function RequestTable({ requests, role, navigate }) {
   return (
-    <table className="w-full text-left">
-      <thead>
-        <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
-          <th className="p-4 font-semibold">ID</th>
-          <th className="p-4 font-semibold">Microservice Request</th>
-          <th className="p-4 font-semibold">Target App ID</th>
-          <th className="p-4 font-semibold">Status</th>
-          <th className="p-4 font-semibold">Date</th>
-          <th className="p-4 font-semibold text-right">Action</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-border-light">
-        {requests.map(req => (
-          <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-            <td className="p-4 text-sm text-gray-500 font-mono">#{req.id}</td>
-            <td className="p-4 text-sm font-bold text-gray-900">{req.request_name}</td>
-            <td className="p-4 text-sm text-gray-600 font-mono">
-              <span className="bg-gray-100 border border-gray-200 rounded px-2 py-1 inline-block">{req.application_id}</span>
-            </td>
-            <td className="p-4"><StatusBadge status={req.status} /></td>
-            <td className="p-4 text-sm text-gray-500">{new Date(req.created_at).toLocaleDateString()}</td>
-            <td className="p-4 text-sm font-medium text-right">
-              {role === 'techlead' && ['packaged', 'validated'].includes(req.status) ? (
-                <button 
-                  onClick={() => navigate(`/requests/${req.id}/review`)}
-                  className="text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 border border-green-200 px-4 py-1.5 rounded shadow-sm transition-all"
-                >
-                  Approve/Rework
-                </button>
-              ) : role === 'architect' ? (
-                <button 
-                  onClick={() => navigate(`/requests/${req.id}/blueprint`)}
-                  className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-1.5 rounded shadow-sm transition-all"
-                >
-                  Review Blueprint
-                </button>
-              ) : role === 'devops' && ['packaged', 'approved'].includes(req.status) ? (
-                <button 
-                  onClick={() => navigate(`/requests/${req.id}/package`)}
-                  className="text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-4 py-1.5 rounded shadow-sm transition-all"
-                >
-                  Inspect Package
-                </button>
-              ) : role === 'developer' && ['packaged', 'approved'].includes(req.status) ? (
-                <button 
-                  onClick={() => navigate(`/requests/${req.id}/package`)}
-                  className="text-primary-orange hover:text-hover-orange bg-orange-50 hover:bg-orange-100 border border-orange-200 px-4 py-1.5 rounded shadow-sm transition-all"
-                >
-                  Download Skeleton
-                </button>
-              ) : (
-                <button 
-                  onClick={() => navigate(`/requests/${req.id}/patterns`)}
-                  className="text-gray-600 hover:text-gray-800 hover:underline transition-colors px-4 py-1.5"
-                >
-                  View Details
-                </button>
-              )}
-            </td>
+    <div className="overflow-x-auto">
+      <table className="w-full text-left">
+        <thead>
+          <tr className="bg-input-bg/50 text-text-secondary text-[11px] font-bold uppercase tracking-wider border-b border-border-light/60">
+            <th className="px-6 py-4 rounded-tl-lg">ID</th>
+            <th className="px-6 py-4">Microservice Request</th>
+            <th className="px-6 py-4">Target App ID</th>
+            <th className="px-6 py-4">Status</th>
+            <th className="px-6 py-4">Date</th>
+            <th className="px-6 py-4 text-right rounded-tr-lg">Action</th>
           </tr>
-        ))}
-        {requests.length === 0 && (
-          <tr>
-            <td colSpan="6" className="p-12 text-center text-gray-500">
-              <div className="text-4xl mb-3 opacity-50">📭</div>
-              No requests found.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
+        </thead>
+        <tbody className="divide-y divide-border-light/40">
+          {requests.map(req => (
+            <tr key={req.id} className="hover:bg-input-bg/30 transition-colors group">
+              <td className="px-6 py-5 text-sm text-text-secondary font-mono font-medium">#{req.id}</td>
+              <td className="px-6 py-5 text-sm font-extrabold text-sidebar">{req.request_name}</td>
+              <td className="px-6 py-5 text-sm">
+                <span className="bg-white border border-border-light/80 text-text-secondary font-mono text-xs font-semibold rounded-md px-2.5 py-1.5 inline-block shadow-sm">
+                  {req.application_id}
+                </span>
+              </td>
+              <td className="px-6 py-5"><StatusBadge status={req.status} /></td>
+              <td className="px-6 py-5 text-sm font-medium text-text-secondary">{new Date(req.created_at).toLocaleDateString()}</td>
+              <td className="px-6 py-5 text-sm font-medium text-right">
+                {role === 'techlead' && ['packaged', 'validated'].includes(req.status) ? (
+                  <button 
+                    onClick={() => navigate(`/requests/${req.id}/review`)}
+                    className="text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                  >
+                    Approve / Rework
+                  </button>
+                ) : role === 'architect' ? (
+                  <button 
+                    onClick={() => navigate(`/requests/${req.id}/blueprint`)}
+                    className="text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                  >
+                    Review Blueprint
+                  </button>
+                ) : role === 'devops' && ['packaged', 'approved'].includes(req.status) ? (
+                  <button 
+                    onClick={() => navigate(`/requests/${req.id}/package`)}
+                    className="text-purple-700 bg-purple-50 hover:bg-purple-600 hover:text-white border border-purple-200 hover:border-purple-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                  >
+                    Inspect Package
+                  </button>
+                ) : role === 'developer' && ['packaged', 'approved'].includes(req.status) ? (
+                  <button 
+                    onClick={() => navigate(`/requests/${req.id}/package`)}
+                    className="text-primary-orange bg-input-bg hover:bg-primary-orange hover:text-white border border-border-orange/40 hover:border-primary-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                  >
+                    Download Skeleton
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => navigate(`/requests/${req.id}/patterns`)}
+                    className="text-text-secondary hover:text-primary-orange hover:bg-input-bg border border-transparent hover:border-border-orange/20 px-4 py-2 rounded-lg font-bold transition-all"
+                  >
+                    View Details
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+          {requests.length === 0 && (
+            <tr>
+              <td colSpan="6" className="p-16 text-center">
+                <div className="w-20 h-20 bg-input-bg rounded-full flex items-center justify-center mx-auto mb-4 border border-border-orange/20">
+                  <span className="text-4xl">📭</span>
+                </div>
+                <h3 className="text-lg font-bold text-sidebar mb-1">No requests found</h3>
+                <p className="text-text-secondary text-sm">Get started by creating a new microservice skeleton.</p>
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }

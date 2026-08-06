@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardMetrics } from '../api/api';
 import Loader from '../components/Loader';
+import { useNavigate } from 'react-router-dom';
 
 export default function DeveloperDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export default function DeveloperDashboard() {
             <h2 className="text-xl font-extrabold text-sidebar mb-2">Quick Actions</h2>
             <p className="text-sm text-text-secondary">Generate new Kafka schemas, trace packages, or interact with the AI Advisor.</p>
           </div>
-          <button className="flex items-center gap-2 bg-primary-orange hover:bg-hover-orange text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_4px_14px_rgba(255,90,20,0.3)] hover:shadow-[0_6px_20px_rgba(255,90,20,0.4)] transition-all hover:-translate-y-0.5 whitespace-nowrap">
+          <button onClick={() => navigate('/request/new')} className="flex items-center gap-2 bg-primary-orange hover:bg-hover-orange text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_4px_14px_rgba(255,90,20,0.3)] hover:shadow-[0_6px_20px_rgba(255,90,20,0.4)] transition-all hover:-translate-y-0.5 whitespace-nowrap">
             + New Generation Request
           </button>
         </div>

@@ -39,7 +39,7 @@ export default function AdvisorChatPage() {
     <div className="flex flex-col h-full relative">
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none"></div>
 
-      <div className="flex-1 flex flex-col p-4 lg:p-8 max-w-6xl mx-auto w-full relative z-10">
+      <div className="flex-1 flex flex-col py-2 max-w-6xl mx-auto w-full relative z-10">
         
         {/* Unified Chat Container */}
         <div className="flex-1 flex flex-col bg-white rounded-3xl shadow-2xl border border-gray-200/60 overflow-hidden">

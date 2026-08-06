@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getPersonas } from '../api/api';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -11,15 +10,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [personas, setPersonas] = useState([]);
+  const hardcodedPersonas = [
+    { name: 'Engagement Manager', email: 'manager@example.com', password: 'password123', icon: 'EM', color: 'border-emerald-600 text-emerald-600 bg-emerald-50' },
+    { name: 'Project Lead', email: 'lead@example.com', password: 'password123', icon: 'PL', color: 'border-blue-600 text-blue-600 bg-blue-50' },
+    { name: 'PMO', email: 'reviewer@example.com', password: 'password123', icon: 'QR', color: 'border-purple-600 text-purple-600 bg-purple-50' },
+    { name: 'Finance', email: 'finance@example.com', password: 'password123', icon: 'FC', color: 'border-amber-600 text-amber-600 bg-amber-50' }
+  ];
 
-  useEffect(() => {
-    getPersonas().then(data => {
-      if (data.success) {
-        setPersonas(data.data);
-      }
-    }).catch(console.error);
-  }, []);
+  const [personas] = useState(hardcodedPersonas);
 
   const handleCardClick = (persona) => {
     setEmail(persona.email);
@@ -82,9 +80,17 @@ export default function LoginPage() {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full bg-button-orange hover:bg-hover-orange text-white p-3 rounded-lg font-bold transition-all shadow-md shadow-orange-500/20 mt-4 disabled:opacity-50"
+            className="w-full bg-button-orange hover:bg-hover-orange text-white p-3 rounded-lg font-bold transition-all shadow-md shadow-orange-500/20 mt-4 disabled:opacity-50 flex justify-center items-center"
           >
-            {loading ? 'Signing In...' : 'Sign In'}
+            {loading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Signing In...
+              </>
+            ) : 'Sign In'}
           </button>
         </form>
 

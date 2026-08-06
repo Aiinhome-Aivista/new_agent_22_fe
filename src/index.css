@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-orange: #FF5A14;
+    --button-orange: #FF7A45;
+    --hover-orange: #F56B2F;
+    --sidebar: #4A4A4A;
+    --bg-light: #FFFFFF;
+    --input-bg: #FFF7F2;
+    --border-light: #D8D8D8;
+    --border-orange: #FF8A55;
+    --text-primary: #666666;
+    --text-secondary: #888888;
+    --placeholder: #B0B0B0;
+    --white: #FFFFFF;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}

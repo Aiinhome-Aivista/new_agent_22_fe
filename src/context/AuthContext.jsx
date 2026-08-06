@@ -13,9 +13,17 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiLogin({ email, password });
       if (response.success) {
-        setUser(response.user);
-        localStorage.setItem('agent22_user', JSON.stringify(response.user));
-        return { success: true };
+        const userData = {
+            ...response.user,
+            session_id: response.session_id,
+            role: response.role,
+            permissions: response.permissions,
+            dashboard: response.dashboard,
+            menu: response.menu
+        };
+        setUser(userData);
+        localStorage.setItem('agent22_user', JSON.stringify(userData));
+        return { success: true, dashboard: userData.dashboard };
       }
       return { success: false, message: 'Login failed' };
     } catch (error) {

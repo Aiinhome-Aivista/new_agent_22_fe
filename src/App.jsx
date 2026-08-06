@@ -13,6 +13,12 @@ import PackagesPage from './pages/PackagesPage';
 import ReviewApprovalPage from './pages/ReviewApprovalPage';
 import AuditTrailPage from './pages/AuditTrailPage';
 import AdvisorChatPage from './pages/AdvisorChatPage';
+import ProtectedRoute from './components/ProtectedRoute';
+
+import DeveloperDashboard from './pages/DeveloperDashboard';
+import ArchitectDashboard from './pages/ArchitectDashboard';
+import ReviewerDashboard from './pages/ReviewerDashboard';
+import DevopsDashboard from './pages/DevopsDashboard';
 
 function App() {
   return (
@@ -22,16 +28,38 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="requests/new" element={<NewRequestPage />} />
-          <Route path="requests/:id/patterns" element={<PatternReviewPage />} />
-          <Route path="requests/:id/blueprint" element={<BlueprintPage />} />
-          <Route path="requests/:id/generation" element={<GenerationProgressPage />} />
-          <Route path="requests/:id/validation" element={<ValidationReportPage />} />
-          <Route path="requests/:id/package" element={<PackagesPage />} />
-          <Route path="requests/:id/review" element={<ReviewApprovalPage />} />
-          <Route path="audit" element={<AuditTrailPage />} />
-          <Route path="chat" element={<AdvisorChatPage />} />
+          {/* Default redirect to login or role dashboard handled by ProtectedRoute/AuthContext */}
+          
+          <Route element={<ProtectedRoute allowedRoles={['developer']} />}>
+            <Route path="developer/dashboard" element={<DeveloperDashboard />} />
+            <Route path="request/new" element={<NewRequestPage />} />
+            <Route path="progress" element={<GenerationProgressPage />} />
+            <Route path="requests" element={<Dashboard />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute allowedRoles={['architect']} />}>
+            <Route path="architect/dashboard" element={<ArchitectDashboard />} />
+            <Route path="review/patterns" element={<PatternReviewPage />} />
+            <Route path="review/blueprint" element={<BlueprintPage />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
+            <Route path="reviewer/dashboard" element={<ReviewerDashboard />} />
+            <Route path="validation" element={<ValidationReportPage />} />
+            <Route path="review/queue" element={<ReviewApprovalPage />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute allowedRoles={['devops']} />}>
+            <Route path="devops/dashboard" element={<DevopsDashboard />} />
+            <Route path="packaging" element={<PackagesPage />} />
+          </Route>
+
+          {/* Shared Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="audit" element={<AuditTrailPage />} />
+            <Route path="chat" element={<AdvisorChatPage />} />
+            <Route path="packages" element={<PackagesPage />} />
+          </Route>
         </Route>
       </Routes>
     </AuthProvider>

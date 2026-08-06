@@ -1,12 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const navItems = [
-  { path: '/', label: 'Dashboard' },
-  { path: '/requests/new', label: 'New Request' },
-  { path: '/audit', label: 'Audit Trail' },
-  { path: '/chat', label: 'Advisor Chat' }
-];
+
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
@@ -32,7 +27,7 @@ export default function Sidebar() {
       )}
 
       <nav className="flex-1 px-4 space-y-2">
-        {navItems.map((item) => (
+        {user && user.menu && user.menu.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
@@ -42,7 +37,7 @@ export default function Sidebar() {
               }`
             }
           >
-            {item.label}
+            {item.name}
           </NavLink>
         ))}
       </nav>

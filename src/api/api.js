@@ -44,4 +44,7 @@ export const getChatHistory = (sessionId) => api.get(`/chat/history/${sessionId}
 // Audit
 export const getAuditLogs = (reqId) => api.get(`/audit/request/${reqId}`).then(res => res.data);
 
+// Dashboard
+export const getDashboardMetrics = (role) => api.get(`/dashboard/metrics/${role}`).then(res => res.data);
+
 export default api;

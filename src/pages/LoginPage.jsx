@@ -34,7 +34,7 @@ export default function LoginPage() {
     
     const result = await login(email, password);
     if (result.success) {
-      navigate('/');
+      navigate(result.dashboard || '/');
     } else {
       setError(result.message);
       setLoading(false);

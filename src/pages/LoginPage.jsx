@@ -1,79 +1,122 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
-const personas = [
-  {
-    id: 'architect',
-    name: 'Jane Doe',
-    role: 'Enterprise Architect',
-    description: 'Review blueprints and approve generated architecture designs.',
-    icon: '🏗️',
-    color: 'from-blue-500 to-cyan-400'
-  },
-  {
-    id: 'developer',
-    name: 'John Smith',
-    role: 'Kafka Developer',
-    description: 'Define source/target topics and trigger AI generation.',
-    icon: '💻',
-    color: 'from-primary-orange to-orange-400'
-  },
-  {
-    id: 'ba',
-    name: 'Alice Johnson',
-    role: 'Business Analyst',
-    description: 'Provide natural language schema requirements for transformations.',
-    icon: '📊',
-    color: 'from-purple-500 to-pink-400'
-  }
-];
+import { getPersonas } from '../api/api';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [personas, setPersonas] = useState([]);
 
-  const handleLogin = (persona) => {
-    login(persona);
-    navigate('/');
+  useEffect(() => {
+    getPersonas().then(data => {
+      if (data.success) {
+        setPersonas(data.data);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleCardClick = (persona) => {
+    setEmail(persona.email);
+    setPassword(persona.password);
+    setError('');
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    const result = await login(email, password);
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.message);
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-bg-light flex flex-col justify-center items-center relative overflow-hidden font-sans">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+    <div className="min-h-screen bg-bg-light text-text-primary flex flex-col justify-center items-center font-sans py-12 px-4 relative">
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
       
-      <div className="z-10 text-center mb-12 animate-fade-in-up">
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-4">Select Your Persona</h1>
-        <p className="text-gray-500 max-w-md mx-auto">
-          For this demo, please select a role to access the Agent 22 DigiconFX workspace.
-        </p>
-      </div>
+      <div className="w-full max-w-md bg-white rounded-2xl p-8 border border-border-light shadow-xl relative z-10 animate-fade-in-up">
+        
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-extrabold text-primary-orange tracking-tight">Agent 22 Portal</h1>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full px-8 z-10">
-        {personas.map((persona, index) => (
-          <button
-            key={persona.id}
-            onClick={() => handleLogin(persona)}
-            className="group text-left bg-white rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all transform hover:-translate-y-1 animate-fade-in-up relative overflow-hidden"
-            style={{ animationDelay: `${0.1 * (index + 1)}s` }}
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">Email Address</label>
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 bg-input-bg border border-border-light rounded-lg text-text-primary focus:ring-1 focus:ring-primary-orange focus:border-border-orange outline-none transition-all placeholder:text-placeholder"
+              placeholder="manager@example.com"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">Password</label>
+            <div className="relative">
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 bg-input-bg border border-border-light rounded-lg text-text-primary focus:ring-1 focus:ring-primary-orange focus:border-border-orange outline-none transition-all tracking-widest placeholder:text-placeholder"
+                placeholder="•••••••••••"
+                required
+              />
+            </div>
+          </div>
+          
+          {error && <div className="text-red-500 text-sm font-medium">{error}</div>}
+
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full bg-button-orange hover:bg-hover-orange text-white p-3 rounded-lg font-bold transition-all shadow-md shadow-orange-500/20 mt-4 disabled:opacity-50"
           >
-            <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${persona.color}`}></div>
-            <div className="text-4xl mb-6">{persona.icon}</div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1">{persona.name}</h2>
-            <div className={`text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r ${persona.color} mb-4 inline-block`}>
-              {persona.role}
-            </div>
-            <p className="text-sm text-gray-500 line-clamp-3">
-              {persona.description}
-            </p>
-            <div className="mt-8 flex items-center text-sm font-medium text-gray-400 group-hover:text-gray-900 transition-colors">
-              Sign In <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
-            </div>
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
-        ))}
-      </div>
-      
-      <div className="absolute bottom-8 text-xs text-gray-400 font-medium z-10">
-        PwC Enterprise Internal Demo Use Only
+        </form>
+
+        {personas.length > 0 && (
+          <div className="mt-8 border-t border-border-light pt-6">
+            <div className="flex items-center text-sm font-medium text-text-secondary mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-2 text-primary-orange">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+              </svg>
+              Quick Login Personas
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              {personas.map((p, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleCardClick(p)}
+                  className="flex items-center p-2 rounded-lg bg-white border border-border-light hover:border-border-orange hover:shadow-sm transition-all text-left"
+                >
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center font-bold text-xs mr-3 border ${p.color}`}>
+                    {p.icon}
+                  </div>
+                  <div className="overflow-hidden">
+                    <div className="text-xs font-bold text-text-primary truncate">{p.name}</div>
+                    <div className="text-[10px] text-text-secondary truncate">{p.email}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

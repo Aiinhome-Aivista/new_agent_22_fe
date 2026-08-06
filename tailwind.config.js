@@ -4,21 +4,27 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    'border-emerald-600', 'text-emerald-600', 'bg-emerald-50',
+    'border-blue-600', 'text-blue-600', 'bg-blue-50',
+    'border-purple-600', 'text-purple-600', 'bg-purple-50',
+    'border-amber-600', 'text-amber-600', 'bg-amber-50'
+  ],
   theme: {
     extend: {
       colors: {
-        'primary-orange': 'var(--primary-orange)',
-        'button-orange': 'var(--button-orange)',
-        'hover-orange': 'var(--hover-orange)',
-        sidebar: 'var(--sidebar)',
-        'bg-light': 'var(--bg-light)',
-        'input-bg': 'var(--input-bg)',
-        'border-light': 'var(--border-light)',
-        'border-orange': 'var(--border-orange)',
-        'text-primary': 'var(--text-primary)',
-        'text-secondary': 'var(--text-secondary)',
-        placeholder: 'var(--placeholder)',
-        white: 'var(--white)'
+        'primary-orange': '#FF5A14',
+        'button-orange': '#FF7A45',
+        'hover-orange': '#F56B2F',
+        sidebar: '#4A4A4A',
+        'bg-light': '#FFFFFF',
+        'input-bg': '#FFF7F2',
+        'border-light': '#D8D8D8',
+        'border-orange': '#FF8A55',
+        'text-primary': '#666666',
+        'text-secondary': '#888888',
+        placeholder: '#B0B0B0',
+        white: '#FFFFFF'
       },
       animation: {
         'fade-in-up': 'fadeInUp 0.8s ease-out forwards',

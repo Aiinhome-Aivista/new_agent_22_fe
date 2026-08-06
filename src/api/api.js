@@ -12,6 +12,10 @@ export const createRequest = (data) => api.post('/requirements/', data).then(res
 // Patterns
 export const getPatterns = (reqId) => api.get(`/patterns/request/${reqId}`).then(res => res.data);
 
+// Auth endpoints
+export const loginUser = (credentials) => api.post('/auth/login', credentials).then(res => res.data);
+export const getPersonas = () => api.get('/auth/personas').then(res => res.data);
+
 // Blueprint
 export const getBlueprint = (reqId) => api.get(`/blueprint/request/${reqId}`).then(res => res.data);
 export const approveBlueprint = (bpId) => api.put(`/blueprint/${bpId}/approve`).then(res => res.data);

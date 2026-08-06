@@ -21,7 +21,7 @@ export default function MainLayout() {
       <div className="flex-1 flex flex-col overflow-hidden relative">
         <Navbar title={title} />
         <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-input-bg/30 relative">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto h-full">
             <Outlet />
           </div>
         </main>

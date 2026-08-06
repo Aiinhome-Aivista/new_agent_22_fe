@@ -1,4 +1,3 @@
-import Navbar from '../components/Navbar';
 import { useLocation } from 'react-router-dom';
 
 export default function PlaceholderPage() {
@@ -11,8 +10,7 @@ export default function PlaceholderPage() {
     : "Module";
 
   return (
-    <div className="flex flex-col h-full bg-bg-light">
-      <Navbar title={`${title} (Under Construction)`} />
+    <div className="flex flex-col h-full">
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in-up">
         <div className="w-24 h-24 bg-orange-100 text-primary-orange rounded-full flex items-center justify-center mb-6 shadow-inner">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12">

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { createRequest, runWorkflow } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 
 export default function NewRequestPage() {
   const navigate = useNavigate();
+  const formRef = useRef(null);
   const [formData, setFormData] = useState({
     request_name: '',
     application_id: '',
@@ -23,15 +24,16 @@ export default function NewRequestPage() {
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (draftMode) => {
+    if (!formRef.current.reportValidity()) return;
+    
     setLoading(true);
     setError('');
     try {
       const res = await createRequest(formData);
       const reqId = res.data.request_id;
       // Start workflow
-      await runWorkflow(reqId);
+      await runWorkflow(reqId, draftMode);
       navigate(`/requests/${reqId}/generation`);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -42,7 +44,7 @@ export default function NewRequestPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="p-8 max-w-3xl mx-auto w-full">
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow border border-border-light space-y-6">
+        <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="bg-white p-6 rounded shadow border border-border-light space-y-6">
           {error && <div className="bg-red-50 text-red-600 p-3 rounded text-sm">{error}</div>}
           
           <div className="grid grid-cols-2 gap-6">
@@ -78,14 +80,36 @@ export default function NewRequestPage() {
             <input type="checkbox" id="state_store_needed" name="state_store_needed" checked={formData.state_store_needed} onChange={handleChange} className="w-4 h-4 text-primary-orange focus:ring-primary-orange border-gray-300 rounded" />
             <label htmlFor="state_store_needed" className="text-sm text-gray-700">Requires State Store (Stateful processing)</label>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Error Topic Policy</label>
+            <select name="error_topic_policy" value={formData.error_topic_policy} onChange={handleChange} className="w-full bg-input-bg border border-border-light rounded p-2 focus:border-border-orange outline-none">
+              <option value="DLQ">Dead Letter Queue (DLQ)</option>
+              <option value="IGNORE">Ignore Errors</option>
+              <option value="RETRY">Retry Policy</option>
+            </select>
+          </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Business Logic / Schema Hints</label>
             <textarea name="schema_hints" value={formData.schema_hints} onChange={handleChange} rows="4" className="w-full bg-input-bg border border-border-light rounded p-2 focus:border-border-orange outline-none" placeholder="Describe transformation rules..."></textarea>
           </div>
           
-          <div className="pt-4 flex justify-end">
-            <button type="submit" disabled={loading} className="bg-button-orange hover:bg-hover-orange text-white px-6 py-2 rounded font-medium transition-colors disabled:opacity-50">
+          <div className="pt-4 flex justify-end gap-4">
+            <button 
+              type="button" 
+              onClick={() => handleSubmit(true)} 
+              disabled={loading} 
+              className="bg-white border border-border-orange text-button-orange hover:bg-orange-50 px-6 py-2 rounded font-medium transition-colors disabled:opacity-50 shadow-sm"
+            >
+              {loading ? 'Processing...' : 'Submit for Review (Manual)'}
+            </button>
+            <button 
+              type="button" 
+              onClick={() => handleSubmit(false)} 
+              disabled={loading} 
+              className="bg-button-orange hover:bg-hover-orange text-white px-6 py-2 rounded font-medium transition-colors disabled:opacity-50 shadow-sm"
+            >
               {loading ? 'Processing...' : 'Run Full Pipeline with AI'}
             </button>
           </div>

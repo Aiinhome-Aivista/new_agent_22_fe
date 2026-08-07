@@ -24,6 +24,23 @@ export default function PackagesPage() {
 
   if (loading) return <Loader />;
 
+  if (!id || id === 'undefined') {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-gray-50 text-gray-500 p-8">
+        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center max-w-md">
+          <h2 className="text-xl font-bold text-gray-800 mb-2">No Request Selected</h2>
+          <p className="text-sm mb-6">Please select a request from your dashboard to view its generated packages.</p>
+          <button 
+            onClick={() => navigate('/requests')}
+            className="bg-primary-orange hover:bg-hover-orange text-white px-6 py-2 rounded-lg font-medium transition-colors"
+          >
+            Go to My Requests
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       <ProgressStepper />

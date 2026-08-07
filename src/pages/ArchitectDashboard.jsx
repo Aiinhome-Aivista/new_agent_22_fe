@@ -1,21 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getDashboardMetrics } from '../api/api';
+import { getDashboardMetrics, getRequests } from '../api/api';
 import Loader from '../components/Loader';
 import { useNavigate } from 'react-router-dom';
+import RequestTable from '../components/RequestTable';
 import { BuildingLibraryIcon, ShieldCheckIcon, DocumentCheckIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 
 export default function ArchitectDashboard() {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState(null);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    getDashboardMetrics('architect').then(res => {
-      if (res.success) setMetrics(res.data);
-    }).catch(console.error);
+    Promise.all([getDashboardMetrics('architect'), getRequests()])
+      .then(([metricsRes, requestsRes]) => {
+        if (metricsRes.success) setMetrics(metricsRes.data);
+        if (requestsRes.success) setRequests(requestsRes.data || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
   }, []);
 
-  if (!metrics) return <Loader />;
+  if (loading || !metrics) return <Loader />;
 
   return (
     <div className="animate-fade-in-up">
@@ -58,11 +69,32 @@ export default function ArchitectDashboard() {
         </div>
       </div>
       
-      <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/4"></div>
-        <div className="p-8 relative z-10">
-          <h2 className="text-xl font-extrabold text-sidebar mb-2">Architecture Review Queue</h2>
-          <p className="text-sm text-text-secondary">There are <span className="font-bold text-primary-orange">{metrics.architecture_reviews}</span> drafts waiting for blueprint matching and validation.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden mt-8">
+        <div className="p-6 md:p-8 border-b border-border-light/60 bg-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/4"></div>
+          <div className="relative z-10">
+            <h2 className="font-extrabold text-sidebar text-2xl">Architecture Blueprints</h2>
+            <p className="text-sm text-text-secondary mt-1">Review generated designs against messaging patterns and standards.</p>
+          </div>
+        </div>
+        <RequestTable requests={requests} role="architect" navigate={navigate} />
+      </div>
+
+      <div className="mt-8 bg-gradient-to-br from-[#1E293B] to-[#0F172A] rounded-2xl p-8 text-white relative overflow-hidden shadow-xl border border-gray-800">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-orange/20 rounded-full mix-blend-screen filter blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+        <div className="relative z-10">
+          <h2 className="text-xl font-bold mb-2">Design Standards</h2>
+          <p className="text-gray-400 max-w-2xl text-sm mb-6">
+            Ensure all microservices adhere to standard patterns for stateful processors, event sourcing, and CQRS architectures.
+          </p>
+          <div className="flex gap-4">
+            <button className="bg-primary-orange hover:bg-hover-orange text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-[0_0_15px_rgba(255,90,20,0.4)]">
+              Update Patterns
+            </button>
+            <button className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm border border-white/10">
+              View Guidelines
+            </button>
+          </div>
         </div>
       </div>
     </div>

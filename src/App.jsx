@@ -35,24 +35,32 @@ function App() {
             <Route path="developer/dashboard" element={<DeveloperDashboard />} />
             <Route path="request/new" element={<NewRequestPage />} />
             <Route path="progress" element={<GenerationProgressPage />} />
+            <Route path="requests/:id/generation" element={<GenerationProgressPage />} />
             <Route path="requests" element={<Dashboard />} />
           </Route>
           
           <Route element={<ProtectedRoute allowedRoles={['architect']} />}>
             <Route path="architect/dashboard" element={<ArchitectDashboard />} />
             <Route path="review/patterns" element={<PatternReviewPage />} />
+            <Route path="requests/:id/patterns" element={<PatternReviewPage />} />
             <Route path="review/blueprint" element={<BlueprintPage />} />
+            <Route path="requests/:id/blueprint" element={<BlueprintPage />} />
+            <Route path="standards" element={<PlaceholderPage title="Architecture Standards" />} />
+            <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
           </Route>
           
           <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
             <Route path="validation" element={<ValidationReportPage />} />
+            <Route path="requests/:id/validation" element={<ValidationReportPage />} />
             <Route path="review/queue" element={<ReviewApprovalPage />} />
+            <Route path="requests/:id/review" element={<ReviewApprovalPage />} />
           </Route>
           
           <Route element={<ProtectedRoute allowedRoles={['devops']} />}>
             <Route path="devops/dashboard" element={<DevopsDashboard />} />
             <Route path="packaging" element={<PackagesPage />} />
+            <Route path="requests/:id/package" element={<PackagesPage />} />
           </Route>
 
           {/* Shared Routes */}
@@ -60,6 +68,7 @@ function App() {
             <Route path="audit" element={<AuditTrailPage />} />
             <Route path="chat" element={<AdvisorChatPage />} />
             <Route path="packages" element={<PackagesPage />} />
+            <Route path="requests/:id/packages" element={<PackagesPage />} />
           </Route>
 
           {/* Catch-all for under construction pages */}

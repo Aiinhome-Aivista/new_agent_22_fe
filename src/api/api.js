@@ -34,7 +34,7 @@ export const addReview = (data) => api.post('/review/', data).then(res => res.da
 export const getReviews = (reqId) => api.get(`/review/request/${reqId}`).then(res => res.data);
 
 // Workflow
-export const runWorkflow = (reqId) => api.post('/workflow/run', { request_id: reqId }).then(res => res.data);
+export const runWorkflow = (reqId, draftMode = false) => api.post('/workflow/run', { request_id: reqId, draft_mode: draftMode }).then(res => res.data);
 export const getWorkflowStatus = (jobId) => api.get(`/workflow/status/${jobId}`).then(res => res.data);
 
 // Chat

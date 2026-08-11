@@ -28,8 +28,10 @@ export const getGeneratedFiles = (reqId) => api.get(`/generate/request/${reqId}/
 // Validation
 export const getValidationResults = (reqId) => api.get(`/validation/request/${reqId}`).then(res => res.data);
 
-// Packages
+// Packages & DevOps
 export const getPackages = () => api.get('/packages/').then(res => res.data);
+export const generateDevopsScripts = (reqId, envName) => api.post('/packages/generate-scripts', { request_id: reqId, env_name: envName }).then(res => res.data);
+export const triggerPipeline = (reqId, envName) => api.post('/packages/trigger-pipeline', { request_id: reqId, env_name: envName }).then(res => res.data);
 
 // Reviews
 export const addReview = (data) => api.post('/review/', data).then(res => res.data);
@@ -53,5 +55,10 @@ export const getDashboardMetrics = (role) => api.get(`/dashboard/metrics/${role}
 export const getStandards = () => api.get('/standards/').then(res => res.data);
 export const saveStandard = (data) => api.post('/standards/', data).then(res => res.data);
 export const deleteStandard = (id) => api.delete(`/standards/${id}`).then(res => res.data);
+
+// Environments
+export const getEnvironments = () => api.get('/environments/').then(res => res.data);
+export const getEnvironment = (envName) => api.get(`/environments/${envName}`).then(res => res.data);
+export const updateEnvironment = (envName, data) => api.put(`/environments/${envName}`, data).then(res => res.data);
 
 export default api;

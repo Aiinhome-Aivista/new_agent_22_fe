@@ -21,6 +21,11 @@ import DeveloperDashboard from './pages/DeveloperDashboard';
 import ArchitectDashboard from './pages/ArchitectDashboard';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import DevopsDashboard from './pages/DevopsDashboard';
+import DevopsConfigPage from './pages/DevopsConfigPage';
+import EnvironmentStatusPage from './pages/EnvironmentStatusPage';
+import DeploymentPage from './pages/DeploymentPage';
+import PipelinePage from './pages/PipelinePage';
+import SystemLogsPage from './pages/SystemLogsPage';
 
 function App() {
   return (
@@ -36,6 +41,12 @@ function App() {
             <Route path="architect/dashboard" element={<ArchitectDashboard />} />
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
             <Route path="devops/dashboard" element={<DevopsDashboard />} />
+            <Route path="devops/config" element={<DevopsConfigPage />} />
+            <Route path="config" element={<DevopsConfigPage />} />
+            <Route path="environment" element={<EnvironmentStatusPage />} />
+            <Route path="deploy" element={<DeploymentPage />} />
+            <Route path="cicd" element={<PipelinePage />} />
+            <Route path="logs" element={<SystemLogsPage />} />
 
             <Route path="request/new" element={<NewRequestPage />} />
             <Route path="progress" element={<GenerationProgressPage />} />
@@ -51,17 +62,18 @@ function App() {
 
             <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
+            
+            <Route path="packaging" element={<PackagesPage />} />
+            <Route path="packages" element={<PackagesPage />} />
+            <Route path="requests/:id/package" element={<PackagesPage />} />
+            <Route path="requests/:id/packages" element={<PackagesPage />} />
+            <Route path="requests/:id/packaging" element={<PackagesPage />} />
           </Route>
           
           <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
             <Route path="validation" element={<ValidationReportPage />} />
             <Route path="requests/:id/validation" element={<ValidationReportPage />} />
-
-            <Route path="packaging" element={<PackagesPage />} />
-            <Route path="packages" element={<PackagesPage />} />
-            <Route path="requests/:id/package" element={<PackagesPage />} />
-            <Route path="requests/:id/packages" element={<PackagesPage />} />
 
             <Route path="review/queue" element={<ReviewApprovalPage />} />
             <Route path="requests/:id/review" element={<ReviewApprovalPage />} />

@@ -29,51 +29,46 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         
         <Route element={<MainLayout />}>
-          {/* Default redirect to login or role dashboard handled by ProtectedRoute/AuthContext */}
-          
-          <Route element={<ProtectedRoute allowedRoles={['developer']} />}>
+          {/* Shared Pipeline & Feature Routes */}
+          <Route element={<ProtectedRoute />}>
             <Route path="developer/dashboard" element={<DeveloperDashboard />} />
+            <Route path="architect/dashboard" element={<ArchitectDashboard />} />
+            <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
+            <Route path="devops/dashboard" element={<DevopsDashboard />} />
+
             <Route path="request/new" element={<NewRequestPage />} />
             <Route path="progress" element={<GenerationProgressPage />} />
-            <Route path="requests/:id/generation" element={<GenerationProgressPage />} />
             <Route path="requests" element={<Dashboard />} />
-          </Route>
-          
-          <Route element={<ProtectedRoute allowedRoles={['architect']} />}>
-            <Route path="architect/dashboard" element={<ArchitectDashboard />} />
+
             <Route path="review/patterns" element={<PatternReviewPage />} />
             <Route path="requests/:id/patterns" element={<PatternReviewPage />} />
+
             <Route path="review/blueprint" element={<BlueprintPage />} />
             <Route path="requests/:id/blueprint" element={<BlueprintPage />} />
-            <Route path="standards" element={<PlaceholderPage title="Architecture Standards" />} />
-            <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
-          </Route>
-          
-          <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
-            <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
+
+            <Route path="requests/:id/generation" element={<GenerationProgressPage />} />
+
             <Route path="validation" element={<ValidationReportPage />} />
             <Route path="requests/:id/validation" element={<ValidationReportPage />} />
+
+            <Route path="packaging" element={<PackagesPage />} />
+            <Route path="packages" element={<PackagesPage />} />
+            <Route path="requests/:id/package" element={<PackagesPage />} />
+            <Route path="requests/:id/packages" element={<PackagesPage />} />
+
             <Route path="review/queue" element={<ReviewApprovalPage />} />
             <Route path="requests/:id/review" element={<ReviewApprovalPage />} />
-          </Route>
-          
-          <Route element={<ProtectedRoute allowedRoles={['devops']} />}>
-            <Route path="devops/dashboard" element={<DevopsDashboard />} />
-            <Route path="packaging" element={<PackagesPage />} />
-            <Route path="requests/:id/package" element={<PackagesPage />} />
-          </Route>
 
-          {/* Shared Routes */}
-          <Route element={<ProtectedRoute />}>
+            <Route path="standards" element={<PlaceholderPage title="Architecture Standards" />} />
+            <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
             <Route path="audit" element={<AuditTrailPage />} />
             <Route path="chat" element={<AdvisorChatPage />} />
-            <Route path="packages" element={<PackagesPage />} />
-            <Route path="requests/:id/packages" element={<PackagesPage />} />
           </Route>
 
           {/* Catch-all for under construction pages */}
           <Route path="*" element={<PlaceholderPage />} />
         </Route>
+
       </Routes>
     </AuthProvider>
   );

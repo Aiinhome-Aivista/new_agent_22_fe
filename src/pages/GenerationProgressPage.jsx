@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
-import { getWorkflowStatus, getGeneratedFiles } from '../api/api';
+import { getRequest, getGeneratedFiles } from '../api/api';
 import { useParams, useNavigate } from 'react-router-dom';
 
 export default function GenerationProgressPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [job, setJob] = useState(null);
+  const [reqData, setReqData] = useState(null);
   const [files, setFiles] = useState([]);
 
   useEffect(() => {
-    // Find job id by polling logic usually, but here we'll just fetch latest job for request
-    // Alternatively, we can just fetch generated files
+    if (!id || id === 'undefined') return;
+
     const fetchStatus = () => {
-      if (!id || id === 'undefined') return;
+      getRequest(id).then(res => {
+        if (res.success) setReqData(res.data);
+      }).catch(console.error);
+
       getGeneratedFiles(id).then(data => setFiles(data.data || [])).catch(console.error);
     };
-    
+
     fetchStatus();
     const interval = setInterval(fetchStatus, 3000);
     return () => clearInterval(interval);
@@ -39,9 +42,13 @@ export default function GenerationProgressPage() {
     );
   }
 
+  // Parse step log lines
+  const rawLog = reqData?.job?.step_log || '';
+  const logLines = rawLog.split('\n').filter(line => line.trim().length > 0);
+
   return (
     <div className="flex flex-col h-full">
-      <ProgressStepper />
+      <ProgressStepper requestId={id} />
       <div className="p-8 flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-800">Pipeline Status</h2>
@@ -53,12 +60,20 @@ export default function GenerationProgressPage() {
         <div className="grid grid-cols-2 gap-6 h-full">
           <div className="bg-black text-green-400 font-mono text-sm p-4 rounded shadow overflow-y-auto" style={{maxHeight: '60vh'}}>
             <div className="mb-2 text-gray-500">{"// Agent Execution Log"}</div>
-            <div>[Orchestrator] Starting pipeline...</div>
-            <div>[Requirements Interpreter] Normalizing inputs...</div>
-            <div>[Pattern Retrieval] Found matched templates...</div>
-            <div>[Blueprint Agent] Generated class definitions...</div>
-            <div>[Generation Agent] Rendering Jinja2 templates...</div>
-            {files.length > 0 && <div className="text-blue-400">Successfully generated {files.length} files.</div>}
+            {logLines.length > 0 ? (
+              logLines.map((line, idx) => (
+                <div key={idx} className={line.includes('Error') || line.includes('Failed') ? 'text-red-400 font-bold' : ''}>
+                  {line}
+                </div>
+              ))
+            ) : (
+              <>
+                <div>[Orchestrator] Starting pipeline...</div>
+                <div>[Requirements Interpreter] Normalizing inputs...</div>
+                <div>[Pattern Retrieval] Querying knowledge base...</div>
+              </>
+            )}
+            {files.length > 0 && <div className="text-blue-400 mt-2">Successfully generated {files.length} files.</div>}
             <div className="mt-4 animate-pulse">_</div>
           </div>
           
@@ -73,10 +88,17 @@ export default function GenerationProgressPage() {
                 </pre>
               </div>
             ))}
-            {files.length === 0 && <div className="text-gray-500 italic text-sm">Waiting for Generation Agent...</div>}
+            {files.length === 0 && (
+              <div className="text-gray-500 italic text-sm">
+                {reqData?.request?.status === 'blueprint_review' 
+                  ? 'Pipeline paused for Blueprint Review. Waiting for Architect approval.'
+                  : 'Waiting for Generation Agent...'}
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
+

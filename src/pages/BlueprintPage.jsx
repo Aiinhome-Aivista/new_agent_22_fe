@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
 import FileTree from '../components/FileTree';
-import { getBlueprint, approveBlueprint } from '../api/api';
+import { getBlueprint, approveBlueprint, runWorkflow } from '../api/api';
 import Loader from '../components/Loader';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -52,8 +52,10 @@ export default function BlueprintPage() {
   const handleApprove = async () => {
     if (!blueprint) return;
     await approveBlueprint(blueprint.id);
+    await runWorkflow(id, false);
     navigate('/architect/dashboard');
   };
+
 
   return (
     <div className="flex flex-col h-full">

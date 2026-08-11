@@ -48,13 +48,19 @@ function App() {
             <Route path="requests/:id/blueprint" element={<BlueprintPage />} />
 
             <Route path="requests/:id/generation" element={<GenerationProgressPage />} />
+            <Route
+              path="requests/:id/validation"
+              element={<ValidationReportPage />}
+            />
 
-            <Route path="standards" element={<StandardsPage />} />
-            <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
-          </Route>
-          
-          <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
-            <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
+            <Route
+              path="review/queue"
+              element={<ReviewApprovalPage />}
+            />
+            <Route
+              path="requests/:id/review"
+              element={<ReviewApprovalPage />}
+            />
             <Route path="validation" element={<ValidationReportPage />} />
             <Route path="requests/:id/validation" element={<ValidationReportPage />} />
 
@@ -66,11 +72,12 @@ function App() {
             <Route path="review/queue" element={<ReviewApprovalPage />} />
             <Route path="requests/:id/review" element={<ReviewApprovalPage />} />
 
-            <Route path="standards" element={<PlaceholderPage title="Architecture Standards" />} />
+            <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
             <Route path="audit" element={<AuditTrailPage />} />
             <Route path="chat" element={<AdvisorChatPage />} />
           </Route>
+
 
           {/* Catch-all for under construction pages */}
           <Route path="*" element={<PlaceholderPage />} />

@@ -1,17 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getDashboardMetrics } from '../api/api';
+import { getDashboardMetrics, getRequests } from '../api/api';
 import Loader from '../components/Loader';
+import RequestTable from '../components/RequestTable';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardDocumentCheckIcon, ExclamationCircleIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 export default function ReviewerDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
+  const [requests, setRequests] = useState([]);
 
   useEffect(() => {
     getDashboardMetrics('techlead').then(res => {
       if (res.success) setMetrics(res.data);
+    }).catch(console.error);
+
+    getRequests().then(res => {
+      if (res.data) setRequests(res.data);
     }).catch(console.error);
   }, []);
 
@@ -26,7 +33,10 @@ export default function ReviewerDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         
-        <div className="bg-gradient-to-br from-primary-orange to-button-orange p-6 rounded-2xl shadow-[0_8px_30px_rgba(255,90,20,0.2)] text-white flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(255,90,20,0.3)]">
+        <div 
+          onClick={() => navigate('/review/queue')}
+          className="bg-gradient-to-br from-primary-orange to-button-orange p-6 rounded-2xl shadow-[0_8px_30px_rgba(255,90,20,0.2)] text-white flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(255,90,20,0.3)] cursor-pointer"
+        >
           <div>
             <h3 className="text-white/90 text-xs font-bold uppercase tracking-wider">Pending Reviews</h3>
             <p className="text-4xl font-extrabold mt-2">{metrics.pending_reviews}</p>
@@ -59,6 +69,13 @@ export default function ReviewerDashboard() {
         </div>
 
       </div>
+
+      {/* Microservice Requests for Tech Lead Review */}
+      <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6">
+        <h2 className="text-lg font-bold text-sidebar mb-4">Requests Requiring Review</h2>
+        <RequestTable requests={requests} role="techlead" navigate={navigate} />
+      </div>
     </div>
   );
 }
+

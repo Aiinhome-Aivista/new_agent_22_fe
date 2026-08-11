@@ -34,11 +34,11 @@ export default function ValidationReportPage() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-800">Validation Checks</h2>
           <button 
-            onClick={() => navigate(`/requests/${id}/package`)} 
+            onClick={() => navigate(`/requests/${id}/review`)} 
             disabled={hasErrors}
             className={`px-6 py-2 rounded font-medium transition-colors ${hasErrors ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-button-orange hover:bg-hover-orange text-white'}`}
           >
-            {hasErrors ? 'Fix Errors to Continue' : 'Next: Packages'}
+            {hasErrors ? 'Fix Errors to Continue' : 'Next: review'}
           </button>
         </div>
         

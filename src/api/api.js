@@ -32,6 +32,7 @@ export const getValidationResults = (reqId) => api.get(`/validation/request/${re
 export const getPackages = () => api.get('/packages/').then(res => res.data);
 
 // Reviews
+export const getReviewQueue = () =>api.get('/review/queue').then(res => res.data);
 export const addReview = (data) => api.post('/review/', data).then(res => res.data);
 export const getReviews = (reqId) => api.get(`/review/request/${reqId}`).then(res => res.data);
 

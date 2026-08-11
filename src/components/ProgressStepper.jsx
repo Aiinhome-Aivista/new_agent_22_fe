@@ -53,8 +53,12 @@ export default function ProgressStepper({ requestId: propRequestId }) {
     const jobStatus = reqData.job?.job_status;
     const currentStep = reqData.job?.current_step;
 
+    // If request is fully approved, all stages are completed (Green Tick)
+    if (reqStatus === 'approved') return 'completed';
+
     // Step 0: Intake
     if (stepIndex === 0) return 'completed';
+
 
     // Step 1: Blueprint
     if (stepIndex === 1) {

@@ -3,9 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { getDashboardMetrics } from '../api/api';
 import Loader from '../components/Loader';
 import { ArchiveBoxIcon, RocketLaunchIcon, GlobeAltIcon, Cog8ToothIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
 export default function DevopsDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
 
   useEffect(() => {
@@ -48,9 +50,12 @@ export default function DevopsDashboard() {
           <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors"><GlobeAltIcon className="w-8 h-8" /></div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
+        <div 
+          onClick={() => navigate('/devops/config')}
+          className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group cursor-pointer"
+        >
           <div>
-            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Config Health</h3>
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Config Health </h3>
             <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.configuration_health} Passed</p>
           </div>
           <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors"><Cog8ToothIcon className="w-8 h-8" /></div>

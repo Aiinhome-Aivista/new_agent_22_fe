@@ -51,12 +51,20 @@ function App() {
           
           <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
-            <Route path="validation" element={<ValidationReportPage />} />
-            <Route path="requests/:id/validation" element={<ValidationReportPage />} />
-            <Route path="review/queue" element={<ReviewApprovalPage />} />
-            <Route path="requests/:id/review" element={<ReviewApprovalPage />} />
+            <Route
+              path="requests/:id/validation"
+              element={<ValidationReportPage />}
+            />
+            <Route
+              path="review/queue"
+              element={<ReviewApprovalPage />}
+            />
+            <Route
+              path="requests/:id/review"
+              element={<ReviewApprovalPage />}
+            />
           </Route>
-          
+
           <Route element={<ProtectedRoute allowedRoles={['devops']} />}>
             <Route path="devops/dashboard" element={<DevopsDashboard />} />
             <Route path="packaging" element={<PackagesPage />} />

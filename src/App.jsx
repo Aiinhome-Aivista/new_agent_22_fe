@@ -14,6 +14,7 @@ import ReviewApprovalPage from './pages/ReviewApprovalPage';
 import AuditTrailPage from './pages/AuditTrailPage';
 import AdvisorChatPage from './pages/AdvisorChatPage';
 import PlaceholderPage from './pages/PlaceholderPage';
+import StandardsPage from './pages/StandardsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import DeveloperDashboard from './pages/DeveloperDashboard';
@@ -45,7 +46,7 @@ function App() {
             <Route path="requests/:id/patterns" element={<PatternReviewPage />} />
             <Route path="review/blueprint" element={<BlueprintPage />} />
             <Route path="requests/:id/blueprint" element={<BlueprintPage />} />
-            <Route path="standards" element={<PlaceholderPage title="Architecture Standards" />} />
+            <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
           </Route>
           

@@ -14,6 +14,7 @@ import ReviewApprovalPage from './pages/ReviewApprovalPage';
 import AuditTrailPage from './pages/AuditTrailPage';
 import AdvisorChatPage from './pages/AdvisorChatPage';
 import PlaceholderPage from './pages/PlaceholderPage';
+import StandardsPage from './pages/StandardsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import DeveloperDashboard from './pages/DeveloperDashboard';
@@ -48,6 +49,12 @@ function App() {
 
             <Route path="requests/:id/generation" element={<GenerationProgressPage />} />
 
+            <Route path="standards" element={<StandardsPage />} />
+            <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
+            <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
             <Route path="validation" element={<ValidationReportPage />} />
             <Route path="requests/:id/validation" element={<ValidationReportPage />} />
 

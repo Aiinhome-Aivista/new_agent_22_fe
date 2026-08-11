@@ -88,10 +88,10 @@ export default function ArchitectDashboard() {
             Ensure all microservices adhere to standard patterns for stateful processors, event sourcing, and CQRS architectures.
           </p>
           <div className="flex gap-4">
-            <button className="bg-primary-orange hover:bg-hover-orange text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-[0_0_15px_rgba(255,90,20,0.4)]">
+            <button onClick={() => navigate('/standards')} className="bg-primary-orange hover:bg-hover-orange text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-[0_0_15px_rgba(255,90,20,0.4)]">
               Update Patterns
             </button>
-            <button className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm border border-white/10">
+            <button onClick={() => navigate('/standards')} className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm border border-white/10">
               View Guidelines
             </button>
           </div>

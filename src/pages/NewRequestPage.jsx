@@ -16,6 +16,7 @@ export default function NewRequestPage() {
     error_topic_policy: 'DLQ',
     schema_hints: ''
   });
+  const [sampleFile, setSampleFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -29,8 +30,18 @@ export default function NewRequestPage() {
     
     setLoading(true);
     setError('');
+
+    const payload = new FormData();
+    Object.keys(formData).forEach(key => {
+      payload.append(key, formData[key]);
+    });
+    
+    if (sampleFile) {
+      payload.append('file_upload', sampleFile);
+    }
+
     try {
-      const res = await createRequest(formData);
+      const res = await createRequest(payload);
       const reqId = res.data.request_id;
       localStorage.setItem('lastGenerationRequestId', reqId);
       // Start workflow
@@ -50,8 +61,8 @@ export default function NewRequestPage() {
             <SparklesIcon className="w-6 h-6 text-primary-orange" />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold text-sidebar tracking-tight">New Architecture Request</h1>
-            <p className="text-text-secondary text-sm mt-1">Define your Kafka microservice requirements to generate scaffolding and blueprints.</p>
+            <h1 className="text-3xl font-extrabold text-sidebar tracking-tight">New Microservice Intake</h1>
+            <p className="text-text-secondary text-sm mt-1">Define your Kafka microservice topics, state-store rules, and business hints to generate skeletons.</p>
           </div>
         </div>
 
@@ -143,9 +154,46 @@ export default function NewRequestPage() {
             <h2 className="text-lg font-bold text-sidebar flex items-center gap-2 mb-6 border-b border-border-light/60 pb-3">
               <CpuChipIcon className="w-5 h-5 text-primary-orange" /> AI Context & Business Logic
             </h2>
-            <div>
-              <label className="block text-sm font-bold text-sidebar mb-1.5">Transformation Rules / Schema Hints</label>
-              <textarea name="schema_hints" value={formData.schema_hints} onChange={handleChange} rows="4" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-border-orange focus:ring-1 focus:ring-border-orange outline-none transition-all resize-none" placeholder="Describe transformation rules... E.g., 'Filter out transactions where amount < 0.'"></textarea>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-sidebar mb-1.5">Transformation Rules / Schema Hints</label>
+                <textarea name="schema_hints" value={formData.schema_hints} onChange={handleChange} rows="6" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-border-orange focus:ring-1 focus:ring-border-orange outline-none transition-all resize-none" placeholder="Describe transformation rules... E.g., 'Filter out transactions where amount < 0.'"></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-sidebar mb-1.5">Sample Script or Schema File (Optional)</label>
+                <p className="text-xs text-text-secondary mb-2">Upload sample SQL/Java code or JSON/Avro schema file (.json, .java, .avsc)</p>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-primary-orange transition-colors cursor-pointer bg-slate-50">
+                  <div className="space-y-1 text-center">
+                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div className="flex text-sm text-gray-600 justify-center">
+                      <label htmlFor="file-upload" className="relative cursor-pointer bg-slate-50 rounded-md font-bold text-primary-orange hover:text-hover-orange focus-within:outline-none">
+                        <span>Upload a file</span>
+                        <input 
+                          id="file-upload" 
+                          name="file-upload" 
+                          type="file" 
+                          className="sr-only" 
+                          accept=".json,.java,.avsc,.sql" 
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                              setSampleFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">Up to 10MB</p>
+                    {sampleFile && (
+                      <p className="text-sm font-bold text-emerald-600 mt-2">
+                        Attached: {sampleFile.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           

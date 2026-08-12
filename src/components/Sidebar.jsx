@@ -75,17 +75,27 @@ export default function Sidebar() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                end={item.path === '/requests'}
+                end={item.path === '/requests' || item.path === '/devops' || item.path === '/devops/dashboard'}
                 className={({ isActive }) => {
                   const currentPath = location.pathname;
-                  const forceActive = 
-                    (item.path === '/requests' && (currentPath === '/requests' || currentPath === '/requests/')) ||
-                    (item.path === '/progress' && currentPath.includes('/generation')) ||
-                    (item.path === '/review/blueprint' && currentPath.includes('/blueprint')) ||
-                    (item.path === '/validation' && currentPath.includes('/validation')) ||
-                    (item.path === '/review/queue' && currentPath.includes('/review') && !currentPath.includes('/blueprint') && !currentPath.includes('/patterns')) ||
-                    (item.path === '/packages' && (currentPath.includes('/package') || currentPath.includes('/packaging')));
-                  const isReallyActive = isActive || forceActive;
+                  
+                  let isReallyActive = isActive;
+                  if (isDevOps) {
+                    if (item.name === 'Dashboard') {
+                      isReallyActive = currentPath === '/devops/dashboard' || currentPath === '/devops';
+                    } else if (item.name === 'Packaging & Deployment') {
+                      isReallyActive = currentPath === '/devops/packages';
+                    }
+                  } else {
+                    const forceActive = 
+                      (item.path === '/requests' && (currentPath === '/requests' || currentPath === '/requests/')) ||
+                      (item.path === '/progress' && currentPath.includes('/generation')) ||
+                      (item.path === '/review/blueprint' && currentPath.includes('/blueprint')) ||
+                      (item.path === '/validation' && currentPath.includes('/validation')) ||
+                      (item.path === '/review/queue' && currentPath.includes('/review') && !currentPath.includes('/blueprint') && !currentPath.includes('/patterns')) ||
+                      (item.path === '/packages' && (currentPath.includes('/package') || currentPath.includes('/packaging')));
+                    isReallyActive = isActive || forceActive;
+                  }
 
                   return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
                     isReallyActive 

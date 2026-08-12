@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
 import FileTree from '../components/FileTree';
-import { getBlueprint, approveBlueprint, reworkBlueprint, runWorkflow } from '../api/api';
+import { getBlueprint, approveBlueprint, reworkBlueprint, runWorkflow, getRequests } from '../api/api';
 import Loader from '../components/Loader';
 import { useParams, useNavigate } from 'react-router-dom';
+import RequestTable from '../components/RequestTable';
 
 export default function BlueprintPage() {
   const { id } = useParams();
@@ -13,10 +14,17 @@ export default function BlueprintPage() {
   const [showReworkModal, setShowReworkModal] = useState(false);
   const [comments, setComments] = useState('');
   const [assumptionsAcknowledged, setAssumptionsAcknowledged] = useState(false);
+  const [requests, setRequests] = useState([]);
 
   useEffect(() => {
     if (!id) {
-      setLoading(false);
+      getRequests().then(data => {
+        setRequests(data.data || []);
+        setLoading(false);
+      }).catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
       return;
     }
     getBlueprint(id).then(data => {
@@ -38,20 +46,19 @@ export default function BlueprintPage() {
   if (!id) {
     return (
       <div className="animate-fade-in-up">
-        <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden flex flex-col items-center justify-center p-16 min-h-[400px]">
-          <div className="w-24 h-24 bg-input-bg rounded-full flex items-center justify-center mb-6 border border-border-orange/20 shadow-sm">
-            <span className="text-5xl">📄</span>
+        <div className="mb-8">
+          <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Architecture Blueprints</h1>
+          <p className="text-text-secondary mt-1">Review generated designs against messaging patterns and standards.</p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
+          <div className="p-6 md:p-8 border-b border-border-light/60 bg-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/4"></div>
+            <div className="relative z-10">
+              <h2 className="font-extrabold text-sidebar text-2xl">Blueprint Reviews</h2>
+              <p className="text-sm text-text-secondary mt-1">Select a request below to view its blueprint details.</p>
+            </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-sidebar mb-2">No Blueprint Selected</h2>
-          <p className="text-text-secondary text-center max-w-md mb-8">
-            Please select a specific request from your Architecture Dashboard to review its generated blueprint.
-          </p>
-          <button 
-            onClick={() => navigate('/architect/dashboard')}
-            className="bg-button-orange hover:bg-hover-orange text-white px-6 py-2.5 rounded-lg font-bold shadow-sm transition-colors"
-          >
-            Go to Dashboard
-          </button>
+          <RequestTable requests={requests} role="architect" navigate={navigate} />
         </div>
       </div>
     );

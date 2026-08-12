@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
-import { getPackages, getEnvironments, generateDevopsScripts, triggerPipeline } from '../api/api';
+import { getPackages, getEnvironments, generateDevopsScripts, triggerPipeline, getRequests } from '../api/api';
 import Loader from '../components/Loader';
 import { useParams, useNavigate } from 'react-router-dom';
+import RequestTable from '../components/RequestTable';
 
 export default function PackagesPage() {
   const { id } = useParams();
@@ -11,6 +12,7 @@ export default function PackagesPage() {
   const [environments, setEnvironments] = useState([]);
   const [selectedEnv, setSelectedEnv] = useState('dev');
   const [loading, setLoading] = useState(true);
+  const [requests, setRequests] = useState([]);
   
   const [generating, setGenerating] = useState(false);
   const [generatedScripts, setGeneratedScripts] = useState(null);
@@ -19,7 +21,13 @@ export default function PackagesPage() {
 
   useEffect(() => {
     if (!id || id === 'undefined') {
-      setLoading(false);
+      getRequests().then(data => {
+        setRequests(data.data || []);
+        setLoading(false);
+      }).catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
       return;
     }
 
@@ -74,16 +82,22 @@ export default function PackagesPage() {
 
   if (!id || id === 'undefined') {
     return (
-      <div className="flex flex-col h-full items-center justify-center bg-gray-50 text-gray-500 p-8">
-        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center max-w-md">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">No Request Selected</h2>
-          <p className="text-sm mb-6">Please select a request from your dashboard to view its generated packages.</p>
-          <button 
-            onClick={() => navigate('/requests')}
-            className="bg-primary-orange hover:bg-hover-orange text-white px-6 py-2 rounded-lg font-medium transition-colors"
-          >
-            Go to My Requests
-          </button>
+      <div className="flex flex-col h-full bg-gray-50">
+        <div className="p-8">
+          <div className="mb-8">
+            <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Packages Requiring DevOps Inspection</h1>
+            <p className="text-text-secondary mt-1">Review configurations before automated deployment triggers.</p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
+            <div className="p-6 md:p-8 border-b border-border-light/60 bg-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-purple-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/4"></div>
+              <div className="relative z-10">
+                <h2 className="font-extrabold text-sidebar text-2xl">Deployable Packages</h2>
+                <p className="text-sm text-text-secondary mt-1">Select a request below to view its packages and trigger CI/CD pipelines.</p>
+              </div>
+            </div>
+            <RequestTable requests={requests} role="devops" navigate={navigate} />
+          </div>
         </div>
       </div>
     );

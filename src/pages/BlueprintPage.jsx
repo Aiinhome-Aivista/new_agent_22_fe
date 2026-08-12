@@ -17,7 +17,6 @@ export default function BlueprintPage() {
   const [showReworkModal, setShowReworkModal] = useState(false);
   const [comments, setComments] = useState('');
   const [assumptionsAcknowledged, setAssumptionsAcknowledged] = useState(false);
-
   useEffect(() => {
     if (!id) {
       setLoading(false);
@@ -43,7 +42,11 @@ export default function BlueprintPage() {
 
   if (!id) {
     return (
-      <div className="flex flex-col h-full bg-gray-50 p-8">
+      <div className="animate-fade-in-up p-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Architecture Blueprints</h1>
+          <p className="text-text-secondary mt-1">Review generated designs against messaging patterns and standards.</p>
+        </div>
         <StepRequestTable activeStage="blueprint" />
       </div>
     );

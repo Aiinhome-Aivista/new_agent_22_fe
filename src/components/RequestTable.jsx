@@ -1,7 +1,7 @@
 import React from 'react';
 import StatusBadge from './StatusBadge';
 
-export default function RequestTable({ requests, role, navigate }) {
+export default function RequestTable({ requests, role, navigate, actionOverride }) {
   const handleNavigate = (path, reqId) => {
     localStorage.setItem('lastGenerationRequestId', reqId);
     navigate(path);
@@ -33,36 +33,43 @@ export default function RequestTable({ requests, role, navigate }) {
               <td className="px-6 py-5"><StatusBadge status={req.status} /></td>
               <td className="px-6 py-5 text-sm font-medium text-text-secondary">{new Date(req.created_at).toLocaleDateString()}</td>
               <td className="px-6 py-5 text-sm font-medium text-right">
-                {role === 'techlead' && ['packaged', 'validated'].includes(req.status) ? (
-                  <button 
+                {actionOverride ? (
+                  <button
+                    onClick={() => navigate(`${actionOverride.pathPrefix}${req.id}${actionOverride.pathSuffix}`)}
+                    className="text-amber-700 bg-amber-50 hover:bg-amber-600 hover:text-white border border-amber-200 hover:border-amber-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                  >
+                    {actionOverride.label}
+                  </button>
+                ) : role === 'techlead' && ['packaged', 'validated'].includes(req.status) ? (
+                  <button
                     onClick={() => handleNavigate(`/requests/${req.id}/review`, req.id)}
                     className="text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Approve / Rework
                   </button>
                 ) : role === 'architect' ? (
-                  <button 
+                  <button
                     onClick={() => handleNavigate(`/requests/${req.id}/blueprint`, req.id)}
                     className="text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Review Blueprint
                   </button>
                 ) : role === 'devops' && ['packaged', 'approved'].includes(req.status) ? (
-                  <button 
+                  <button
                     onClick={() => handleNavigate(`/packages?id=${req.id}`, req.id)}
                     className="text-purple-700 bg-purple-50 hover:bg-purple-600 hover:text-white border border-purple-200 hover:border-purple-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Inspect Package
                   </button>
                 ) : role === 'developer' && ['packaged', 'approved'].includes(req.status) ? (
-                  <button 
+                  <button
                     onClick={() => handleNavigate(`/packages?id=${req.id}`, req.id)}
                     className="text-primary-orange bg-input-bg hover:bg-primary-orange hover:text-white border border-border-orange/40 hover:border-primary-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Download Skeleton
                   </button>
                 ) : (
-                  <button 
+                  <button
                     onClick={() => handleNavigate(`/progress?id=${req.id}`, req.id)}
                     className="text-text-secondary hover:text-primary-orange hover:bg-input-bg border border-transparent hover:border-border-orange/20 px-4 py-2 rounded-lg font-bold transition-all"
                   >

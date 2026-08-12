@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getDashboardMetrics } from '../api/api';
+import { getDashboardMetrics, getRequests } from '../api/api';
 import Loader from '../components/Loader';
 import { useNavigate } from 'react-router-dom';
 import { CodeBracketIcon, ArrowPathIcon, ArchiveBoxArrowDownIcon } from '@heroicons/react/24/outline';
@@ -9,11 +9,15 @@ export default function DeveloperDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
+  const [requests, setRequests] = useState([]);
 
   useEffect(() => {
-    getDashboardMetrics('developer').then(res => {
-      if (res.success) setMetrics(res.data);
-    }).catch(console.error);
+    Promise.all([getDashboardMetrics('developer'), getRequests()])
+      .then(([metricsRes, requestsRes]) => {
+        if (metricsRes.success) setMetrics(metricsRes.data);
+        if (requestsRes.success) setRequests(requestsRes.data || []);
+      })
+      .catch(console.error);
   }, []);
 
   if (!metrics) return <Loader />;
@@ -51,16 +55,88 @@ export default function DeveloperDashboard() {
         </div>
       </div>
       
-      <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-input-bg rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/4"></div>
-        <div className="p-8 relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 className="text-xl font-extrabold text-sidebar mb-2">Quick Actions</h2>
-            <p className="text-sm text-text-secondary">Generate new Kafka schemas, trace packages, or interact with the AI Advisor.</p>
+      {/* Dynamic Content Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        
+        {/* Left Column: Generations & Activity */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          {/* Active Generations Progress */}
+          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6">
+            <h2 className="text-lg font-bold text-sidebar mb-4">Active Generations</h2>
+            <div className="space-y-4">
+              {/* Mock Progress Item 1 */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-semibold text-sidebar">User Service API</span>
+                  <span className="text-primary-orange font-bold">75%</span>
+                </div>
+                <div className="w-full bg-input-bg rounded-full h-2">
+                  <div className="bg-gradient-to-r from-primary-orange to-button-orange h-2 rounded-full" style={{ width: '75%' }}></div>
+                </div>
+                <p className="text-xs text-text-secondary mt-1">Generating Kafka Handlers...</p>
+              </div>
+              
+              {/* Mock Progress Item 2 */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-semibold text-sidebar">Notification Engine</span>
+                  <span className="text-primary-orange font-bold">30%</span>
+                </div>
+                <div className="w-full bg-input-bg rounded-full h-2">
+                  <div className="bg-gradient-to-r from-primary-orange to-button-orange h-2 rounded-full" style={{ width: '30%' }}></div>
+                </div>
+                <p className="text-xs text-text-secondary mt-1">Parsing Blueprint...</p>
+              </div>
+            </div>
           </div>
-          <button onClick={() => navigate('/request/new')} className="flex items-center gap-2 bg-primary-orange hover:bg-hover-orange text-white px-6 py-3 rounded-xl text-sm font-bold shadow-[0_4px_14px_rgba(255,90,20,0.3)] hover:shadow-[0_6px_20px_rgba(255,90,20,0.4)] transition-all hover:-translate-y-0.5 whitespace-nowrap">
-            + New Generation Request
-          </button>
+
+          {/* Recent Activity Timeline */}
+          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6">
+            <h2 className="text-lg font-bold text-sidebar mb-4">Recent Activity</h2>
+            <div className="relative border-l border-border-light/60 ml-3 space-y-6">
+              <div className="relative pl-6">
+                <span className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-primary-orange ring-4 ring-white"></span>
+                <p className="text-sm font-semibold text-sidebar">Downloaded Payment Service Package</p>
+                <p className="text-xs text-text-secondary">2 hours ago</p>
+              </div>
+              <div className="relative pl-6">
+                <span className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-blue-400 ring-4 ring-white"></span>
+                <p className="text-sm font-semibold text-sidebar">Requested Order Service Generation</p>
+                <p className="text-xs text-text-secondary">Yesterday at 4:30 PM</p>
+              </div>
+              <div className="relative pl-6">
+                <span className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-green-400 ring-4 ring-white"></span>
+                <p className="text-sm font-semibold text-sidebar">Architect Approved Payment Service</p>
+                <p className="text-xs text-text-secondary">Yesterday at 1:15 PM</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Quick Actions */}
+        <div className="flex flex-col gap-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden relative h-full flex flex-col">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-input-bg rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/4"></div>
+            <div className="p-6 relative z-10 flex flex-col h-full">
+              <h2 className="text-xl font-extrabold text-sidebar mb-2">Quick Actions</h2>
+              <p className="text-sm text-text-secondary mb-6">Common tasks and shortcuts to speed up your workflow.</p>
+              
+              <div className="grid grid-cols-1 gap-3 mt-auto">
+                <button onClick={() => navigate('/request/new')} className="w-full flex items-center justify-between bg-primary-orange hover:bg-hover-orange text-white px-4 py-3 rounded-xl text-sm font-bold shadow-[0_4px_14px_rgba(255,90,20,0.3)] hover:shadow-[0_6px_20px_rgba(255,90,20,0.4)] transition-all hover:-translate-y-0.5">
+                  <span>+ New Generation</span>
+                  <CodeBracketIcon className="w-5 h-5" />
+                </button>
+                <button onClick={() => navigate('/chat')} className="w-full flex items-center justify-between bg-white border border-border-light/60 hover:border-border-orange/50 text-sidebar px-4 py-3 rounded-xl text-sm font-semibold shadow-sm transition-all hover:shadow hover:-translate-y-0.5">
+                  <span>Consult AI Advisor</span>
+                  <svg className="w-5 h-5 text-primary-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                </button>
+                <button onClick={() => navigate('/patterns')} className="w-full flex items-center justify-between bg-white border border-border-light/60 hover:border-border-orange/50 text-sidebar px-4 py-3 rounded-xl text-sm font-semibold shadow-sm transition-all hover:shadow hover:-translate-y-0.5">
+                  <span>View Patterns</span>
+                  <ArchiveBoxArrowDownIcon className="w-5 h-5 text-primary-orange" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

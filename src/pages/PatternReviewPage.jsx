@@ -1,18 +1,26 @@
 import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
-import { getPatterns } from '../api/api';
+import { getPatterns, getRequests } from '../api/api';
 import Loader from '../components/Loader';
 import { useParams, useNavigate } from 'react-router-dom';
+import RequestTable from '../components/RequestTable';
 
 export default function PatternReviewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [patterns, setPatterns] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) {
-      setLoading(false);
+      getRequests().then(data => {
+        setRequests(data.data || []);
+        setLoading(false);
+      }).catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
       return;
     }
     getPatterns(id).then(data => {
@@ -29,20 +37,24 @@ export default function PatternReviewPage() {
   if (!id) {
     return (
       <div className="animate-fade-in-up">
-        <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden flex flex-col items-center justify-center p-16 min-h-[400px]">
-          <div className="w-24 h-24 bg-input-bg rounded-full flex items-center justify-center mb-6 border border-border-orange/20 shadow-sm">
-            <span className="text-5xl">🔍</span>
+        <div className="mb-8">
+          <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Pattern Review</h1>
+          <p className="text-text-secondary mt-1">Review the architectural patterns retrieved for active requests.</p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
+          <div className="p-6 md:p-8 border-b border-border-light/60 bg-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/4"></div>
+            <div className="relative z-10">
+              <h2 className="font-extrabold text-sidebar text-2xl">Architecture Requests</h2>
+              <p className="text-sm text-text-secondary mt-1">Select a request below to review its applied messaging patterns.</p>
+            </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-sidebar mb-2">No Request Selected</h2>
-          <p className="text-text-secondary text-center max-w-md mb-8">
-            Please select a specific request from your Architecture Dashboard to review its messaging patterns.
-          </p>
-          <button 
-            onClick={() => navigate('/architect/dashboard')}
-            className="bg-button-orange hover:bg-hover-orange text-white px-6 py-2.5 rounded-lg font-bold shadow-sm transition-colors"
-          >
-            Go to Dashboard
-          </button>
+          <RequestTable 
+            requests={requests} 
+            role="architect" 
+            navigate={navigate} 
+            actionOverride={{ label: "Review Patterns", pathPrefix: "/requests/", pathSuffix: "/patterns" }} 
+          />
         </div>
       </div>
     );

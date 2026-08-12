@@ -1,12 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DocumentArrowDownIcon, ChartBarIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { getTechLeadReportSummary, getTechLeadReports, downloadTechLeadReport } from '../api/api';
 
 export default function TechLeadReportsPage() {
-  const [reports] = useState([
-    { id: 101, title: 'Q3 Enterprise Validation Audit', type: 'PDF', date: '2026-08-01', size: '2.4 MB' },
-    { id: 102, title: 'Weekly Microservice Compliance Sync', type: 'JSON', date: '2026-08-08', size: '145 KB' },
-    { id: 103, title: 'Payment Processing Service - Strict Audit', type: 'PDF', date: '2026-08-10', size: '1.1 MB' }
-  ]);
+  const [reports, setReports] = useState([]);
+  const [summary, setSummary] = useState({ total_passed: 0, warnings_and_waivers: 0, critical_failures: 0 });
+  const [loading, setLoading] = useState(true);
+  const [filterAppId, setFilterAppId] = useState('All');
+  
+  useEffect(() => {
+    Promise.all([getTechLeadReportSummary(), getTechLeadReports()])
+      .then(([sumRes, repRes]) => {
+        setSummary(sumRes.data || { total_passed: 0, warnings_and_waivers: 0, critical_failures: 0 });
+        setReports(repRes.data || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  const handleDownload = async (id, title) => {
+    try {
+      const blob = await downloadTechLeadReport(id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit_report_${id}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch(e) {
+      console.error('Download failed', e);
+    }
+  };
+  
+  const appIds = ['All', ...new Set(reports.map(r => r.application_id).filter(Boolean))];
+  const filteredReports = filterAppId === 'All' ? reports : reports.filter(r => r.application_id === filterAppId);
 
   return (
     <div className="flex flex-col h-full bg-gray-50 p-8">
@@ -21,19 +53,19 @@ export default function TechLeadReportsPage() {
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full mix-blend-multiply filter blur-xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
             <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Total Validations Passed</h3>
-            <p className="text-3xl font-extrabold text-gray-800">1,248</p>
+            <p className="text-3xl font-extrabold text-gray-800">{loading ? '...' : summary.total_passed}</p>
             <p className="text-emerald-600 text-sm font-medium mt-1">↑ 14% this month</p>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full mix-blend-multiply filter blur-xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
             <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Warnings & Waivers</h3>
-            <p className="text-3xl font-extrabold text-gray-800">42</p>
+            <p className="text-3xl font-extrabold text-gray-800">{loading ? '...' : summary.warnings_and_waivers}</p>
             <p className="text-amber-600 text-sm font-medium mt-1">Requires attention</p>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-full mix-blend-multiply filter blur-xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
             <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Critical Failures</h3>
-            <p className="text-3xl font-extrabold text-gray-800">3</p>
+            <p className="text-3xl font-extrabold text-gray-800">{loading ? '...' : summary.critical_failures}</p>
             <p className="text-red-600 text-sm font-medium mt-1">↓ 2 less than last week</p>
           </div>
         </div>
@@ -43,9 +75,18 @@ export default function TechLeadReportsPage() {
             <h2 className="font-bold text-gray-800 flex items-center gap-2">
               <ChartBarIcon className="w-5 h-5 text-gray-500" /> Downloadable Reports
             </h2>
-            <button className="flex items-center gap-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50">
-              <FunnelIcon className="w-4 h-4" /> Filter by App ID
-            </button>
+            <div className="relative">
+              <select 
+                value={filterAppId}
+                onChange={(e) => setFilterAppId(e.target.value)}
+                className="flex appearance-none items-center gap-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 px-4 py-2 pr-8 rounded-lg hover:bg-gray-50 outline-none focus:ring-2 focus:ring-primary-orange"
+              >
+                {appIds.map(app => (
+                  <option key={app} value={app}>{app === 'All' ? 'Filter by App ID' : app}</option>
+                ))}
+              </select>
+              <FunnelIcon className="w-4 h-4 text-gray-400 absolute right-3 top-2.5 pointer-events-none" />
+            </div>
           </div>
           <table className="w-full text-left">
             <thead>
@@ -58,7 +99,11 @@ export default function TechLeadReportsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border-light/40 bg-white">
-              {reports.map(rep => (
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500 font-medium">Loading reports...</td>
+                </tr>
+              ) : filteredReports.map(rep => (
                 <tr key={rep.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-5 font-bold text-gray-800 text-sm">{rep.title}</td>
                   <td className="px-6 py-5">
@@ -71,12 +116,20 @@ export default function TechLeadReportsPage() {
                   <td className="px-6 py-5 font-mono text-xs text-gray-500">{rep.size}</td>
                   <td className="px-6 py-5 text-sm font-medium text-gray-500">{rep.date}</td>
                   <td className="px-6 py-5 text-right flex justify-end">
-                    <button className="text-gray-500 hover:text-primary-orange transition-colors p-2 rounded-lg hover:bg-gray-100 flex items-center gap-2 text-xs font-bold border border-gray-200">
+                    <button 
+                      onClick={() => handleDownload(rep.id, rep.title)}
+                      className="text-gray-500 hover:text-primary-orange transition-colors p-2 rounded-lg hover:bg-gray-100 flex items-center gap-2 text-xs font-bold border border-gray-200"
+                    >
                       <DocumentArrowDownIcon className="w-4 h-4" /> Download
                     </button>
                   </td>
                 </tr>
               ))}
+              {!loading && filteredReports.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500 font-medium">No reports found.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

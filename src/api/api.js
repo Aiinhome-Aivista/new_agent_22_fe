@@ -67,5 +67,8 @@ export const getTechLeadValidations = () => api.get('/techlead/validations').the
 export const actionValidation = (id, action) => api.post(`/techlead/validations/${id}/action`, { action }).then(res => res.data);
 export const getTechLeadReviews = () => api.get('/techlead/reviews').then(res => res.data);
 export const signoffReview = (data) => api.post('/techlead/reviews/signoff', data).then(res => res.data);
+export const getTechLeadReportSummary = () => api.get('/techlead/reports/summary').then(res => res.data);
+export const getTechLeadReports = () => api.get('/techlead/reports').then(res => res.data);
+export const downloadTechLeadReport = (id) => api.get(`/techlead/reports/download/${id}`, { responseType: 'blob' }).then(res => res.data);
 
 export default api;

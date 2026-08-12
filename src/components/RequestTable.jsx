@@ -2,6 +2,11 @@ import React from 'react';
 import StatusBadge from './StatusBadge';
 
 export default function RequestTable({ requests, role, navigate }) {
+  const handleNavigate = (path, reqId) => {
+    localStorage.setItem('lastGenerationRequestId', reqId);
+    navigate(path);
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left">
@@ -30,35 +35,35 @@ export default function RequestTable({ requests, role, navigate }) {
               <td className="px-6 py-5 text-sm font-medium text-right">
                 {role === 'techlead' && ['packaged', 'validated'].includes(req.status) ? (
                   <button 
-                    onClick={() => navigate(`/requests/${req.id}/review`)}
+                    onClick={() => handleNavigate(`/requests/${req.id}/review`, req.id)}
                     className="text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Approve / Rework
                   </button>
                 ) : role === 'architect' ? (
                   <button 
-                    onClick={() => navigate(`/requests/${req.id}/blueprint`)}
+                    onClick={() => handleNavigate(`/requests/${req.id}/blueprint`, req.id)}
                     className="text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Review Blueprint
                   </button>
                 ) : role === 'devops' && ['packaged', 'approved'].includes(req.status) ? (
                   <button 
-                    onClick={() => navigate(`/requests/${req.id}/package`)}
+                    onClick={() => handleNavigate(`/packages?id=${req.id}`, req.id)}
                     className="text-purple-700 bg-purple-50 hover:bg-purple-600 hover:text-white border border-purple-200 hover:border-purple-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Inspect Package
                   </button>
                 ) : role === 'developer' && ['packaged', 'approved'].includes(req.status) ? (
                   <button 
-                    onClick={() => navigate(`/requests/${req.id}/package`)}
+                    onClick={() => handleNavigate(`/packages?id=${req.id}`, req.id)}
                     className="text-primary-orange bg-input-bg hover:bg-primary-orange hover:text-white border border-border-orange/40 hover:border-primary-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Download Skeleton
                   </button>
                 ) : (
                   <button 
-                    onClick={() => navigate(`/requests/${req.id}/generation`)}
+                    onClick={() => handleNavigate(`/progress?id=${req.id}`, req.id)}
                     className="text-text-secondary hover:text-primary-orange hover:bg-input-bg border border-transparent hover:border-border-orange/20 px-4 py-2 rounded-lg font-bold transition-all"
                   >
                     View Details

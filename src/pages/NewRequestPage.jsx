@@ -32,9 +32,10 @@ export default function NewRequestPage() {
     try {
       const res = await createRequest(formData);
       const reqId = res.data.request_id;
+      localStorage.setItem('lastGenerationRequestId', reqId);
       // Start workflow
       await runWorkflow(reqId, draftMode);
-      navigate(`/requests/${reqId}/generation`);
+      navigate(`/progress?id=${reqId}`);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
       setLoading(false);

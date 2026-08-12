@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 import * as Icons from '@heroicons/react/24/outline';
@@ -6,6 +6,7 @@ import * as Icons from '@heroicons/react/24/outline';
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
@@ -24,26 +25,47 @@ export default function Sidebar() {
       </div>
       
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
-        {user && user.menu && user.menu.map((item) => {
-          const Icon = Icons[item.icon] || Icons.DocumentIcon;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              replace
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
-                  isActive 
-                    ? 'bg-primary-orange text-white shadow-[0_4px_12px_rgba(255,90,20,0.4)]' 
-                    : 'text-gray-300 hover:bg-white/10 hover:text-white hover:translate-x-1'
-                }`
-              }
-            >
-              <Icon className="w-5 h-5" />
-              {item.name}
-            </NavLink>
-          );
-        })}
+        {
+          [
+            { name: 'Dashboard', path: user?.dashboard || '/requests', icon: 'ChartBarIcon' },
+            { name: 'New Request (Intake)', path: '/request/new', icon: 'PlusIcon' },
+            { name: 'My Requests', path: '/requests', icon: 'FolderIcon' },
+            { name: 'Blueprint', path: '/review/blueprint', icon: 'RectangleGroupIcon' },
+            { name: 'Generation Progress', path: '/progress', icon: 'CpuChipIcon' },
+            { name: 'Validation', path: '/validation', icon: 'ShieldCheckIcon' },
+            { name: 'Generated Packages', path: '/packages', icon: 'ArchiveBoxIcon' },
+            { name: 'Review', path: '/review/queue', icon: 'ClipboardDocumentCheckIcon' },
+            { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
+          ].map((item) => {
+            const Icon = Icons[item.icon] || Icons.DocumentIcon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) => {
+                  const currentPath = location.pathname;
+                  const forceActive = 
+                    (item.path === '/requests' && (currentPath === '/requests' || currentPath === '/requests/')) ||
+                    (item.path === '/progress' && currentPath.includes('/generation')) ||
+                    (item.path === '/review/blueprint' && currentPath.includes('/blueprint')) ||
+                    (item.path === '/validation' && currentPath.includes('/validation')) ||
+                    (item.path === '/review/queue' && currentPath.includes('/review') && !currentPath.includes('/blueprint') && !currentPath.includes('/patterns')) ||
+                    (item.path === '/packages' && (currentPath.includes('/package') || currentPath.includes('/packaging')));
+                  const isReallyActive = isActive || forceActive;
+
+                  return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
+                    isReallyActive 
+                      ? 'bg-primary-orange text-white shadow-[0_4px_12px_rgba(255,90,20,0.4)]' 
+                      : 'text-gray-300 hover:bg-white/10 hover:text-white hover:translate-x-1'
+                  }`;
+                }}
+              >
+                <Icon className="w-5 h-5" />
+                {item.name}
+              </NavLink>
+            );
+          })
+        }
       </nav>
       
       <div className="p-4 border-t border-white/10 mt-auto">

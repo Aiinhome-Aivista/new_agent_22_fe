@@ -3,10 +3,14 @@ import ProgressStepper from '../components/ProgressStepper';
 import { getValidationResults } from '../api/api';
 import Loader from '../components/Loader';
 import StatusBadge from '../components/StatusBadge';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import StepRequestTable from '../components/StepRequestTable';
 
 export default function ValidationReportPage() {
-  const { id } = useParams();
+  const { id: pathId } = useParams();
+  const [searchParams] = useSearchParams();
+  const queryId = searchParams.get('id');
+  const id = pathId || queryId;
   const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [summary, setSummary] = useState('');
@@ -24,6 +28,14 @@ export default function ValidationReportPage() {
   }, [id]);
 
   if (loading) return <Loader />;
+
+  if (!id) {
+    return (
+      <div className="flex flex-col h-full bg-gray-50 p-8">
+        <StepRequestTable activeStage="validation" />
+      </div>
+    );
+  }
 
   const hasErrors = results.some(r => r.severity === 'error' && !r.passed);
 

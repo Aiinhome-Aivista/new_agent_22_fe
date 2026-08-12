@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
 import { addReview, getRequest } from '../api/api';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import StepRequestTable from '../components/StepRequestTable';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
 
 export default function ReviewApprovalPage() {
-  const { id } = useParams();
+  const { id: pathId } = useParams();
+  const [searchParams] = useSearchParams();
+  const queryId = searchParams.get('id');
+  const id = pathId || queryId;
+  
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -62,6 +67,14 @@ export default function ReviewApprovalPage() {
   };
 
   if (loadingReq) return <Loader />;
+
+  if (!id) {
+    return (
+      <div className="flex flex-col h-full bg-gray-50 p-8">
+        <StepRequestTable activeStage="review" />
+      </div>
+    );
+  }
 
   const req = reqData?.request || {};
   const spec = reqData?.spec || {};

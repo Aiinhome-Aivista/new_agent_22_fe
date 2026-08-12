@@ -2,6 +2,7 @@ import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { useAuth } from '../context/AuthContext';
+import ErrorBoundary from './ErrorBoundary';
 
 export default function MainLayout() {
   const { user } = useAuth();
@@ -22,7 +23,9 @@ export default function MainLayout() {
         <Navbar title={title} />
         <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-input-bg/30 relative">
           <div className="max-w-7xl mx-auto h-full">
-            <Outlet />
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
           </div>
         </main>
         {/* Footer */}

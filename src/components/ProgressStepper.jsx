@@ -11,10 +11,11 @@ const steps = [
   { path: 'review', label: 'Review' }
 ];
 
-export default function ProgressStepper({ requestId: propRequestId }) {
+export default function ProgressStepper({ requestId: propRequestId, activeStep }) {
   const location = useLocation();
   const pathParts = location.pathname.split('/');
-  const currentPath = pathParts.pop();
+  const lastPart = pathParts.pop();
+  const currentPath = activeStep || (lastPart === 'progress' ? 'generation' : lastPart);
 
   // Try to extract request ID from URL if not passed as prop (e.g. /requests/123/generation)
   const urlRequestId = pathParts.find(p => !isNaN(p) && p.length > 0);

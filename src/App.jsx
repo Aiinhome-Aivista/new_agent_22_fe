@@ -59,6 +59,7 @@ function App() {
             <Route path="requests/:id/blueprint" element={<BlueprintPage />} />
 
             <Route path="requests/:id/generation" element={<GenerationProgressPage />} />
+            <Route path="validation" element={<ValidationReportPage />} />
             <Route
               path="requests/:id/validation"
               element={<ValidationReportPage />}
@@ -74,6 +75,7 @@ function App() {
             />
             <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
+            <Route path="chat" element={<AdvisorChatPage />} />
             
             <Route path="packaging" element={<PackagesPage />} />
             <Route path="packages" element={<PackagesPage />} />
@@ -84,7 +86,6 @@ function App() {
           
           <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
-            <Route path="validation" element={<ValidationReportPage />} />
             <Route path="requests/:id/validation" element={<ValidationReportPage />} />
 
             <Route path="review/queue" element={<ReviewApprovalPage />} />
@@ -93,7 +94,6 @@ function App() {
             <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
             <Route path="audit" element={<AuditTrailPage />} />
-            <Route path="chat" element={<AdvisorChatPage />} />
           </Route>
 
 

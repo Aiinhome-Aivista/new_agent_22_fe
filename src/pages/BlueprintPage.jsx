@@ -2,11 +2,15 @@ import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
 import FileTree from '../components/FileTree';
 import { getBlueprint, approveBlueprint, reworkBlueprint, runWorkflow } from '../api/api';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import StepRequestTable from '../components/StepRequestTable';
 import Loader from '../components/Loader';
-import { useParams, useNavigate } from 'react-router-dom';
 
 export default function BlueprintPage() {
-  const { id } = useParams();
+  const { id: pathId } = useParams();
+  const [searchParams] = useSearchParams();
+  const queryId = searchParams.get('id');
+  const id = pathId || queryId;
   const navigate = useNavigate();
   const [blueprint, setBlueprint] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,8 +24,9 @@ export default function BlueprintPage() {
       return;
     }
     getBlueprint(id).then(data => {
-      setBlueprint(data.data);
-      if (!data.data?.assumptions || data.data.assumptions.length === 0) {
+      const bp = data?.data;
+      setBlueprint(bp || null);
+      if (!bp?.assumptions || bp.assumptions.length === 0) {
         setAssumptionsAcknowledged(true);
       } else {
         setAssumptionsAcknowledged(false);
@@ -29,6 +34,7 @@ export default function BlueprintPage() {
       setLoading(false);
     }).catch(err => {
       console.error(err);
+      setBlueprint(null);
       setLoading(false);
     });
   }, [id]);
@@ -37,22 +43,8 @@ export default function BlueprintPage() {
 
   if (!id) {
     return (
-      <div className="animate-fade-in-up">
-        <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden flex flex-col items-center justify-center p-16 min-h-[400px]">
-          <div className="w-24 h-24 bg-input-bg rounded-full flex items-center justify-center mb-6 border border-border-orange/20 shadow-sm">
-            <span className="text-5xl">📄</span>
-          </div>
-          <h2 className="text-2xl font-extrabold text-sidebar mb-2">No Blueprint Selected</h2>
-          <p className="text-text-secondary text-center max-w-md mb-8">
-            Please select a specific request from your Architecture Dashboard to review its generated blueprint.
-          </p>
-          <button 
-            onClick={() => navigate('/architect/dashboard')}
-            className="bg-button-orange hover:bg-hover-orange text-white px-6 py-2.5 rounded-lg font-bold shadow-sm transition-colors"
-          >
-            Go to Dashboard
-          </button>
-        </div>
+      <div className="flex flex-col h-full bg-gray-50 p-8">
+        <StepRequestTable activeStage="blueprint" />
       </div>
     );
   }

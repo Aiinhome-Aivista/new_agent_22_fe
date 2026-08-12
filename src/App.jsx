@@ -15,6 +15,12 @@ import AuditTrailPage from './pages/AuditTrailPage';
 import AdvisorChatPage from './pages/AdvisorChatPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import StandardsPage from './pages/StandardsPage';
+import TechLeadValidationsPage from './pages/TechLeadValidationsPage';
+import TechLeadReviewsPage from './pages/TechLeadReviewsPage';
+import TechLeadReportsPage from './pages/TechLeadReportsPage';
+import DevOpsPackagesPage from './pages/DevOpsPackagesPage';
+import DevOpsEnvironmentsPage from './pages/DevOpsEnvironmentsPage';
+import DevOpsConfigsPage from './pages/DevOpsConfigsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import DeveloperDashboard from './pages/DeveloperDashboard';
@@ -40,13 +46,6 @@ function App() {
             <Route path="developer/dashboard" element={<DeveloperDashboard />} />
             <Route path="architect/dashboard" element={<ArchitectDashboard />} />
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
-            <Route path="devops/dashboard" element={<DevopsDashboard />} />
-            <Route path="devops/config" element={<DevopsConfigPage />} />
-            <Route path="config" element={<DevopsConfigPage />} />
-            <Route path="environment" element={<EnvironmentStatusPage />} />
-            <Route path="deploy" element={<DeploymentPage />} />
-            <Route path="cicd" element={<PipelinePage />} />
-            <Route path="logs" element={<SystemLogsPage />} />
 
             <Route path="request/new" element={<NewRequestPage />} />
             <Route path="progress" element={<GenerationProgressPage />} />
@@ -96,6 +95,18 @@ function App() {
             <Route path="audit" element={<AuditTrailPage />} />
           </Route>
 
+          <Route element={<ProtectedRoute allowedRoles={['devops', 'platform engineer']} />}>
+            <Route path="devops/dashboard" element={<DevopsDashboard />} />
+            <Route path="devops/packages" element={<DevOpsPackagesPage />} />
+            <Route path="devops/environments" element={<DevOpsEnvironmentsPage />} />
+            <Route path="devops/configs" element={<DevOpsConfigsPage />} />
+            <Route path="devops/config" element={<DevopsConfigPage />} />
+            <Route path="config" element={<DevopsConfigPage />} />
+            <Route path="environment" element={<EnvironmentStatusPage />} />
+            <Route path="deploy" element={<DeploymentPage />} />
+            <Route path="cicd" element={<PipelinePage />} />
+            <Route path="logs" element={<SystemLogsPage />} />
+          </Route>
 
           {/* Catch-all for under construction pages */}
           <Route path="*" element={<PlaceholderPage />} />

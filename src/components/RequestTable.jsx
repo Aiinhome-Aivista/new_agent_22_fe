@@ -1,7 +1,7 @@
 import React from 'react';
 import StatusBadge from './StatusBadge';
 
-export default function RequestTable({ requests, role, navigate }) {
+export default function RequestTable({ requests, role, navigate, actionOverride }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left">
@@ -28,7 +28,14 @@ export default function RequestTable({ requests, role, navigate }) {
               <td className="px-6 py-5"><StatusBadge status={req.status} /></td>
               <td className="px-6 py-5 text-sm font-medium text-text-secondary">{new Date(req.created_at).toLocaleDateString()}</td>
               <td className="px-6 py-5 text-sm font-medium text-right">
-                {role === 'techlead' && ['packaged', 'validated'].includes(req.status) ? (
+                {actionOverride ? (
+                  <button 
+                    onClick={() => navigate(`${actionOverride.pathPrefix}${req.id}${actionOverride.pathSuffix}`)}
+                    className="text-amber-700 bg-amber-50 hover:bg-amber-600 hover:text-white border border-amber-200 hover:border-amber-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                  >
+                    {actionOverride.label}
+                  </button>
+                ) : role === 'techlead' && ['packaged', 'validated'].includes(req.status) ? (
                   <button 
                     onClick={() => navigate(`/requests/${req.id}/review`)}
                     className="text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"

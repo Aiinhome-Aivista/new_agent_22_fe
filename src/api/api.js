@@ -17,8 +17,10 @@ export const loginUser = (credentials) => api.post('/auth/login', credentials).t
 export const getPersonas = () => api.get('/auth/personas').then(res => res.data);
 
 // Blueprint
-export const getBlueprint = (reqId) => api.get(`/blueprint/request/${reqId}`).then(res => res.data);
-export const approveBlueprint = (bpId) => api.put(`/blueprint/${bpId}/approve`).then(res => res.data);
+export const generateBlueprint = (requestId) => api.post('/blueprint/generate', { request_id: requestId }).then(res => res.data);
+export const approveBlueprint = (id) => api.put(`/blueprint/${id}/approve`).then(res => res.data);
+export const reworkBlueprint = (id, comments) => api.put(`/blueprint/${id}/rework`, { comments }).then(res => res.data);
+export const getBlueprint = (requestId) => api.get(`/blueprint/request/${requestId}`).then(res => res.data);
 
 // Generation
 export const getGeneratedFiles = (reqId) => api.get(`/generate/request/${reqId}/files`).then(res => res.data);
@@ -26,8 +28,10 @@ export const getGeneratedFiles = (reqId) => api.get(`/generate/request/${reqId}/
 // Validation
 export const getValidationResults = (reqId) => api.get(`/validation/request/${reqId}`).then(res => res.data);
 
-// Packages
+// Packages & DevOps
 export const getPackages = () => api.get('/packages/').then(res => res.data);
+export const generateDevopsScripts = (reqId, envName) => api.post('/packages/generate-scripts', { request_id: reqId, env_name: envName }).then(res => res.data);
+export const triggerPipeline = (reqId, envName) => api.post('/packages/trigger-pipeline', { request_id: reqId, env_name: envName }).then(res => res.data);
 
 // Reviews
 export const getReviewQueue = () =>api.get('/review/queue').then(res => res.data);
@@ -47,5 +51,15 @@ export const getAuditLogs = (reqId) => api.get(`/audit/request/${reqId}`).then(r
 
 // Dashboard
 export const getDashboardMetrics = (role) => api.get(`/dashboard/metrics/${role}`).then(res => res.data);
+
+// Standards
+export const getStandards = () => api.get('/standards/').then(res => res.data);
+export const saveStandard = (data) => api.post('/standards/', data).then(res => res.data);
+export const deleteStandard = (id) => api.delete(`/standards/${id}`).then(res => res.data);
+
+// Environments
+export const getEnvironments = () => api.get('/environments/').then(res => res.data);
+export const getEnvironment = (envName) => api.get(`/environments/${envName}`).then(res => res.data);
+export const updateEnvironment = (envName, data) => api.put(`/environments/${envName}`, data).then(res => res.data);
 
 export default api;

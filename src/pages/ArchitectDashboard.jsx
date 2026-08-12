@@ -114,7 +114,7 @@ export default function ArchitectDashboard() {
               {requests.slice(0, 4).map((req) => {
                 const colors = getStatusColor(req.status);
                 return (
-                  <div key={req.id} onClick={() => navigate(`/requests/${req.id}`)} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200 cursor-pointer group hover:shadow-sm">
+                  <div key={req.id} onClick={() => navigate(`/requests/${req.id}/blueprint`)} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200 cursor-pointer group hover:shadow-sm">
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-xl ${colors.bg} ${colors.icon} flex items-center justify-center group-hover:scale-110 transition-transform`}>
                         <DocumentCheckIcon className="w-5 h-5" />
@@ -134,7 +134,7 @@ export default function ArchitectDashboard() {
                 <div className="text-center py-6 text-gray-500 italic">No recent requests found.</div>
               )}
             </div>
-            <button onClick={() => navigate('/blueprints')} className="mt-5 w-full bg-slate-50 hover:bg-slate-100 text-sm font-bold text-slate-700 py-2.5 rounded-xl transition-colors border border-slate-200">
+            <button onClick={() => navigate('/review/blueprint')} className="mt-5 w-full bg-slate-50 hover:bg-slate-100 text-sm font-bold text-slate-700 py-2.5 rounded-xl transition-colors border border-slate-200">
               View all requests &rarr;
             </button>
           </div>

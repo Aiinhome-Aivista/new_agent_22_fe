@@ -13,6 +13,29 @@ export default function Sidebar() {
     navigate('/login', { replace: true });
   };
 
+  const role = user?.role?.toLowerCase() || 'developer';
+  const isArchitect = role === 'solution architect' || role === 'architect';
+
+  const defaultMenu = [
+    { name: 'Dashboard', path: user?.dashboard || '/requests', icon: 'ChartBarIcon' },
+    { name: 'New Request (Intake)', path: '/request/new', icon: 'PlusIcon' },
+    { name: 'My Requests', path: '/requests', icon: 'FolderIcon' },
+    { name: 'Blueprint', path: '/review/blueprint', icon: 'RectangleGroupIcon' },
+    { name: 'Generation Progress', path: '/progress', icon: 'CpuChipIcon' },
+    { name: 'Validation', path: '/validation', icon: 'ShieldCheckIcon' },
+    { name: 'Generated Packages', path: '/packages', icon: 'ArchiveBoxIcon' },
+    { name: 'Review', path: '/review/queue', icon: 'ClipboardDocumentCheckIcon' },
+    { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
+  ];
+
+  const architectMenu = [
+    { name: 'Dashboard', path: user?.dashboard || '/architect/dashboard', icon: 'ChartBarIcon' },
+    { name: 'Blueprint Reviews', path: '/review/blueprint', icon: 'RectangleGroupIcon' },
+    { name: 'Architecture Standards', path: '/standards', icon: 'DocumentCheckIcon' },
+    { name: 'Pending Approvals', path: '/review/queue', icon: 'ClipboardDocumentCheckIcon' },
+    { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
+  ];
+
   return (
     <div className="w-72 bg-sidebar text-white flex flex-col shadow-2xl z-20">
       <div className="p-6 flex items-center gap-3 border-b border-white/10 cursor-pointer" onClick={() => navigate('/')}>
@@ -26,17 +49,7 @@ export default function Sidebar() {
       
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
         {
-          [
-            { name: 'Dashboard', path: user?.dashboard || '/requests', icon: 'ChartBarIcon' },
-            { name: 'New Request (Intake)', path: '/request/new', icon: 'PlusIcon' },
-            { name: 'My Requests', path: '/requests', icon: 'FolderIcon' },
-            { name: 'Blueprint', path: '/review/blueprint', icon: 'RectangleGroupIcon' },
-            { name: 'Generation Progress', path: '/progress', icon: 'CpuChipIcon' },
-            { name: 'Validation', path: '/validation', icon: 'ShieldCheckIcon' },
-            { name: 'Generated Packages', path: '/packages', icon: 'ArchiveBoxIcon' },
-            { name: 'Review', path: '/review/queue', icon: 'ClipboardDocumentCheckIcon' },
-            { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
-          ].map((item) => {
+          (isArchitect ? architectMenu : defaultMenu).map((item) => {
             const Icon = Icons[item.icon] || Icons.DocumentIcon;
             return (
               <NavLink

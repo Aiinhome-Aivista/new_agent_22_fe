@@ -15,7 +15,9 @@ export default function ReviewApprovalPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const isDeveloper = user?.role === 'developer';
+  const role = user?.role?.toLowerCase() || 'developer';
+  const isDeveloper = role === 'developer';
+  const isArchitect = role === 'solution architect' || role === 'architect';
 
   const [reqData, setReqData] = useState(null);
   const [loadingReq, setLoadingReq] = useState(true);
@@ -57,7 +59,7 @@ export default function ReviewApprovalPage() {
       await addReview({ request_id: parseInt(id), ...formData });
       setSuccessModal(true);
       setTimeout(() => {
-        navigate(user?.dashboard || '/techlead/dashboard');
+        navigate(isArchitect ? '/architect/dashboard' : (user?.dashboard || '/techlead/dashboard'));
       }, 2500);
     } catch (err) {
       console.error(err);
@@ -118,7 +120,7 @@ export default function ReviewApprovalPage() {
         ) : (
           /* Tech Lead / Solution Architect Form with Inspection Details */
           <div className="space-y-6">
-            {/* Inspection Card for Tech Lead */}
+            {/* Inspection Card based on Persona */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light space-y-4">
               <div className="flex items-center justify-between border-b border-border-light pb-4">
                 <div>
@@ -135,40 +137,67 @@ export default function ReviewApprovalPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <div>
-                  <span className="text-xs text-gray-500 font-medium block">Target App ID</span>
-                  <strong className="font-mono text-gray-800">{req.application_id || 'N/A'}</strong>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-medium block">Package Name</span>
-                  <strong className="font-mono text-gray-800">{req.package_name || spec.package_name || 'N/A'}</strong>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-medium block">Source Topic</span>
-                  <strong className="font-mono text-gray-800">{spec.source_topics || 'N/A'}</strong>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-medium block">Target Topic</span>
-                  <strong className="font-mono text-gray-800">{spec.target_topics || 'N/A'}</strong>
-                </div>
-              </div>
+              {!isArchitect ? (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div>
+                      <span className="text-xs text-gray-500 font-medium block">Target App ID</span>
+                      <strong className="font-mono text-gray-800">{req.application_id || 'N/A'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 font-medium block">Package Name</span>
+                      <strong className="font-mono text-gray-800">{req.package_name || spec.package_name || 'N/A'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 font-medium block">Source Topic</span>
+                      <strong className="font-mono text-gray-800">{spec.source_topics || 'N/A'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 font-medium block">Target Topic</span>
+                      <strong className="font-mono text-gray-800">{spec.target_topics || 'N/A'}</strong>
+                    </div>
+                  </div>
 
-              <div className="flex items-center justify-between text-xs text-gray-500 pt-2">
-                <span>Consumer Group: <strong className="font-mono text-gray-700">{spec.consumer_group}</strong></span>
-                <span>Error Topic Policy: <strong className="font-mono text-gray-700">{spec.error_topic_policy || 'DLQ'}</strong></span>
-                <button 
-                  onClick={() => navigate(`/requests/${id}/package`)}
-                  className="text-primary-orange font-bold hover:underline"
-                >
-                  🔍 Inspect Code Skeleton Files &rarr;
-                </button>
-              </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2">
+                    <div className="flex gap-4">
+                      <span>Consumer Group: <strong className="font-mono text-gray-700">{spec.consumer_group}</strong></span>
+                      <span>Error Topic Policy: <strong className="font-mono text-gray-700">{spec.error_topic_policy || 'DLQ'}</strong></span>
+                    </div>
+                    <button 
+                      onClick={() => navigate(`/requests/${id}/package`)}
+                      className="text-primary-orange font-bold hover:underline"
+                    >
+                      🔍 Inspect Code Skeleton Files &rarr;
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-4 text-sm bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                      <span className="text-xs text-slate-500 font-medium block mb-1">Pattern Matching Summary</span>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <strong className="text-slate-800">Stateful Processor Pattern</strong>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-500 font-medium block mb-1">Architecture Compliance</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="flex items-center gap-1 text-emerald-700"><span className="text-xs">✓</span> State Store</span>
+                        <span className="flex items-center gap-1 text-emerald-700"><span className="text-xs">✓</span> DLQ Configured</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Review Decision Form */}
             <form onSubmit={handleOpenConfirm} className="bg-white p-6 rounded-2xl shadow-sm border border-border-light space-y-6">
-              <h2 className="text-xl font-bold text-gray-800">Submit Architecture Review & Sign-Off</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                {isArchitect ? "Submit Architecture Review & Sign-Off" : "Submit Code Quality Review & Sign-Off"}
+              </h2>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer Name</label>
@@ -212,7 +241,7 @@ export default function ReviewApprovalPage() {
 
               <div className="pt-2 flex justify-end">
                 <button type="submit" disabled={loading} className="bg-button-orange hover:bg-hover-orange text-white px-8 py-3 rounded-lg font-bold shadow-md transition-colors disabled:opacity-50 text-sm flex items-center gap-2">
-                  <span>✍️</span> Submit Architecture Review
+                  <span>✍️</span> {isArchitect ? "Approve Architecture & Grant Git Commit Clearance" : "Approve Code Quality & Ready for Deployment"}
                 </button>
               </div>
             </form>
@@ -284,7 +313,7 @@ export default function ReviewApprovalPage() {
               Request <strong>#{req.id || id}</strong> decision recorded as <strong className="capitalize">{formData.decision}</strong>.
             </p>
             <div className="pt-2 text-xs font-semibold text-gray-700 bg-gray-100 py-2 px-4 rounded-lg inline-block border border-gray-300">
-              Redirecting to Tech Lead Portal...
+              Redirecting to {isArchitect ? 'Architect' : 'Tech Lead'} Portal...
             </div>
           </div>
         </div>

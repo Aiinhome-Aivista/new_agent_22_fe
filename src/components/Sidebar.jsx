@@ -16,6 +16,7 @@ export default function Sidebar() {
   const role = user?.role?.toLowerCase() || 'developer';
   const isArchitect = role === 'solution architect' || role === 'architect';
   const isTechLead = role === 'tech lead' || role === 'techlead';
+  const isDevOps = role === 'devops' || role === 'platform engineer';
 
   const defaultMenu = [
     { name: 'Dashboard', path: user?.dashboard || '/requests', icon: 'ChartBarIcon' },
@@ -45,7 +46,15 @@ export default function Sidebar() {
     { name: 'Advisor Chat', path: '/advisor', icon: 'ChatBubbleLeftIcon' }
   ];
 
-  const activeMenu = isArchitect ? architectMenu : isTechLead ? techLeadMenu : defaultMenu;
+  const devopsMenu = [
+    { name: 'Dashboard', path: user?.dashboard || '/devops/dashboard', icon: 'ChartBarIcon' },
+    { name: 'Packaging & Deployment', path: '/devops/packages', icon: 'ArchiveBoxIcon' },
+    { name: 'Environment Health', path: '/devops/environments', icon: 'ServerIcon' },
+    { name: 'Config Health & Audits', path: '/devops/configs', icon: 'WrenchScrewdriverIcon' },
+    { name: 'Advisor Chat', path: '/advisor', icon: 'ChatBubbleLeftIcon' }
+  ];
+
+  const activeMenu = isArchitect ? architectMenu : isTechLead ? techLeadMenu : isDevOps ? devopsMenu : defaultMenu;
 
   return (
     <div className="w-72 bg-sidebar text-white flex flex-col shadow-2xl z-20">

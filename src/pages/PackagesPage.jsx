@@ -91,7 +91,7 @@ export default function PackagesPage() {
 
   if (!id || id === 'undefined') {
     return (
-      <div className="flex flex-col h-full bg-gray-50 p-8">
+      <div className="flex flex-col h-full bg-gray-50 p-4 md:p-6">
         <StepRequestTable activeStage="packages" />
       </div>
     );

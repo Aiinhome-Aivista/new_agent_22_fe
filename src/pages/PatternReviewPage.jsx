@@ -36,8 +36,8 @@ export default function PatternReviewPage() {
 
   if (!id) {
     return (
-      <div className="animate-fade-in-up">
-        <div className="mb-8">
+      <div className="animate-fade-in-up p-4">
+        <div className="mb-4">
           <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Pattern Review</h1>
           <p className="text-text-secondary mt-1">Review the architectural patterns retrieved for active requests.</p>
         </div>

@@ -15,6 +15,7 @@ export default function Sidebar() {
 
   const role = user?.role?.toLowerCase() || 'developer';
   const isArchitect = role === 'solution architect' || role === 'architect';
+  const isTechLead = role === 'tech lead' || role === 'techlead';
 
   const defaultMenu = [
     { name: 'Dashboard', path: user?.dashboard || '/requests', icon: 'ChartBarIcon' },
@@ -36,6 +37,16 @@ export default function Sidebar() {
     { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
   ];
 
+  const techLeadMenu = [
+    { name: 'Dashboard', path: user?.dashboard || '/techlead/dashboard', icon: 'ChartBarIcon' },
+    { name: 'Validation Severity Queue', path: '/techlead/validations', icon: 'ShieldCheckIcon' },
+    { name: 'Code Reviews & Approvals', path: '/techlead/reviews', icon: 'ClipboardDocumentCheckIcon' },
+    { name: 'Validation Reports', path: '/techlead/reports', icon: 'DocumentTextIcon' },
+    { name: 'Advisor Chat', path: '/advisor', icon: 'ChatBubbleLeftIcon' }
+  ];
+
+  const activeMenu = isArchitect ? architectMenu : isTechLead ? techLeadMenu : defaultMenu;
+
   return (
     <div className="w-72 bg-sidebar text-white flex flex-col shadow-2xl z-20">
       <div className="p-6 flex items-center gap-3 border-b border-white/10 cursor-pointer" onClick={() => navigate('/')}>
@@ -49,7 +60,7 @@ export default function Sidebar() {
       
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
         {
-          (isArchitect ? architectMenu : defaultMenu).map((item) => {
+          activeMenu.map((item) => {
             const Icon = Icons[item.icon] || Icons.DocumentIcon;
             return (
               <NavLink

@@ -42,6 +42,7 @@ export default function Sidebar() {
               <NavLink
                 key={item.path}
                 to={item.path}
+                end={item.path === '/requests'}
                 className={({ isActive }) => {
                   const currentPath = location.pathname;
                   const forceActive = 

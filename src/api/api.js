@@ -62,4 +62,10 @@ export const getEnvironments = () => api.get('/environments/').then(res => res.d
 export const getEnvironment = (envName) => api.get(`/environments/${envName}`).then(res => res.data);
 export const updateEnvironment = (envName, data) => api.put(`/environments/${envName}`, data).then(res => res.data);
 
+// Tech Lead
+export const getTechLeadValidations = () => api.get('/techlead/validations').then(res => res.data);
+export const actionValidation = (id, action) => api.post(`/techlead/validations/${id}/action`, { action }).then(res => res.data);
+export const getTechLeadReviews = () => api.get('/techlead/reviews').then(res => res.data);
+export const signoffReview = (data) => api.post('/techlead/reviews/signoff', data).then(res => res.data);
+
 export default api;

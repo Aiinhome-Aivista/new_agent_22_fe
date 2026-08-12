@@ -1,26 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getTechLeadReviews } from '../api/api';
 
 export default function TechLeadReviewsPage() {
   const navigate = useNavigate();
 
-  // Mock data for reviews
-  const [reviews] = useState([
-    {
-      id: 3,
-      serviceName: 'Payment Processing Service',
-      targetAppId: 'APP-9921',
-      validationStatus: '100% Passed',
-      date: '2026-08-12'
-    },
-    {
-      id: 4,
-      serviceName: 'User Profile Sync',
-      targetAppId: 'APP-1102',
-      validationStatus: 'Passed with Warnings',
-      date: '2026-08-11'
-    }
-  ]);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getTechLeadReviews().then(res => {
+      setReviews(res.data || []);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-gray-50 p-8">
@@ -43,19 +39,23 @@ export default function TechLeadReviewsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border-light/40">
-              {reviews.map(rev => (
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500 font-medium">Loading reviews...</td>
+                </tr>
+              ) : reviews.map(rev => (
                 <tr key={rev.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-5 font-mono text-sm font-medium text-gray-500">#{rev.id}</td>
                   <td className="px-6 py-5 font-bold text-gray-800 text-sm">{rev.serviceName}</td>
                   <td className="px-6 py-5 font-mono text-xs text-gray-500">{rev.targetAppId}</td>
                   <td className="px-6 py-5">
                     <span className={`px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
-                      rev.validationStatus.includes('Warnings') ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      rev.validationStatus.includes('Warnings') || rev.validationStatus === 'Failed' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                     }`}>
-                      <span>✓</span> {rev.validationStatus}
+                      <span>{rev.validationStatus === 'Failed' ? '✕' : '✓'}</span> {rev.validationStatus}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-sm font-medium text-gray-500">{rev.date}</td>
+                  <td className="px-6 py-5 text-sm font-medium text-gray-500">{new Date(rev.date).toLocaleDateString()}</td>
                   <td className="px-6 py-5 text-right flex justify-end">
                     <button 
                       onClick={() => navigate(`/requests/${rev.id}/review`)} 
@@ -66,7 +66,7 @@ export default function TechLeadReviewsPage() {
                   </td>
                 </tr>
               ))}
-              {reviews.length === 0 && (
+              {!loading && reviews.length === 0 && (
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500 font-medium">
                     No code reviews pending.

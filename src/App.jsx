@@ -85,6 +85,9 @@ function App() {
           
           <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
+            <Route path="techlead/validations" element={<TechLeadValidationsPage />} />
+            <Route path="techlead/reviews" element={<TechLeadReviewsPage />} />
+            <Route path="techlead/reports" element={<TechLeadReportsPage />} />
             <Route path="requests/:id/validation" element={<ValidationReportPage />} />
 
             <Route path="review/queue" element={<ReviewApprovalPage />} />

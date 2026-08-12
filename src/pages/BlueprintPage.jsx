@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
 import FileTree from '../components/FileTree';
-import { getBlueprint, approveBlueprint, reworkBlueprint, runWorkflow, getRequests } from '../api/api';
+import { getBlueprint, approveBlueprint, reworkBlueprint, runWorkflow, getRequests, getRequest } from '../api/api';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import RequestTable from '../components/RequestTable';
 import Loader from '../components/Loader';
@@ -24,6 +24,7 @@ export default function BlueprintPage() {
   const [comments, setComments] = useState('');
   const [assumptionsAcknowledged, setAssumptionsAcknowledged] = useState(false);
   const [requests, setRequests] = useState([]);
+  const [requestObj, setRequestObj] = useState(null);
 
   useEffect(() => {
     if (!id) {
@@ -36,8 +37,9 @@ export default function BlueprintPage() {
       });
       return;
     }
-    getBlueprint(id).then(data => {
-      const bp = data?.data;
+    getRequest(id).then(data => {
+      setRequestObj(data?.data?.request || null);
+      const bp = data?.data?.blueprint;
       setBlueprint(bp || null);
       if (!bp?.assumptions || bp.assumptions.length === 0) {
         setAssumptionsAcknowledged(true);
@@ -48,6 +50,7 @@ export default function BlueprintPage() {
     }).catch(err => {
       console.error(err);
       setBlueprint(null);
+      setRequestObj(null);
       setLoading(false);
     });
   }, [id]);
@@ -96,6 +99,7 @@ export default function BlueprintPage() {
     await approveBlueprint(blueprint.id);
     await runWorkflow(id, false);
     setBlueprint({ ...blueprint, status: 'approved' });
+    setRequestObj(prev => prev ? { ...prev, status: 'approved' } : null);
     setShowApproveModal(false);
     setLoading(false);
   };
@@ -115,43 +119,64 @@ export default function BlueprintPage() {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-bold text-gray-800">Generated Blueprint</h2>
-            {!isArchitect && blueprint && (
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${blueprint.status === 'approved' || blueprint.status === 'packaged' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
-                {blueprint.status === 'approved' || blueprint.status === 'packaged' ? 'Approved by Architect' : 'Pending Architect Review'}
-              </span>
+            {!isArchitect && blueprint && requestObj && (
+              <>
+                {requestObj.status === 'approved' && (
+                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">Approved by Architect</span>
+                )}
+                {(requestObj.status === 'packaged' || requestObj.status === 'validated') && (
+                  <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-bold border border-purple-200">Packaged</span>
+                )}
+                {['draft', 'in_progress', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && (
+                  <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">Pending Architect Review</span>
+                )}
+              </>
             )}
           </div>
           <div className="flex gap-4">
-            {!isArchitect && blueprint && ['approved', 'packaged', 'validated'].includes(blueprint.status?.toLowerCase()) ? (
-              <button onClick={() => navigate(`/requests/${id}/generation`)} className="bg-primary-orange hover:bg-hover-orange text-white px-6 py-2 rounded font-bold shadow-sm transition-colors">
-                Proceed to Code Generation
-              </button>
-            ) : !isArchitect && blueprint ? (
-              <button disabled className="bg-gray-200 text-gray-500 cursor-not-allowed px-6 py-2 rounded font-medium transition-colors">
-                Waiting for Architect Approval
-              </button>
+            {!isArchitect && blueprint && requestObj ? (
+              <>
+                {requestObj.status === 'approved' && (
+                  <button onClick={() => navigate(`/requests/${id}/generation`)} className="bg-primary-orange hover:bg-hover-orange text-white px-6 py-2 rounded font-bold shadow-sm transition-colors">
+                    Proceed to Code Generation
+                  </button>
+                )}
+                {(requestObj.status === 'packaged' || requestObj.status === 'validated') && (
+                  <button onClick={() => navigate('/packages')} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-bold shadow-sm transition-colors">
+                    View Generated Package
+                  </button>
+                )}
+                {['draft', 'in_progress', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && (
+                  <button disabled className="bg-gray-200 text-gray-500 cursor-not-allowed px-6 py-2 rounded font-medium transition-colors">
+                    Waiting for Architect Approval
+                  </button>
+                )}
+              </>
             ) : null}
-            {blueprint && isArchitect && ['approved', 'packaged', 'validated'].includes(blueprint.status?.toLowerCase()) ? (
-              <>
-                <span className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-bold text-sm flex items-center border border-green-200">
-                  Approved by Architect
-                </span>
-                <button onClick={() => navigate('/review/blueprint')} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded font-medium shadow-sm transition-colors">
-                  Back to Blueprint Reviews
-                </button>
-              </>
-            ) : blueprint && isArchitect ? (
-              <>
-                <button onClick={() => setShowReworkModal(true)} className="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2 rounded border border-red-200 font-medium transition-colors">
-                  Request Rework / Reject
-                </button>
-                <button
-                  onClick={() => setShowApproveModal(true)}
-                  disabled={!assumptionsAcknowledged}
-                  className={`px-6 py-2 rounded font-medium transition-colors ${assumptionsAcknowledged ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-200 text-white cursor-not-allowed'}`}>
-                  Approve Blueprint
-                </button>
-              </>
+
+            {blueprint && isArchitect && requestObj ? (
+              ['approved', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase()) ? (
+                <>
+                  <span className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-bold text-sm flex items-center border border-green-200">
+                    Approved by Architect
+                  </span>
+                  <button onClick={() => navigate('/review/blueprint')} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded font-medium shadow-sm transition-colors">
+                    Back to Blueprint Reviews
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => setShowReworkModal(true)} className="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2 rounded border border-red-200 font-medium transition-colors">
+                    Request Rework / Reject
+                  </button>
+                  <button
+                    onClick={() => setShowApproveModal(true)}
+                    disabled={!assumptionsAcknowledged}
+                    className={`px-6 py-2 rounded font-medium transition-colors ${assumptionsAcknowledged ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-200 text-white cursor-not-allowed'}`}>
+                    Approve Blueprint
+                  </button>
+                </>
+              )
             ) : null}
           </div>
         </div>

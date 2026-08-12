@@ -55,9 +55,9 @@ export default function BlueprintPage() {
 
   if (!id) {
     return (
-      <div className="flex flex-col h-full bg-gray-50 p-8">
+      <div className="flex flex-col h-full bg-gray-50 p-4 md:p-4">
         <div className="animate-fade-in-up">
-          <div className="mb-8">
+          <div className="mb-4">
             <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">
               {isArchitect ? "Architecture Blueprints" : "Microservice Blueprints"}
             </h1>

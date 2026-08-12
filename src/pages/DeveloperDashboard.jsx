@@ -130,10 +130,7 @@ export default function DeveloperDashboard() {
                   <span>Consult AI Advisor</span>
                   <svg className="w-5 h-5 text-primary-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
                 </button>
-                <button onClick={() => navigate('/patterns')} className="w-full flex items-center justify-between bg-white border border-border-light/60 hover:border-border-orange/50 text-sidebar px-4 py-3 rounded-xl text-sm font-semibold shadow-sm transition-all hover:shadow hover:-translate-y-0.5">
-                  <span>View Patterns</span>
-                  <ArchiveBoxArrowDownIcon className="w-5 h-5 text-primary-orange" />
-                </button>
+               
               </div>
             </div>
           </div>

@@ -25,11 +25,16 @@ export default function BlueprintPage() {
   const [assumptionsAcknowledged, setAssumptionsAcknowledged] = useState(false);
   const [requests, setRequests] = useState([]);
   const [requestObj, setRequestObj] = useState(null);
+  const [jobObj, setJobObj] = useState(null);
 
   useEffect(() => {
     if (!id) {
       getRequests().then(data => {
-        setRequests(data.data || []);
+        let reqs = data.data || [];
+        if (isArchitect) {
+          reqs = reqs.filter(r => ['draft', 'blueprint_review', 'approved'].includes(r.status?.toLowerCase()));
+        }
+        setRequests(reqs);
         setLoading(false);
       }).catch(err => {
         console.error(err);
@@ -37,22 +42,37 @@ export default function BlueprintPage() {
       });
       return;
     }
-    getRequest(id).then(data => {
-      setRequestObj(data?.data?.request || null);
-      const bp = data?.data?.blueprint;
-      setBlueprint(bp || null);
-      if (!bp?.assumptions || bp.assumptions.length === 0) {
-        setAssumptionsAcknowledged(true);
-      } else {
-        setAssumptionsAcknowledged(false);
-      }
-      setLoading(false);
-    }).catch(err => {
-      console.error(err);
-      setBlueprint(null);
-      setRequestObj(null);
-      setLoading(false);
-    });
+
+    const fetchStatus = () => {
+      getRequest(id).then(data => {
+        const req = data?.data?.request || null;
+        const job = data?.data?.job || null;
+        const bp = data?.data?.blueprint;
+        
+        setRequestObj(req);
+        setJobObj(job);
+        setBlueprint(bp || null);
+        
+        if (!bp?.assumptions || bp.assumptions.length === 0) {
+          setAssumptionsAcknowledged(true);
+        } else {
+          setAssumptionsAcknowledged(false);
+        }
+
+        setLoading(false);
+      }).catch(err => {
+        console.error(err);
+        setBlueprint(null);
+        setRequestObj(null);
+        setJobObj(null);
+        setLoading(false);
+      });
+    };
+
+    // Fetch immediately and then poll every 3 seconds
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 3000);
+    return () => clearInterval(interval);
   }, [id]);
 
   if (loading) return <Loader />;
@@ -155,10 +175,10 @@ export default function BlueprintPage() {
             ) : null}
 
             {blueprint && isArchitect && requestObj ? (
-              ['approved', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase()) ? (
+              ['in_progress', 'approved', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase()) ? (
                 <>
                   <span className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-bold text-sm flex items-center border border-green-200">
-                    Approved by Architect
+                    Approved by Architect (Ready for Generation)
                   </span>
                   <button onClick={() => navigate('/review/blueprint')} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded font-medium shadow-sm transition-colors">
                     Back to Blueprint Reviews
@@ -256,7 +276,11 @@ export default function BlueprintPage() {
             </div>
           </div>
         ) : (
-          <div className="text-gray-500 italic">Blueprint not found.</div>
+          <div className="flex-1 flex flex-col items-center justify-center p-12 bg-white rounded shadow border border-border-light">
+            <div className="w-16 h-16 border-4 border-primary-orange border-t-transparent rounded-full animate-spin mb-4"></div>
+            <h2 className="text-xl font-bold text-gray-800">Generating Blueprint...</h2>
+            <p className="text-gray-500 mt-2">AI is analyzing requirements and building the class manifest.</p>
+          </div>
         )}
       </div>
 

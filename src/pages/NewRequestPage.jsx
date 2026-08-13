@@ -46,7 +46,7 @@ export default function NewRequestPage() {
       localStorage.setItem('lastGenerationRequestId', reqId);
       // Start workflow
       await runWorkflow(reqId, draftMode);
-      navigate(`/progress?id=${reqId}`);
+      navigate(`/requests/${reqId}/blueprint`);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
       setLoading(false);

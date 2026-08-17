@@ -263,8 +263,21 @@ export default function BlueprintPage() {
             <div className="bg-white p-6 rounded shadow border border-border-light">
               <h3 className="font-bold text-gray-700 mb-4">Class Design & AI Rationale</h3>
               <div className="prose prose-sm max-w-none text-gray-600 mb-6">
-                <p><strong>Design:</strong> {blueprint.class_design}</p>
-                <p><strong>Rationale:</strong> {blueprint.generated_rationale}</p>
+                <p><strong>Design:</strong><br/>
+                  {blueprint.class_design?.split(/(\*\*.*?\*\*)/g).map((part, idx) => 
+                    part.startsWith('**') && part.endsWith('**') ? 
+                    <strong key={idx} className="text-gray-800">{part.slice(2, -2)}</strong> : 
+                    <span key={idx}>{part}</span>
+                  )}
+                </p>
+                <div className="mt-4">
+                  <strong>Rationale:</strong><br/>
+                  {blueprint.generated_rationale?.split(/(\*\*.*?\*\*)/g).map((part, idx) => 
+                    part.startsWith('**') && part.endsWith('**') ? 
+                    <strong key={idx} className="text-gray-800">{part.slice(2, -2)}</strong> : 
+                    <span key={idx}>{part}</span>
+                  )}
+                </div>
               </div>
 
               {blueprint.mermaid_diagram && (

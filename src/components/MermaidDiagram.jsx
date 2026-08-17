@@ -46,8 +46,11 @@ export default function MermaidDiagram({ chart }) {
   if (!chart) return null;
 
   return (
-    <div className="w-full flex justify-center p-4 bg-white rounded-lg border border-slate-200 overflow-auto">
-      <div ref={containerRef} className="mermaid" />
+    <div className="w-full flex justify-center p-6 bg-slate-50 rounded-lg border border-slate-200 overflow-auto shadow-inner">
+      <div 
+        ref={containerRef} 
+        className="mermaid w-full flex justify-center [&>svg]:w-full [&>svg]:max-w-4xl [&>svg]:h-auto transition-all duration-300" 
+      />
     </div>
   );
 }

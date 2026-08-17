@@ -3,9 +3,22 @@ import mermaid from 'mermaid';
 
 mermaid.initialize({
   startOnLoad: false,
-  theme: 'default',
+  theme: 'base',
   securityLevel: 'loose',
-  fontFamily: 'Inter, sans-serif'
+  fontFamily: 'Inter, sans-serif',
+  themeVariables: {
+    primaryColor: '#eef2ff', // Indigo 50
+    primaryTextColor: '#3730a3', // Indigo 800
+    primaryBorderColor: '#a5b4fc', // Indigo 300
+    lineColor: '#94a3b8', // Slate 400
+    secondaryColor: '#f0fdf4', // Green 50
+    tertiaryColor: '#fef2f2', // Red 50
+    nodeBorder: '#c7d2fe', // Indigo 200
+    clusterBkg: '#f8fafc', // Slate 50
+    clusterBorder: '#e2e8f0', // Slate 200
+    fontFamily: 'Inter, sans-serif',
+    fontSize: '14px'
+  }
 });
 
 export default function MermaidDiagram({ chart }) {

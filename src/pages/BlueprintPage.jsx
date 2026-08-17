@@ -129,8 +129,13 @@ export default function BlueprintPage() {
     if (!blueprint || !comments.trim()) return;
     setLoading(true);
     await reworkBlueprint(blueprint.id, comments);
+    
+    // Trigger workflow again in draft mode to regenerate
+    await runWorkflow(id, true);
+    
     setShowReworkModal(false);
-    navigate('/architect/dashboard');
+    setComments('');
+    setLoading(false);
   };
 
   return (
@@ -252,7 +257,7 @@ export default function BlueprintPage() {
 
             <div className="bg-white p-6 rounded shadow border border-border-light">
               <h3 className="font-bold text-gray-700 mb-4">File Manifest</h3>
-              <FileTree manifest={blueprint.file_manifest} />
+              <FileTree manifest={typeof blueprint.file_manifest === 'string' ? JSON.parse(blueprint.file_manifest) : blueprint.file_manifest} />
             </div>
 
             <div className="bg-white p-6 rounded shadow border border-border-light">
@@ -283,7 +288,7 @@ export default function BlueprintPage() {
               )}
             </div>
           </div>
-        ) : job && job.job_status === 'running' ? (
+        ) : jobObj && jobObj.job_status === 'running' ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-orange mb-4"></div>
             <h3 className="text-xl font-bold text-gray-700">AI is drafting your blueprint...</h3>

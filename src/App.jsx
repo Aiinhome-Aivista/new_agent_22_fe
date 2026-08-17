@@ -48,6 +48,7 @@ function App() {
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
 
             <Route path="request/new" element={<NewRequestPage />} />
+            <Route path="requests/:id/chat" element={<NewRequestPage />} />
             <Route path="progress" element={<GenerationProgressPage />} />
             <Route path="requests" element={<Dashboard />} />
 

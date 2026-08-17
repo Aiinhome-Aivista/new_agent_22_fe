@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import StatusBadge from './StatusBadge';
 
 export default function RequestTable({ requests, role, navigate, actionOverride }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(requests.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentRequests = requests.slice(startIndex, startIndex + itemsPerPage);
+
   const handleNavigate = (path, reqId) => {
     localStorage.setItem('lastGenerationRequestId', reqId);
     navigate(path);
@@ -21,7 +28,7 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
           </tr>
         </thead>
         <tbody className="divide-y divide-border-light/40">
-          {requests.map(req => (
+          {currentRequests.map(req => (
             <tr key={req.id} className="hover:bg-input-bg/30 transition-colors group">
               <td className="px-6 py-5 text-sm text-text-secondary font-mono font-medium">#{req.id}</td>
               <td className="px-6 py-5 text-sm font-extrabold text-sidebar">{req.request_name}</td>
@@ -71,11 +78,7 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
                 ) : (
                   <button
                     onClick={() => {
-                      if (['draft', 'blueprint_review'].includes(req.status?.toLowerCase())) {
-                        handleNavigate(`/requests/${req.id}/blueprint`, req.id);
-                      } else {
-                        handleNavigate(`/progress?id=${req.id}`, req.id);
-                      }
+                      handleNavigate(`/requests/${req.id}/chat`, req.id);
                     }}
                     className="text-text-secondary hover:text-primary-orange hover:bg-input-bg border border-transparent hover:border-border-orange/20 px-4 py-2 rounded-lg font-bold transition-all"
                   >
@@ -98,6 +101,59 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
           )}
         </tbody>
       </table>
+      
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border-light/60 bg-white">
+          <div className="text-sm text-text-secondary">
+            Showing <span className="font-bold text-sidebar">{startIndex + 1}</span> to <span className="font-bold text-sidebar">{Math.min(startIndex + itemsPerPage, requests.length)}</span> of <span className="font-bold text-sidebar">{requests.length}</span> results
+          </div>
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentPage === 1 ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-text-secondary bg-white border border-border-light hover:bg-input-bg hover:text-sidebar'}`}
+            >
+              Previous
+            </button>
+            <div className="flex items-center space-x-1">
+              {[...Array(totalPages)].map((_, idx) => {
+                if (
+                  totalPages <= 5 || 
+                  idx === 0 || 
+                  idx === totalPages - 1 || 
+                  (idx >= currentPage - 2 && idx <= currentPage)
+                ) {
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentPage(idx + 1)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === idx + 1 ? 'bg-primary-orange text-white' : 'text-text-secondary hover:bg-input-bg hover:text-sidebar'}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                }
+                
+                if (
+                  (idx === 1 && currentPage > 3) || 
+                  (idx === totalPages - 2 && currentPage < totalPages - 2)
+                ) {
+                  return <span key={idx} className="text-gray-400 px-1">...</span>;
+                }
+                
+                return null;
+              })}
+            </div>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentPage === totalPages ? 'text-gray-400 bg-gray-50 cursor-not-allowed' : 'text-text-secondary bg-white border border-border-light hover:bg-input-bg hover:text-sidebar'}`}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -88,7 +88,7 @@ export default function Sidebar() {
                     }
                   } else {
                     const forceActive = 
-                      (item.path === '/requests' && (currentPath === '/requests' || currentPath === '/requests/')) ||
+                      (item.path === '/requests' && (currentPath === '/requests' || currentPath === '/requests/' || currentPath.match(/^\/requests\/\d+\/chat/))) ||
                       (item.path === '/progress' && currentPath.includes('/generation')) ||
                       (item.path === '/review/blueprint' && currentPath.includes('/blueprint')) ||
                       (item.path === '/validation' && currentPath.includes('/validation')) ||

@@ -9,9 +9,25 @@ const TRACE_MESSAGES = [
   { text: "[Requirements Interpreter] Validating topic names and schema configs...", delay: 1500 },
   { text: "[Pattern Retrieval Agent] Fetching Processor-Handler-Supplier templates...", delay: 2500 },
   { text: "[Code Blueprint Agent] Generating Java class diagrams and file manifest...", delay: 4000 },
-  { text: "[Code Generation Agent] Rendering Jinja2 templates (Processor, Handler, Supplier, application.yml)...", delay: 6000 },
-  { text: "[Validation Agent] Running static checks, DLQ configs, and naming validation...", delay: 8500 }
+  { text: "[Code Generation Agent] Rendering Jinja2 templates...", delay: 6000 },
+  { text: "[Validation Agent] Running static checks and syntax validation...", delay: 8500 }
 ];
+
+const syntaxHighlight = (code) => {
+  if (!code) return '// No content available';
+  
+  let highlighted = code
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"(.*?)"/g, '<span style="color: #ce9178;">"$1"</span>')
+    .replace(/\b(public|private|protected|static|final|class|interface|enum|implements|extends|return|if|else|for|while|try|catch|new|this|super|void|boolean|int|double|float|long|short|byte|char|import|package)\b/g, '<span style="color: #569cd6; font-weight: bold;">$1</span>')
+    .replace(/\b([A-Z][a-zA-Z0-9_]*)\b/g, '<span style="color: #4ec9b0;">$1</span>')
+    .replace(/@([a-zA-Z0-9_]+)/g, '<span style="color: #dcdcaa;">@$1</span>')
+    .replace(/(\/\/.*)/g, '<span style="color: #6a9955; font-style: italic;">$1</span>');
+    
+  return highlighted;
+};
 
 export default function GenerationProgressPage() {
   const { id: pathId } = useParams();
@@ -24,9 +40,8 @@ export default function GenerationProgressPage() {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [simulatedLogs, setSimulatedLogs] = useState([]);
+  const [activeTab, setActiveTab] = useState('manifest');
   const terminalEndRef = useRef(null);
-
-
 
   useEffect(() => {
     if (!id || id === 'undefined') return;
@@ -41,7 +56,6 @@ export default function GenerationProgressPage() {
         setFiles(fetchedFiles);
         setSelectedFile(prev => {
           if (!prev && fetchedFiles.length > 0) return fetchedFiles[0];
-          // Keep current selection if it still exists
           if (prev && fetchedFiles.find(f => f.file_name === prev.file_name)) return prev;
           return fetchedFiles.length > 0 ? fetchedFiles[0] : null;
         });
@@ -53,7 +67,6 @@ export default function GenerationProgressPage() {
     return () => clearInterval(interval);
   }, [id]);
 
-  // Simulate logs if empty
   useEffect(() => {
     if (reqData && (!reqData?.job?.step_log || reqData.job.step_log.trim() === '')) {
       let timeouts = [];
@@ -70,8 +83,10 @@ export default function GenerationProgressPage() {
   }, [reqData]);
 
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [simulatedLogs, reqData?.job?.step_log]);
+    if (activeTab === 'audit') {
+      terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [simulatedLogs, reqData?.job?.step_log, activeTab]);
 
   if (!id || id === 'undefined') {
     return (
@@ -81,135 +96,179 @@ export default function GenerationProgressPage() {
     );
   }
 
-  // Parse step log lines
   const rawLog = reqData?.job?.step_log || '';
   const logLines = rawLog.trim().length > 0 ? rawLog.split('\n').filter(line => line.trim().length > 0) : simulatedLogs;
-
   const jobStatus = reqData?.job?.job_status;
   const isFailed = jobStatus === 'failed';
   const isCompleted = ['validated', 'packaged', 'approved'].includes(reqData?.request?.status) || 
                       (reqData?.blueprint?.status === 'approved' && ['Validation', 'Packaging', 'Finished'].includes(reqData?.job?.current_step));
 
-  const handleNext = () => {
-    navigate(`/requests/${id}/validation`);
-  };
-
-  const handleRetry = () => {
-    alert('Retrying generation stage...');
-  };
+  // Determine coverage percentage for UI badge (simulated based on file count)
+  const coverage = files.length > 0 ? "100% GENERATED" : "IN PROGRESS";
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-full bg-[#fcf9f8]">
       <ProgressStepper requestId={id} activeStep="generation" />
-      <div className="p-8 flex-1 overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center mb-6 shrink-0">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800">Generation Progress</h2>
-            <p className="text-sm text-gray-500 mt-1">Executing Kafka agent pipeline...</p>
-          </div>
-          <div className="flex space-x-4">
-            {isFailed && (
-              <button onClick={handleRetry} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                Retry Stage
-              </button>
-            )}
-            <button 
-              onClick={handleNext} 
-              disabled={!isCompleted && !isFailed}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors shadow-sm ${(!isCompleted && !isFailed) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-button-orange hover:bg-hover-orange text-white'}`}
-            >
-              Next: Validation
-            </button>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
-          {/* Agent Execution Terminal */}
-          <div className="flex flex-col bg-[#1e1e1e] rounded-xl shadow-lg border border-gray-800 overflow-hidden">
-            <div className="bg-[#2d2d2d] px-4 py-3 border-b border-gray-700 flex items-center justify-between shrink-0">
-              <div className="flex items-center space-x-2">
-                <div className="flex space-x-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                </div>
-                <span className="text-gray-400 text-xs font-mono ml-4">Agent Execution Terminal</span>
-              </div>
-              <div className="text-green-400 text-xs font-mono flex items-center space-x-2">
-                 {!isCompleted && !isFailed && <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>}
-                 <span>{isCompleted ? 'Completed' : isFailed ? 'Failed' : 'Live'}</span>
-              </div>
+      
+      <div className="p-6 flex-1 overflow-hidden flex flex-col">
+        {/* Workspace Top Header Panel */}
+        <div className="bg-[#fffbf6] border border-[#f0e6dc] rounded-xl p-4 mb-6 shrink-0 shadow-sm flex flex-col sm:flex-row justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="bg-orange-100 p-2 rounded-lg text-primary-orange">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
             </div>
-            <div className="flex-1 p-4 font-mono text-sm overflow-y-auto text-gray-300">
-              <div className="mb-4 text-green-400">{"$ ./run-kafka-agents.sh"}</div>
-              {logLines.map((line, idx) => {
-                const isError = line.toLowerCase().includes('error') || line.toLowerCase().includes('failed');
-                return (
-                  <div key={idx} className={`mb-1 ${isError ? 'text-red-400 font-bold' : 'text-gray-300'}`}>
-                    {line}
-                  </div>
-                );
-              })}
-              {files.length > 0 && <div className="text-blue-400 mt-4 font-bold">{"=> Successfully generated " + files.length + " artefacts."}</div>}
-              {(!isCompleted && !isFailed) && <div className="mt-2 text-green-400 animate-pulse">_</div>}
-              <div ref={terminalEndRef} />
+            <div>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-extrabold text-gray-800">Generated Source Code Workspace</h2>
+                <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">{coverage}</span>
+              </div>
+              <div className="flex items-center gap-3 mt-1 text-xs font-bold text-gray-500">
+                <span className="flex items-center gap-1"><span className="text-gray-400">⚙️</span> Language: Java</span>
+                <span className="text-gray-300">|</span>
+                <span className="flex items-center gap-1"><span className="text-gray-400">📦</span> Framework: Spring Boot / Kafka</span>
+                <span className="text-gray-300">|</span>
+                <span className="flex items-center gap-1"><span className="text-gray-400">🧩</span> Pattern: Streams Topology</span>
+              </div>
             </div>
           </div>
           
-          {/* Generated Files Workspace */}
-          <div className="flex flex-col bg-white rounded-xl shadow-lg border border-border-light overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center shrink-0">
-              <h3 className="font-bold text-gray-800">Generated Artefacts</h3>
-              <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">{files.length} Files</span>
+          <div className="flex gap-3 mt-4 sm:mt-0">
+            {isFailed && (
+              <button className="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-4 py-2 rounded font-bold text-sm transition-colors shadow-sm">
+                RETRY PIPELINE
+              </button>
+            )}
+            <button 
+              onClick={() => navigate(`/requests/${id}/validation`)}
+              disabled={!isCompleted && !isFailed}
+              className={`px-4 py-2 rounded text-sm font-bold shadow-sm transition-colors ${(!isCompleted && !isFailed) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-primary-orange text-white hover:bg-hover-orange'}`}
+            >
+              PROCEED TO VALIDATION
+            </button>
+          </div>
+        </div>
+
+        {/* Main Workspace Layout */}
+        <div className="flex flex-1 gap-6 min-h-0 overflow-hidden">
+          
+          {/* Left Panel: Tabs & File List */}
+          <div className="w-1/3 flex flex-col min-h-0 border-r border-[#f0e6dc] pr-6">
+            
+            {/* Tabs */}
+            <div className="flex gap-6 border-b border-[#f0e6dc] mb-4 shrink-0">
+              <button 
+                onClick={() => setActiveTab('manifest')}
+                className={`pb-2 text-sm font-extrabold transition-colors border-b-2 ${activeTab === 'manifest' ? 'text-primary-orange border-primary-orange' : 'text-gray-400 border-transparent hover:text-gray-600'}`}
+              >
+                Generated Manifest
+              </button>
+              <button 
+                onClick={() => setActiveTab('audit')}
+                className={`pb-2 text-sm font-extrabold transition-colors border-b-2 ${activeTab === 'audit' ? 'text-primary-orange border-primary-orange' : 'text-gray-400 border-transparent hover:text-gray-600'}`}
+              >
+                Review Agent Audit
+              </button>
             </div>
-            <div className="flex flex-1 min-h-0">
-              {/* File Tree */}
-              <div className="w-1/3 border-r border-gray-100 bg-gray-50 p-3 overflow-y-auto shrink-0">
+
+            {/* Tab Content */}
+            {activeTab === 'manifest' ? (
+              <div className="flex-1 overflow-y-auto pr-2 pb-4">
+                <h3 className="text-xs font-black text-gray-400 mb-3 tracking-widest uppercase">File Artifacts</h3>
+                
                 {files.length === 0 ? (
-                  <div className="text-gray-400 italic text-sm text-center mt-10 px-2">
+                  <div className="text-gray-400 italic text-sm text-center mt-10 p-6 bg-white border border-[#f0e6dc] rounded-lg">
                     {reqData?.request?.status === 'blueprint_review' 
-                      ? 'Pipeline paused for Blueprint Review. Waiting for Architect approval.'
-                      : 'Waiting for files...'}
+                      ? 'Pipeline paused for Blueprint Review. Waiting for approval.'
+                      : 'Generation in progress. Waiting for files...'}
                   </div>
                 ) : (
-                  <div className="space-y-1">
-                    {files.map(f => (
-                      <button 
-                        key={f.id || f.file_name} 
-                        onClick={() => setSelectedFile(f)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center space-x-2 transition-colors ${selectedFile?.file_name === f.file_name ? 'bg-primary-orange/10 text-primary-orange font-medium' : 'text-gray-600 hover:bg-gray-200'}`}
-                      >
-                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                        <span className="truncate">{f.file_name}</span>
-                      </button>
+                  <div className="space-y-2">
+                    {files.map((f, idx) => {
+                      const isActive = selectedFile?.file_name === f.file_name;
+                      return (
+                        <button 
+                          key={f.id || idx} 
+                          onClick={() => setSelectedFile(f)}
+                          className={`w-full text-left p-3 rounded-lg flex items-center justify-between transition-all border ${
+                            isActive 
+                              ? 'bg-orange-50 border-orange-200 shadow-sm' 
+                              : 'bg-white border-[#f0e6dc] hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <span className="text-gray-400 shrink-0">📄</span>
+                            <span className={`text-sm font-mono truncate ${isActive ? 'text-gray-900 font-bold' : 'text-gray-600 font-medium'}`}>
+                              {f.file_name}
+                            </span>
+                          </div>
+                          <span className="shrink-0 bg-green-50 text-green-700 text-[9px] font-black px-1.5 py-0.5 rounded border border-green-200 tracking-wider">
+                            GENERATED
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex-1 bg-[#1e1e1e] rounded-xl overflow-hidden flex flex-col shadow-inner">
+                <div className="bg-[#2d2d2d] px-4 py-2 border-b border-gray-700 flex justify-between items-center shrink-0">
+                  <span className="text-gray-400 text-xs font-mono">Terminal Output</span>
+                  {(!isCompleted && !isFailed) && <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>}
+                </div>
+                <div className="flex-1 p-4 font-mono text-xs overflow-y-auto text-gray-300">
+                  <div className="mb-3 text-green-400">{"$ tail -f agent-pipeline.log"}</div>
+                  {logLines.map((line, idx) => (
+                    <div key={idx} className={`mb-1 ${line.toLowerCase().includes('error') ? 'text-red-400' : 'text-gray-400'}`}>{line}</div>
+                  ))}
+                  {(!isCompleted && !isFailed) && <div className="mt-2 text-green-400 animate-pulse">_</div>}
+                  <div ref={terminalEndRef} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Panel: MacOS Code Editor */}
+          <div className="w-2/3 flex flex-col min-h-0 bg-[#1e1e1e] rounded-xl shadow-xl border border-gray-800 overflow-hidden">
+            {/* MacOS Window Header */}
+            <div className="bg-[#2d2d2d] h-10 px-4 flex items-center justify-between shrink-0 border-b border-black/40">
+              <div className="flex space-x-2 w-20">
+                <div className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]"></div>
+                <div className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]"></div>
+                <div className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]"></div>
+              </div>
+              <div className="text-gray-300 text-xs font-bold font-mono tracking-wide">
+                {selectedFile?.file_name || 'No file selected'}
+              </div>
+              <div className="w-20"></div> {/* Spacer for centering */}
+            </div>
+
+            {/* Code Content */}
+            <div className="flex-1 flex overflow-auto bg-[#1e1e1e]">
+              {selectedFile ? (
+                <>
+                  {/* Line Numbers */}
+                  <div className="py-4 px-3 bg-[#1e1e1e] border-r border-gray-800 text-right shrink-0 select-none">
+                    {(selectedFile.preview || '// Generating...').split('\n').map((_, i) => (
+                      <div key={i} className="text-gray-600 text-xs font-mono leading-relaxed">{i + 1}</div>
                     ))}
                   </div>
-                )}
-              </div>
-              {/* File Preview */}
-              <div className="flex-1 bg-gray-50/30 flex flex-col min-w-0">
-                {selectedFile ? (
-                  <>
-                    <div className="px-4 py-2 border-b border-gray-100 bg-white text-xs text-gray-500 font-mono truncate shrink-0">
-                      {selectedFile.file_path || `src/main/java/com/digiconfx/${selectedFile.file_name}`}
-                    </div>
-                    <div className="flex-1 overflow-auto p-4">
-                      <pre className="text-xs font-mono text-gray-800 whitespace-pre-wrap break-all">
-                        {selectedFile.preview || '// No content available'}
-                      </pre>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-gray-400 text-sm p-4 text-center">
-                    Select a file from the tree to preview its contents
+                  {/* Actual Code */}
+                  <div className="p-4 flex-1">
+                    <pre 
+                      className="text-xs font-mono text-gray-300 whitespace-pre leading-relaxed focus:outline-none"
+                      dangerouslySetInnerHTML={{ __html: syntaxHighlight(selectedFile.preview || '// Generating...') }}
+                    />
                   </div>
-                )}
-              </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-gray-500 font-mono text-sm">
+                  {files.length > 0 ? "Select a file from the manifest to view source code" : "Waiting for code generation..."}
+                </div>
+              )}
             </div>
           </div>
+
         </div>
       </div>
     </div>

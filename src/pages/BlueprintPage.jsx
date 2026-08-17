@@ -118,7 +118,6 @@ export default function BlueprintPage() {
     if (!blueprint || !assumptionsAcknowledged) return;
     setLoading(true);
     await approveBlueprint(blueprint.id);
-    await runWorkflow(id, false);
     setBlueprint({ ...blueprint, status: 'approved' });
     setRequestObj(prev => prev ? { ...prev, status: 'approved' } : null);
     setShowApproveModal(false);
@@ -339,9 +338,10 @@ export default function BlueprintPage() {
               </button>
               <button
                 onClick={handleApproveConfirm}
-                className="px-4 py-2 rounded-lg text-sm font-bold transition-colors bg-green-600 text-white hover:bg-green-700"
+                disabled={loading}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${loading ? 'bg-green-400 cursor-wait' : 'bg-green-600 hover:bg-green-700'} text-white`}
               >
-                Confirm Approval
+                {loading ? 'Approving...' : 'Confirm Approval'}
               </button>
             </div>
           </div>

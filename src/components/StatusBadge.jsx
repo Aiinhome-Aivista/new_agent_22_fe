@@ -16,7 +16,7 @@ export default function StatusBadge({ status }) {
   
   return (
     <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${c} capitalize`}>
-      {status.replace('_', ' ')}
+      {status === 'validated' ? 'Approved' : status.replace('_', ' ')}
     </span>
   );
 }

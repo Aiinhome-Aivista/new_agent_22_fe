@@ -6,7 +6,13 @@ import { useNavigate } from 'react-router-dom';
 export default function StepRequestTable({ activeStage }) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const navigate = useNavigate();
+
+  const totalPages = Math.ceil(requests.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentRequests = requests.slice(startIndex, startIndex + itemsPerPage);
 
   useEffect(() => {
     getRequests().then(res => {
@@ -61,14 +67,14 @@ export default function StepRequestTable({ activeStage }) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 ">
       <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
         <div>
           <h2 className="text-xl font-bold text-gray-800 capitalize">{activeStage} Projects</h2>
           <p className="text-sm text-gray-500">Select a project to enter this pipeline stage.</p>
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-auto">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-white text-text-secondary text-xs uppercase tracking-wider border-b border-border-light">
@@ -81,7 +87,7 @@ export default function StepRequestTable({ activeStage }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border-light bg-white">
-            {requests.map(req => (
+            {currentRequests.map(req => (
               <tr key={req.id} className="hover:bg-gray-50/50 transition-colors group">
                 <td className="px-6 py-5 text-sm font-bold text-text-secondary">#{req.id}</td>
                 <td className="px-6 py-5">
@@ -119,6 +125,59 @@ export default function StepRequestTable({ activeStage }) {
           </tbody>
         </table>
       </div>
+      
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
+          <div className="text-sm text-gray-500">
+            Showing <span className="font-bold text-gray-700">{startIndex + 1}</span> to <span className="font-bold text-gray-700">{Math.min(startIndex + itemsPerPage, requests.length)}</span> of <span className="font-bold text-gray-700">{requests.length}</span> results
+          </div>
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentPage === 1 ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-800'}`}
+            >
+              Previous
+            </button>
+            <div className="flex items-center space-x-1">
+              {[...Array(totalPages)].map((_, idx) => {
+                if (
+                  totalPages <= 5 || 
+                  idx === 0 || 
+                  idx === totalPages - 1 || 
+                  (idx >= currentPage - 2 && idx <= currentPage)
+                ) {
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentPage(idx + 1)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === idx + 1 ? 'bg-primary-orange text-white' : 'text-gray-600 hover:bg-white border border-transparent hover:border-gray-200'}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                }
+                
+                if (
+                  (idx === 1 && currentPage > 3) || 
+                  (idx === totalPages - 2 && currentPage < totalPages - 2)
+                ) {
+                  return <span key={idx} className="text-gray-400 px-1">...</span>;
+                }
+                
+                return null;
+              })}
+            </div>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentPage === totalPages ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:text-gray-800'}`}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

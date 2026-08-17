@@ -7,8 +7,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import RequestTable from '../components/RequestTable';
 import Loader from '../components/Loader';
 import { useAuth } from '../context/AuthContext';
-
-
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 export default function BlueprintPage() {
   const { user } = useAuth();
   const role = user?.role?.toLowerCase() || 'developer';
@@ -82,19 +81,12 @@ export default function BlueprintPage() {
     return (
       <div className="flex flex-col h-full bg-gray-50 p-4 md:p-4">
         <div className="animate-fade-in-up">
-          <div className="mb-4">
-            <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">
-              {isArchitect ? "Architecture Blueprints" : "Microservice Blueprints"}
-            </h1>
-            <p className="text-text-secondary mt-1">
-              {isArchitect ? "Review generated designs against messaging patterns and standards." : "View structural class manifests, handler contracts, and approval status."}
-            </p>
-          </div>
+
           <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
-            <div className="p-6 md:p-8 border-b border-border-light/60 bg-white relative overflow-hidden">
+            <div className="p-6 md:p-6 border-b border-border-light/60 bg-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/4"></div>
               <div className="relative z-10">
-                <h2 className="font-extrabold text-sidebar text-2xl">
+                <h2 className="font-extrabold text-sidebar text-xl">
                   {isArchitect ? "Blueprint Reviews" : "Blueprint Inspection"}
                 </h2>
                 <p className="text-sm text-text-secondary mt-1">
@@ -143,6 +135,13 @@ export default function BlueprintPage() {
       <div className="p-8 flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+              title="Go Back"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
             <h2 className="text-xl font-bold text-gray-800">Generated Blueprint</h2>
             {!isArchitect && blueprint && requestObj && (
               <>

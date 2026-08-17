@@ -70,7 +70,13 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleNavigate(`/progress?id=${req.id}`, req.id)}
+                    onClick={() => {
+                      if (['draft', 'blueprint_review'].includes(req.status?.toLowerCase())) {
+                        handleNavigate(`/requests/${req.id}/blueprint`, req.id);
+                      } else {
+                        handleNavigate(`/progress?id=${req.id}`, req.id);
+                      }
+                    }}
                     className="text-text-secondary hover:text-primary-orange hover:bg-input-bg border border-transparent hover:border-border-orange/20 px-4 py-2 rounded-lg font-bold transition-all"
                   >
                     View Details

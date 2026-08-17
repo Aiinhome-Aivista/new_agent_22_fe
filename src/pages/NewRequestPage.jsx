@@ -95,7 +95,6 @@ export default function NewRequestPage() {
         await runWorkflow(reqId, true);
         navigate(`/blueprint?id=${reqId}`);
       }
-
     } catch (err) {
       setError(err.response?.data?.message || err.message);
       setLoading(false);

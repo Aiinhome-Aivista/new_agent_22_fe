@@ -8,6 +8,7 @@ const api = axios.create({
 export const getRequests = (status) => api.get('/requirements/', { params: { status } }).then(res => res.data);
 export const getRequest = (id) => api.get(`/requirements/${id}`).then(res => res.data);
 export const createRequest = (data) => api.post('/requirements/', data).then(res => res.data);
+export const submitChatIntake = (data) => api.post('/requirements/intake-chat', data).then(res => res.data);
 
 // Patterns
 export const getPatterns = (reqId) => api.get(`/patterns/request/${reqId}`).then(res => res.data);

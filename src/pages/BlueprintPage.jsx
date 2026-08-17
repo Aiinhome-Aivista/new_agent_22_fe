@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
 import FileTree from '../components/FileTree';
+import MermaidDiagram from '../components/MermaidDiagram';
 import { getBlueprint, approveBlueprint, reworkBlueprint, runWorkflow, getRequests, getRequest } from '../api/api';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import RequestTable from '../components/RequestTable';
@@ -241,6 +242,13 @@ export default function BlueprintPage() {
                 <p><strong>Rationale:</strong> {blueprint.generated_rationale}</p>
               </div>
 
+              {blueprint.mermaid_diagram && (
+                <div className="mb-6">
+                  <h4 className="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wider">Architecture Diagram</h4>
+                  <MermaidDiagram chart={blueprint.mermaid_diagram} />
+                </div>
+              )}
+
               {blueprint.alternative_designs && blueprint.alternative_designs.length > 0 && (
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <h4 className="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wider">Alternative Designs</h4>
@@ -254,6 +262,14 @@ export default function BlueprintPage() {
                 </div>
               )}
             </div>
+          </div>
+        ) : job && job.job_status === 'running' ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-orange mb-4"></div>
+            <h3 className="text-xl font-bold text-gray-700">AI is drafting your blueprint...</h3>
+            <p className="text-gray-500 mt-2 text-center max-w-md">
+              Please wait while the AI Architect designs your Kafka Streams topology, classes, and file manifest. This involves deep reasoning and may take a few minutes.
+            </p>
           </div>
         ) : (
           <div className="text-gray-500 italic">Blueprint not found.</div>

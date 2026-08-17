@@ -54,6 +54,7 @@ function App() {
             <Route path="review/patterns" element={<PatternReviewPage />} />
             <Route path="requests/:id/patterns" element={<PatternReviewPage />} />
 
+            <Route path="blueprint" element={<BlueprintPage />} />
             <Route path="review/blueprint" element={<BlueprintPage />} />
             <Route path="requests/:id/blueprint" element={<BlueprintPage />} />
 

@@ -47,9 +47,22 @@ export default function GenerationProgressPage() {
   useEffect(() => {
     if (!id || id === 'undefined') return;
 
+    let interval;
+
     const fetchStatus = () => {
       getRequest(id).then(res => {
-        if (res.success) setReqData(res.data);
+        if (res.success) {
+          setReqData(res.data);
+          
+          const data = res.data;
+          const isComp = ['validated', 'packaged', 'approved'].includes(data?.request?.status) || 
+                         (data?.blueprint?.status === 'approved' && ['Validation', 'Packaging', 'Finished'].includes(data?.job?.current_step));
+          const isFail = data?.job?.job_status === 'failed';
+          
+          if ((isComp || isFail) && interval) {
+            clearInterval(interval);
+          }
+        }
       }).catch(console.error);
 
       getGeneratedFiles(id).then(data => {
@@ -64,7 +77,7 @@ export default function GenerationProgressPage() {
     };
 
     fetchStatus();
-    const interval = setInterval(fetchStatus, 3000);
+    interval = setInterval(fetchStatus, 3000);
     return () => clearInterval(interval);
   }, [id]);
 
@@ -184,10 +197,16 @@ export default function GenerationProgressPage() {
                 <h3 className="text-xs font-black text-gray-400 mb-3 tracking-widest uppercase">File Artifacts</h3>
                 
                 {files.length === 0 ? (
-                  <div className="text-gray-400 italic text-sm text-center mt-10 p-6 bg-white border border-[#f0e6dc] rounded-lg">
-                    {reqData?.request?.status === 'blueprint_review' 
-                      ? 'Pipeline paused for Blueprint Review. Waiting for approval.'
-                      : 'Generation in progress. Waiting for files...'}
+                  <div className="flex flex-col items-center justify-center mt-10 p-6 bg-white border border-[#f0e6dc] rounded-lg">
+                    {reqData?.request?.status === 'blueprint_review' ? (
+                      <span className="text-gray-400 italic text-sm">Pipeline paused for Blueprint Review. Waiting for approval.</span>
+                    ) : (
+                      <>
+                        <div className="w-8 h-8 border-4 border-primary-orange border-t-transparent rounded-full animate-spin mb-3"></div>
+                        <span className="text-gray-500 font-bold text-sm">Generation in progress...</span>
+                        <span className="text-gray-400 text-xs mt-1 text-center">AI is writing code. Please wait.</span>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -270,8 +289,15 @@ export default function GenerationProgressPage() {
                   </div>
                 </>
               ) : (
-                <div className="flex-1 flex items-center justify-center text-gray-500 font-mono text-sm">
-                  {files.length > 0 ? "Select a file from the manifest to view source code" : "Waiting for code generation..."}
+                <div className="flex-1 flex flex-col items-center justify-center text-gray-500 font-mono text-sm">
+                  {files.length > 0 ? (
+                    "Select a file from the manifest to view source code"
+                  ) : (
+                    <>
+                      <div className="w-10 h-10 border-4 border-gray-600 border-t-gray-300 rounded-full animate-spin mb-4"></div>
+                      <span>Waiting for code generation...</span>
+                    </>
+                  )}
                 </div>
               )}
             </div>

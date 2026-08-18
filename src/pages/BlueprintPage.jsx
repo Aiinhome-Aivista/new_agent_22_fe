@@ -167,13 +167,16 @@ export default function BlueprintPage() {
             <h2 className="text-xl font-bold text-gray-800">Generated Blueprint</h2>
             {!isArchitect && blueprint && requestObj && (
               <>
-                {requestObj.status === 'approved' && (
-                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">Approved by Architect</span>
+                {['approved'].includes(requestObj.status?.toLowerCase()) && (
+                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold border border-green-200">Approved by Architect</span>
+                )}
+                {requestObj.status === 'in_progress' && (
+                  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">Generation in Progress</span>
                 )}
                 {(requestObj.status === 'packaged' || requestObj.status === 'validated') && (
                   <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-bold border border-purple-200">Packaged</span>
                 )}
-                {['draft', 'in_progress', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && (
+                {['draft', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && (
                   <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">Pending Architect Review</span>
                 )}
               </>
@@ -192,7 +195,12 @@ export default function BlueprintPage() {
                     View Generated Package
                   </button>
                 )}
-                {['draft', 'in_progress', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && (
+                {requestObj.status === 'in_progress' && (
+                  <button onClick={() => navigate(`/requests/${id}/generation`)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-bold shadow-sm transition-colors">
+                    View Generation Progress
+                  </button>
+                )}
+                {['draft', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && (
                   <button disabled className="bg-gray-200 text-gray-500 cursor-not-allowed px-6 py-2 rounded font-medium transition-colors">
                     Waiting for Architect Approval
                   </button>

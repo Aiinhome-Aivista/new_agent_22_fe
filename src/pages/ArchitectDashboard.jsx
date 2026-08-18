@@ -28,7 +28,9 @@ export default function ArchitectDashboard() {
 
   const getStatusColor = (status) => {
     switch(status) {
-      case 'approved': return { bg: 'bg-green-100', text: 'text-green-700', icon: 'text-green-600' };
+      case 'approved':
+      case 'validated':
+        return { bg: 'bg-green-100', text: 'text-green-700', icon: 'text-green-600' };
       case 'draft': return { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: 'text-yellow-600' };
       case 'rework': return { bg: 'bg-red-100', text: 'text-red-700', icon: 'text-red-600' };
       default: return { bg: 'bg-gray-100', text: 'text-gray-700', icon: 'text-gray-600' };
@@ -113,6 +115,7 @@ export default function ArchitectDashboard() {
             <div className="space-y-3">
               {requests.slice(0, 4).map((req) => {
                 const colors = getStatusColor(req.status);
+                const displayStatus = req.status === 'validated' ? 'approved' : req.status;
                 return (
                   <div key={req.id} onClick={() => navigate(`/requests/${req.id}/blueprint`)} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200 cursor-pointer group hover:shadow-sm">
                     <div className="flex items-center gap-4">
@@ -121,11 +124,11 @@ export default function ArchitectDashboard() {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-sidebar group-hover:text-primary-orange transition-colors">{req.request_name}</p>
-                        <p className="text-xs text-text-secondary capitalize">{req.status} • Updated recently</p>
+                        <p className="text-xs text-text-secondary capitalize">{displayStatus} • Updated recently</p>
                       </div>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${colors.bg} ${colors.text} capitalize shadow-sm`}>
-                      {req.status}
+                      {displayStatus}
                     </span>
                   </div>
                 );

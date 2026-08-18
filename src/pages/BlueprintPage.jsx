@@ -19,6 +19,7 @@ export default function BlueprintPage() {
   const navigate = useNavigate();
   const [blueprint, setBlueprint] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [approving, setApproving] = useState(false);
   const [showReworkModal, setShowReworkModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [comments, setComments] = useState('');
@@ -55,8 +56,6 @@ export default function BlueprintPage() {
         
         if (!bp?.assumptions || bp.assumptions.length === 0) {
           setAssumptionsAcknowledged(true);
-        } else {
-          setAssumptionsAcknowledged(false);
         }
 
         setLoading(false);
@@ -107,13 +106,19 @@ export default function BlueprintPage() {
   }
 
   const handleApproveConfirm = async () => {
-    if (!blueprint || !assumptionsAcknowledged) return;
-    setLoading(true);
-    await approveBlueprint(blueprint.id);
-    setBlueprint({ ...blueprint, status: 'approved' });
-    setRequestObj(prev => prev ? { ...prev, status: 'approved' } : null);
-    setShowApproveModal(false);
-    setLoading(false);
+    if (!blueprint) return;
+    setApproving(true);
+    try {
+      await approveBlueprint(blueprint.id);
+      setBlueprint(prev => ({ ...prev, status: 'approved' }));
+      setRequestObj(prev => prev ? { ...prev, status: 'approved' } : null);
+      setShowApproveModal(false);
+    } catch (err) {
+      console.error('Error approving blueprint:', err);
+      alert('Error approving blueprint');
+    } finally {
+      setApproving(false);
+    }
   };
 
   const handleRework = async () => {
@@ -179,7 +184,7 @@ export default function BlueprintPage() {
             ) : null}
 
             {blueprint && isArchitect && requestObj ? (
-              ['in_progress', 'approved', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase()) ? (
+              (blueprint.status === 'approved' || ['in_progress', 'approved', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase())) ? (
                 <>
                   <span className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-bold text-sm flex items-center border border-green-200">
                     Approved by Architect (Ready for Generation)
@@ -331,16 +336,23 @@ export default function BlueprintPage() {
             <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
               <button
                 onClick={() => setShowApproveModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                disabled={approving}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleApproveConfirm}
-                disabled={loading}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${loading ? 'bg-green-400 cursor-wait' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                disabled={approving}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${approving ? 'bg-green-500 cursor-wait' : 'bg-green-600 hover:bg-green-700'} text-white`}
               >
-                {loading ? 'Approving...' : 'Confirm Approval'}
+                {approving && (
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                )}
+                {approving ? 'Approving...' : 'Confirm Approval'}
               </button>
             </div>
           </div>

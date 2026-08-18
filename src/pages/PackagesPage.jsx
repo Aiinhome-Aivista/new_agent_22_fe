@@ -5,6 +5,7 @@ import Loader from '../components/Loader';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import StepRequestTable from '../components/StepRequestTable';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function PackagesPage() {
   const { id: pathId } = useParams();
@@ -102,12 +103,18 @@ export default function PackagesPage() {
       <ProgressStepper />
       <div className="p-8 flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-extrabold text-sidebar">
-            {isDevOps ? 'DevOps Packaging & Deployment' : 'Code Package Delivery'}
-          </h2>
-          <button onClick={() => navigate(isDevOps ? '/devops/dashboard' : '/requests')} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded font-medium transition-colors">
-            {isDevOps ? 'Back to Dashboard' : 'Back to My Requests'}
-          </button>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/packages')} 
+              className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+              title="Go Back"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+            <h2 className="text-2xl font-extrabold text-sidebar">
+              {isDevOps ? 'DevOps Packaging & Deployment' : 'Code Package Delivery'}
+            </h2>
+          </div>
         </div>
 
         {isDevOps ? (

@@ -50,15 +50,31 @@ export default function NewRequestPage() {
         const req = res.data?.request;
         const spec = res.data?.spec;
         if (req) {
-           const promptText = spec?.schema_hints && spec.schema_hints !== 'Conversational Intake' 
-             ? spec.schema_hints 
-             : `I need to build a microservice named "${req.request_name}" with application ID "${req.application_id}". Source topics: ${spec?.source_topics || 'None'}, Target topics: ${spec?.target_topics || 'None'}.`;
-           
-           setMessages([
-             { role: 'agent', text: "Hello! I'm your AI Architect. Tell me about the project you want to build." },
-             { role: 'user', text: promptText },
-             { role: 'agent', text: `Perfect! I have enough information. I generated the blueprint for ${req.request_name}.` }
-           ]);
+           let loadedMessages = null;
+           if (spec?.schema_hints) {
+             try {
+               const parsed = JSON.parse(spec.schema_hints);
+               if (Array.isArray(parsed) && parsed.length > 0) {
+                 loadedMessages = parsed;
+               }
+             } catch (e) {
+               // Not JSON, fallback to string format below
+             }
+           }
+
+           if (loadedMessages) {
+             setMessages(loadedMessages);
+           } else {
+             const promptText = spec?.schema_hints && spec.schema_hints !== 'Conversational Intake' 
+               ? spec.schema_hints 
+               : `I need to build a microservice named "${req.request_name}" with application ID "${req.application_id}". Source topics: ${spec?.source_topics || 'None'}, Target topics: ${spec?.target_topics || 'None'}.`;
+             
+             setMessages([
+               { role: 'agent', text: "Hello! I'm your AI Architect. Tell me about the project you want to build." },
+               { role: 'user', text: promptText },
+               { role: 'agent', text: `Perfect! I have enough information. I generated the blueprint for ${req.request_name}.` }
+             ]);
+           }
         }
         setLoading(false);
       }).catch(err => {
@@ -66,6 +82,14 @@ export default function NewRequestPage() {
         setLoading(false);
         setError("Failed to load chat history for this request.");
       });
+    } else {
+      setIsReadOnly(false);
+      setMessages([
+        { role: 'agent', text: "Hello! I'm your AI Architect. Tell me about the project you want to build." }
+      ]);
+      setPrompt('');
+      setSampleFiles([]);
+      setError('');
     }
   }, [id]);
 
@@ -236,7 +260,7 @@ export default function NewRequestPage() {
             </div>
           )}
 
-          <div className="w-full max-w-6xl bg-white shadow-[0_2px_15px_rgba(0,0,0,0.06)] border border-slate-200 rounded-[32px] py-1.5 px-2 flex items-center transition-all focus-within:shadow-[0_4px_20px_rgba(0,0,0,0.1)] focus-within:border-slate-300 mb-2">
+          <div className="w-full max-w-6xl bg-white shadow-[0_2px_15px_rgba(0,0,0,0.06)] border border-slate-200 rounded-[32px] py-1.5 px-2 flex items-center transition-all focus-within:shadow-[0_4px_20px_rgba(0,0,0,0.1)] focus-within:border-primary-orange focus-within:ring-4 focus-within:ring-primary-orange/20 mb-2">
             
             {/* Left: Plus icon for file upload */}
             <label htmlFor="file-upload" className="cursor-pointer p-3 text-slate-600 hover:bg-slate-100 rounded-full flex items-center justify-center transition-colors shrink-0 ml-1">

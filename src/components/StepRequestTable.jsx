@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getRequests } from '../api/api';
 import StatusBadge from './StatusBadge';
 import { useNavigate } from 'react-router-dom';
+import Loader from './Loader';
 
 export default function StepRequestTable({ activeStage }) {
   const [requests, setRequests] = useState([]);
@@ -63,7 +64,7 @@ export default function StepRequestTable({ activeStage }) {
   const actionConfig = getActionConfig();
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-500">Loading projects...</div>;
+    return <Loader message="Loading..." />;
   }
 
   return (

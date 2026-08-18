@@ -5,6 +5,7 @@ import Loader from '../components/Loader';
 import StatusBadge from '../components/StatusBadge';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import StepRequestTable from '../components/StepRequestTable';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function ValidationReportPage() {
   const { id: pathId } = useParams();
@@ -44,7 +45,16 @@ export default function ValidationReportPage() {
       <ProgressStepper />
       <div className="p-8 flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Validation Checks</h2>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/validation')} 
+              className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+              title="Go Back"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold text-gray-800">Validation Checks</h2>
+          </div>
           <button 
             onClick={() => navigate(`/requests/${id}/review`)} 
             disabled={hasErrors}

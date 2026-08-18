@@ -3,6 +3,7 @@ import ProgressStepper from '../components/ProgressStepper';
 import { getRequest, getGeneratedFiles, getRequests } from '../api/api';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import StepRequestTable from '../components/StepRequestTable';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const TRACE_MESSAGES = [
   { text: "[Orchestrator] Initializing multi-agent pipeline...", delay: 500 },
@@ -114,6 +115,13 @@ export default function GenerationProgressPage() {
         {/* Workspace Top Header Panel */}
         <div className="bg-[#fffbf6] border border-[#f0e6dc] rounded-xl p-4 mb-6 shrink-0 shadow-sm flex flex-col sm:flex-row justify-between items-center">
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/progress')} 
+              className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+              title="Go Back"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
             <div className="bg-orange-100 p-2 rounded-lg text-primary-orange">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
             </div>

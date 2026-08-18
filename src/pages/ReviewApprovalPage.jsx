@@ -5,6 +5,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import StepRequestTable from '../components/StepRequestTable';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function ReviewApprovalPage() {
   const { id: pathId } = useParams();
@@ -86,6 +87,16 @@ export default function ReviewApprovalPage() {
     <div className="flex flex-col h-full">
       <ProgressStepper />
       <div className="p-8 max-w-4xl mx-auto w-full">
+        <div className="flex items-center gap-4 mb-6">
+          <button 
+            onClick={() => navigate('/review/queue')} 
+            className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+            title="Go Back"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+          </button>
+          <h2 className="text-2xl font-extrabold text-gray-800">Pipeline Review</h2>
+        </div>
         {isDeveloper ? (
           /* Developer Persona Read-Only Status Card */
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-border-light text-center space-y-6">

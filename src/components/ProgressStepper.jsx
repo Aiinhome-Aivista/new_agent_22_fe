@@ -24,19 +24,19 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep }
   const [reqData, setReqData] = useState(null);
 
   useEffect(() => {
+    setReqData(null);
     if (!requestId) return;
 
-    const fetchStatus = () => {
-      getRequest(requestId).then(res => {
-        if (res.success) {
-          setReqData(res.data);
-        }
-      }).catch(console.error);
-    };
+    let isMounted = true;
+    getRequest(requestId).then(res => {
+      if (isMounted && res.success) {
+        setReqData(res.data);
+      }
+    }).catch(console.error);
 
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 3000);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+    };
   }, [requestId]);
 
   const currentIndex = steps.findIndex(s => s.path === currentPath);

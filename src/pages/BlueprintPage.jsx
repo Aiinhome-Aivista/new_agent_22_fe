@@ -29,11 +29,16 @@ export default function BlueprintPage() {
   const [jobObj, setJobObj] = useState(null);
 
   useEffect(() => {
+    setBlueprint(null);
+    setRequestObj(null);
+    setJobObj(null);
+    setLoading(true);
+
     if (!id) {
       getRequests().then(data => {
         let reqs = data.data || [];
         if (isArchitect) {
-          reqs = reqs.filter(r => ['draft', 'blueprint_review', 'approved'].includes(r.status?.toLowerCase()));
+          reqs = reqs.filter(r => ['draft', 'blueprint_review', 'approved', 'in_progress', 'validated', 'packaged', 'rework'].includes(r.status?.toLowerCase()));
         }
         setRequests(reqs);
         setLoading(false);
@@ -44,8 +49,12 @@ export default function BlueprintPage() {
       return;
     }
 
+    let isMounted = true;
+    let pollTimer = null;
+
     const fetchStatus = () => {
       getRequest(id).then(data => {
+        if (!isMounted) return;
         const req = data?.data?.request || null;
         const job = data?.data?.job || null;
         const bp = data?.data?.blueprint;
@@ -59,7 +68,13 @@ export default function BlueprintPage() {
         }
 
         setLoading(false);
+
+        // Only poll again if blueprint is not yet available and job is still running/generating
+        if (!bp && job && job.job_status === 'running') {
+          pollTimer = setTimeout(fetchStatus, 3000);
+        }
       }).catch(err => {
+        if (!isMounted) return;
         console.error(err);
         setBlueprint(null);
         setRequestObj(null);
@@ -68,10 +83,12 @@ export default function BlueprintPage() {
       });
     };
 
-    // Fetch immediately and then poll every 3 seconds
     fetchStatus();
-    const interval = setInterval(fetchStatus, 3000);
-    return () => clearInterval(interval);
+
+    return () => {
+      isMounted = false;
+      if (pollTimer) clearTimeout(pollTimer);
+    };
   }, [id]);
 
   if (loading) return <Loader />;
@@ -141,9 +158,9 @@ export default function BlueprintPage() {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => navigate(-1)} 
+              onClick={() => navigate(isArchitect ? '/review/blueprint' : -1)} 
               className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
-              title="Go Back"
+              title={isArchitect ? "Back to Blueprint Reviews" : "Go Back"}
             >
               <ArrowLeftIcon className="w-5 h-5" />
             </button>

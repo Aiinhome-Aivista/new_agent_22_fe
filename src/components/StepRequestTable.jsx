@@ -52,13 +52,13 @@ export default function StepRequestTable({ activeStage }) {
   const getActionConfig = () => {
     const orangeClass = 'bg-primary-orange text-white hover:bg-hover-orange border-primary-orange hover:border-hover-orange';
     switch (activeStage) {
-      case 'blueprint': return { text: 'Review Blueprint', colorClass: 'text-primary-orange bg-orange-50 hover:bg-primary-orange hover:text-white border-border-orange/40 hover:border-primary-orange' };
-      case 'validation': return { text: 'Check Validation', colorClass: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200 hover:border-emerald-600' };
-      case 'packages': return { text: 'View Packages', colorClass: 'text-purple-700 bg-purple-50 hover:bg-purple-600 hover:text-white border-purple-200 hover:border-purple-600' };
-      case 'review': return { text: 'Review Code', colorClass: 'text-red-700 bg-red-50 hover:bg-red-600 hover:text-white border-red-200 hover:border-red-600' };
+      case 'blueprint': return { text: 'View', colorClass: orangeClass };
+      case 'validation': return { text: 'View', colorClass: orangeClass };
+      case 'packages': return { text: 'View', colorClass: orangeClass };
+      case 'review': return { text: 'View', colorClass: orangeClass };
       case 'generation': 
       default:
-        return { text: 'View Generation', colorClass: orangeClass };
+        return { text: 'View', colorClass: orangeClass };
     }
   };
 
@@ -80,12 +80,12 @@ export default function StepRequestTable({ activeStage }) {
         <table className="w-full text-left">
           <thead>
             <tr className="bg-white text-text-secondary text-xs uppercase tracking-wider border-b border-border-light">
-              <th className="px-6 py-4 font-bold">ID</th>
-              <th className="px-6 py-4 font-bold">Request Name</th>
-              <th className="px-6 py-4 font-bold">App ID</th>
-              <th className="px-6 py-4 font-bold">Status</th>
-              <th className="px-6 py-4 font-bold">Date</th>
-              <th className="px-6 py-4 font-bold text-right">Action</th>
+              <th className="px-6 py-4 font-bold whitespace-nowrap">ID</th>
+              <th className="px-6 py-4 font-bold whitespace-nowrap">Request Name</th>
+              <th className="px-6 py-4 font-bold whitespace-nowrap">App ID</th>
+              <th className="px-6 py-4 font-bold whitespace-nowrap">Status</th>
+              <th className="px-6 py-4 font-bold whitespace-nowrap">Date</th>
+              <th className="px-6 py-4 font-bold text-right whitespace-nowrap">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border-light bg-white">
@@ -93,11 +93,11 @@ export default function StepRequestTable({ activeStage }) {
               <tr key={req.id} className="hover:bg-gray-50/50 transition-colors group">
                 <td className="px-6 py-5 text-sm font-bold text-text-secondary">#{req.id}</td>
                 <td className="px-6 py-5">
-                  <div className="font-bold text-sidebar group-hover:text-primary-orange transition-colors">{req.request_name}</div>
-                  <div className="text-xs text-text-secondary font-mono">{req.package_name}</div>
+                  <div className="font-bold text-sidebar group-hover:text-primary-orange transition-colors break-words max-w-[300px] min-w-[200px] whitespace-normal">{req.request_name}</div>
+                  <div className="text-xs text-text-secondary font-mono break-words max-w-[300px] whitespace-normal">{req.package_name}</div>
                 </td>
                 <td className="px-6 py-5">
-                  <span className="bg-input-bg text-text-secondary px-2.5 py-1 rounded text-xs font-mono font-medium border border-border-light">
+                  <span className="bg-input-bg text-text-secondary px-2.5 py-1 rounded text-xs font-mono font-medium border border-border-light inline-block whitespace-nowrap">
                     {req.application_id}
                   </span>
                 </td>

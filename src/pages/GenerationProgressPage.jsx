@@ -234,7 +234,7 @@ export default function GenerationProgressPage() {
                       <span className="text-gray-400 italic text-sm">Pipeline paused for Blueprint Review. Waiting for approval.</span>
                     ) : (
                       <>
-                        <div className="w-8 h-8 border-4 border-primary-orange border-t-transparent rounded-full animate-spin mb-3"></div>
+                        <div className="w-12 h-12 border-2 border-transparent border-b-primary-orange rounded-full animate-spin mb-3"></div>
                         <span className="text-gray-500 font-bold text-sm">Generation in progress...</span>
                         <span className="text-gray-400 text-xs mt-1 text-center">AI is analyzing requirements. Please wait.</span>
                       </>
@@ -350,7 +350,7 @@ export default function GenerationProgressPage() {
                     "Select a generated file from the manifest to view source code"
                   ) : (
                     <>
-                      <div className="w-10 h-10 border-4 border-gray-600 border-t-gray-300 rounded-full animate-spin mb-4"></div>
+                      <div className="w-12 h-12 border-2 border-transparent border-b-gray-600 rounded-full animate-spin mb-4"></div>
                       <span>Waiting for code generation...</span>
                     </>
                   )}

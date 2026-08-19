@@ -212,7 +212,7 @@ export default function BlueprintPage() {
               (blueprint.status === 'approved' || ['in_progress', 'approved', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase())) ? (
                 <>
                   <span className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-bold text-sm flex items-center border border-green-200">
-                    Approved by Architect (Ready for Generation)
+                    Approved by Architect
                   </span>
                   <button onClick={() => navigate('/review/blueprint')} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded font-medium shadow-sm transition-colors">
                     Back to Blueprint Reviews

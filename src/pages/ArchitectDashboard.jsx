@@ -134,7 +134,7 @@ export default function ArchitectDashboard() {
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Recent Blueprints List (Dynamic) */}
           <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-purple-400"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-primary-orange"></div>
             <h2 className="text-lg font-bold text-sidebar mb-4">Recent Architecture Requests</h2>
             <div className="space-y-3">
               {requests.slice(0, 4).map((req) => {

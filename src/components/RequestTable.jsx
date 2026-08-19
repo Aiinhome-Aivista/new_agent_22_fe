@@ -57,7 +57,7 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
                 ) : role === 'architect' || role === 'solution architect' ? (
                   <button
                     onClick={() => handleNavigate(`/requests/${req.id}/blueprint`, req.id)}
-                    className="text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                    className="text-primary-orange bg-orange-50 hover:bg-primary-orange hover:text-white border border-border-orange/40 hover:border-primary-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     {['approved', 'packaged', 'validated', 'in_progress'].includes(req.status?.toLowerCase()) ? 'View Approved Blueprint' : 'Review Blueprint'}
                   </button>

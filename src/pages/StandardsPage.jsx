@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { getStandards, saveStandard, deleteStandard } from '../api/api';
 import Loader from '../components/Loader';
 import { DocumentTextIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../context/AuthContext';
 
 export default function StandardsPage() {
+  const { user } = useAuth();
   const [standards, setStandards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStandard, setSelectedStandard] = useState(null);
@@ -27,7 +29,7 @@ export default function StandardsPage() {
   }, []);
 
   const handleSave = async () => {
-    await saveStandard(editForm);
+    await saveStandard({ ...editForm, created_by: user?.id || 2 });
     setIsEditing(false);
     fetchStandards();
     setSelectedStandard(null);

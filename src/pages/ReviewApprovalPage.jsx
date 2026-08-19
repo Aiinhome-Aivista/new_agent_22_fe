@@ -107,9 +107,9 @@ export default function ReviewApprovalPage() {
               <span className="bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block mb-3">
                 Awaiting Tech Lead Approval
               </span>
-              <h2 className="text-2xl font-extrabold text-gray-800">Submitted for Architecture Review</h2>
+              <h2 className="text-2xl font-extrabold text-gray-800">Review Pending for {req.request_name || `Request #${req.id || id}`}</h2>
               <p className="text-gray-600 text-sm mt-2 max-w-md mx-auto leading-relaxed">
-                Your microservice skeleton code has been generated, validated, and packaged. The final architecture review and repository commit approval is currently pending Tech Lead / Solution Architect sign-off.
+                Your microservice codebase has been successfully generated, validated, and packaged. The pipeline is currently paused pending final Code Quality & Repository Commit sign-off from the Tech Lead.
               </p>
             </div>
 
@@ -278,7 +278,7 @@ export default function ReviewApprovalPage() {
                  'Confirm Request Rejection'}
               </h3>
               <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                Are you sure you want to <strong className="capitalize">{formData.decision}</strong> request <strong>#{req.id || id} ({req.request_name || 'Payment Processing Service'})</strong>?
+                Are you sure you want to <strong className="capitalize">{formData.decision}</strong> request <strong>#{req.id || id} {req.request_name ? `(${req.request_name})` : ''}</strong>?
                 {formData.decision === 'approved' && ' This will officially sign off all 6 pipeline stages.'}
                 {formData.decision === 'rework' && ' This will send the request back to the Solution Architect for blueprint revision.'}
                 {formData.decision === 'rejected' && ' This will reject the microservice request.'}

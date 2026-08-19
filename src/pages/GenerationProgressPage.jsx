@@ -137,12 +137,15 @@ export default function GenerationProgressPage() {
   }
 
   // Combine expected and generated
-  const displayList = expectedFiles.length > 0 
+  const displayList = (expectedFiles.length > 0 
     ? expectedFiles.map(ef => {
         const genFile = generatedFiles.find(gf => gf.file_name === ef.filename || gf.file_name === ef.name);
         return genFile ? { ...genFile, isGenerated: true } : { file_name: ef.filename || ef.name, isGenerated: false };
       })
-    : generatedFiles.map(gf => ({ ...gf, isGenerated: true }));
+    : generatedFiles.map(gf => ({ ...gf, isGenerated: true }))
+  ).filter(f => f.isGenerated || (!isCompleted && !isFailed));
+
+  const isAlreadyValidated = ['validated', 'packaged', 'approved'].includes(reqData?.request?.status);
 
   // Determine coverage percentage for UI badge
   const coverage = displayList.length > 0 && generatedFiles.length === displayList.length ? "100% GENERATED" : "IN PROGRESS";
@@ -191,7 +194,7 @@ export default function GenerationProgressPage() {
               disabled={!isCompleted && !isFailed}
               className={`px-4 py-2 rounded text-sm font-bold shadow-sm transition-colors ${(!isCompleted && !isFailed) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-primary-orange text-white hover:bg-hover-orange'}`}
             >
-              PROCEED TO VALIDATION
+              {isAlreadyValidated ? 'VIEW VALIDATION RESULTS' : 'PROCEED TO VALIDATION'}
             </button>
           </div>
         </div>

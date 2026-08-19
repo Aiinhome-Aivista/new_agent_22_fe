@@ -30,7 +30,7 @@ export default function MainLayout() {
         </main>
         {/* Footer */}
         <footer className="py-4 px-6 border-t border-border-light/50 text-center text-sm font-medium text-placeholder bg-white z-10">
-          &copy; {new Date().getFullYear()} DigiconFX Agent 22. All rights reserved.
+          &copy; {new Date().getFullYear()} DigiconFX Kafka API Building Agent. All rights reserved.
         </footer>
       </div>
     </div>

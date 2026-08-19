@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { askAdvisor } from '../api/api';
+import { askAdvisor, getRequests } from '../api/api';
 
 export default function AdvisorChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [reqId, setReqId] = useState('');
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
   const messagesEndRef = useRef(null);
@@ -16,6 +17,15 @@ export default function AdvisorChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    getRequests().then(res => {
+      if (res.success) {
+        // Filter out drafts if preferred, or show all
+        setRequests(res.data);
+      }
+    }).catch(err => console.error(err));
+  }, []);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -59,14 +69,25 @@ export default function AdvisorChatPage() {
             </div>
             
             <div className="flex items-center gap-3 mt-4 sm:mt-0 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-              <label className="text-sm font-semibold text-gray-600">Link Request ID:</label>
-              <input 
-                type="number" 
+              <label className="text-sm font-semibold text-gray-600">Context:</label>
+              <select 
                 value={reqId} 
                 onChange={(e) => setReqId(e.target.value)} 
-                placeholder="e.g. 1" 
-                className="w-20 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-orange focus:border-primary-orange transition-all placeholder:text-gray-400 font-mono text-center shadow-inner"
-              />
+                className="w-48 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-orange focus:border-primary-orange transition-all shadow-inner truncate text-ellipsis text-gray-700"
+              >
+                {requests.length === 0 ? (
+                  <option value="">No request found</option>
+                ) : (
+                  <>
+                    <option value="">Select a project...</option>
+                    {requests.map(req => (
+                      <option key={req.id} value={req.id}>
+                        {req.id} - {req.request_name} ({req.status})
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
             </div>
           </div>
           

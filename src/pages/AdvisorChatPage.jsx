@@ -58,7 +58,29 @@ export default function AdvisorChatPage() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const messagesEndRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const getSelectedLabel = () => {
+    if (!reqId) return "Global Context (All Projects)";
+    const req = requests.find(r => r.id.toString() === reqId.toString());
+    if (req) {
+      const shortName = req.request_name.length > 25 ? req.request_name.substring(0, 25) + '...' : req.request_name;
+      return `${req.id} - ${shortName} (${req.status})`;
+    }
+    return "Global Context (All Projects)";
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -148,29 +170,49 @@ export default function AdvisorChatPage() {
             
             <div className="flex items-center gap-3 mt-4 sm:mt-0 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
               <label className="text-sm font-semibold text-gray-600">Context:</label>
-              <select 
-                value={reqId} 
-                onChange={(e) => setReqId(e.target.value)} 
-                className="w-64 max-w-xs bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-orange focus:border-primary-orange transition-all shadow-inner truncate text-gray-700"
-              >
-                {requests.length === 0 ? (
-                  <option value="">Global Context (All Projects)</option>
-                ) : (
-                  <>
-                    <option value="">Global Context (All Projects)</option>
-                    <optgroup label="Specific Projects">
-                      {requests.map(req => {
-                        const shortName = req.request_name.length > 25 ? req.request_name.substring(0, 25) + '...' : req.request_name;
-                        return (
-                          <option key={req.id} value={req.id} title={req.request_name}>
-                            {req.id} - {shortName} ({req.status})
-                          </option>
-                        );
-                      })}
-                    </optgroup>
-                  </>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-72 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none hover:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 transition-all shadow-sm flex items-center justify-between text-gray-700 font-medium"
+                >
+                  <span className="truncate">{getSelectedLabel()}</span>
+                  <svg className={`w-4 h-4 ml-2 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute top-full mt-1 right-0 w-80 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto">
+                    <button
+                      onClick={() => { setReqId(''); setIsDropdownOpen(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${!reqId ? 'bg-orange-50 text-primary-orange font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Global Context (All Projects)
+                    </button>
+                    
+                    {requests.length > 0 && (
+                      <>
+                        <div className="px-4 py-1.5 bg-gray-50 border-y border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                          Specific Projects
+                        </div>
+                        {requests.map(req => {
+                          const isSelected = reqId.toString() === req.id.toString();
+                          return (
+                            <button
+                              key={req.id}
+                              onClick={() => { setReqId(req.id.toString()); setIsDropdownOpen(false); }}
+                              title={req.request_name}
+                              className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2 ${isSelected ? 'bg-orange-50 text-primary-orange font-bold' : 'text-gray-700 hover:bg-gray-50 hover:text-primary-orange'}`}
+                            >
+                              <span className={`shrink-0 font-mono ${isSelected ? 'text-primary-orange/70' : 'text-gray-400'}`}>#{req.id}</span>
+                              <span className="truncate flex-1">{req.request_name}</span>
+                              <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${isSelected ? 'bg-primary-orange/10 text-primary-orange' : 'bg-gray-100 text-gray-500'}`}>{req.status}</span>
+                            </button>
+                          );
+                        })}
+                      </>
+                    )}
+                  </div>
                 )}
-              </select>
+              </div>
             </div>
           </div>
           

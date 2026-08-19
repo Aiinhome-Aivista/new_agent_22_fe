@@ -31,8 +31,8 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
           {currentRequests.map(req => (
             <tr key={req.id} className="hover:bg-input-bg/30 transition-colors group">
               <td className="px-6 py-5 text-sm text-text-secondary font-mono font-medium">#{req.id}</td>
-              <td className="px-6 py-5 text-sm font-extrabold text-sidebar break-words max-w-[300px] min-w-[200px] whitespace-normal">
-                <div className="mb-1 break-words">{req.request_name}</div>
+              <td className="px-6 py-5 text-sm font-extrabold text-sidebar max-w-[300px] min-w-[200px]">
+                <div className="mb-1 truncate" title={req.request_name}>{req.request_name}</div>
                 {(() => {
                   if (!req.schema_hints) return null;
                   try {
@@ -50,7 +50,7 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
                 })()}
               </td>
               <td className="px-6 py-5 text-sm">
-                <span className="bg-white border border-border-light/80 text-text-secondary font-mono text-xs font-semibold rounded-md px-2.5 py-1.5 inline-block shadow-sm whitespace-nowrap">
+                <span className="bg-white border border-border-light/80 text-text-secondary font-mono text-xs font-semibold rounded-md px-2.5 py-1.5 inline-block shadow-sm truncate max-w-[200px]" title={req.application_id}>
                   {req.application_id}
                 </span>
               </td>

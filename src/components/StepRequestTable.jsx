@@ -93,11 +93,11 @@ export default function StepRequestTable({ activeStage }) {
               <tr key={req.id} className="hover:bg-gray-50/50 transition-colors group">
                 <td className="px-6 py-5 text-sm font-bold text-text-secondary">#{req.id}</td>
                 <td className="px-6 py-5">
-                  <div className="font-bold text-sidebar group-hover:text-primary-orange transition-colors break-words max-w-[300px] min-w-[200px] whitespace-normal">{req.request_name}</div>
-                  <div className="text-xs text-text-secondary font-mono break-words max-w-[300px] whitespace-normal">{req.package_name}</div>
+                  <div className="font-bold text-sidebar group-hover:text-primary-orange transition-colors truncate max-w-[250px] min-w-[150px]" title={req.request_name}>{req.request_name}</div>
+                  <div className="text-xs text-text-secondary font-mono truncate max-w-[250px]" title={req.package_name}>{req.package_name}</div>
                 </td>
                 <td className="px-6 py-5">
-                  <span className="bg-input-bg text-text-secondary px-2.5 py-1 rounded text-xs font-mono font-medium border border-border-light inline-block whitespace-nowrap">
+                  <span className="bg-input-bg text-text-secondary px-2.5 py-1 rounded text-xs font-mono font-medium border border-border-light inline-block truncate max-w-[200px]" title={req.application_id}>
                     {req.application_id}
                   </span>
                 </td>

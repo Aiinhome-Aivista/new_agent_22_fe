@@ -331,7 +331,7 @@ export default function BlueprintPage() {
           </div>
         ) : jobObj && jobObj.job_status === 'running' ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-orange mb-4"></div>
+            <div className="w-12 h-12 border-2 border-transparent border-b-primary-orange rounded-full animate-spin mb-4"></div>
             <h3 className="text-xl font-bold text-gray-700">AI is drafting your blueprint...</h3>
             <p className="text-gray-500 mt-2 text-center max-w-md">
               Please wait while the AI Architect designs your Kafka Streams topology, classes, and file manifest. This involves deep reasoning and may take a few minutes.
@@ -339,7 +339,7 @@ export default function BlueprintPage() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-12 bg-white rounded shadow border border-border-light">
-            <div className="w-16 h-16 border-4 border-primary-orange border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className="w-12 h-12 border-2 border-transparent border-b-primary-orange rounded-full animate-spin mb-4"></div>
             <h2 className="text-xl font-bold text-gray-800">Generating Blueprint...</h2>
             <p className="text-gray-500 mt-2">AI is analyzing requirements and building the class manifest.</p>
           </div>

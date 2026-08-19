@@ -263,21 +263,21 @@ export default function BlueprintPage() {
               </div>
             )}
 
-            <div className="bg-slate-50 border border-slate-200 p-6 rounded-lg shadow-sm">
+            <div className="bg-orange-50/20 border border-border-orange/30 p-6 rounded-lg shadow-sm">
               <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4">
                 <span className="text-xl">🛡️</span> Architecture Standards Checklist
               </h3>
               <div className="space-y-3">
-                <label className="flex items-center gap-3">
-                  <input type="checkbox" checked readOnly className="w-4 h-4 text-green-600 rounded focus:ring-green-500" />
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked readOnly className="w-4 h-4 text-primary-orange accent-[#FF5A14] rounded focus:ring-primary-orange" />
                   <span className="text-sm font-medium text-slate-700">Processor-Handler-Supplier Separation</span>
                 </label>
-                <label className="flex items-center gap-3">
-                  <input type="checkbox" checked readOnly className="w-4 h-4 text-green-600 rounded focus:ring-green-500" />
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked readOnly className="w-4 h-4 text-primary-orange accent-[#FF5A14] rounded focus:ring-primary-orange" />
                   <span className="text-sm font-medium text-slate-700">State Store & Ordering Logic</span>
                 </label>
-                <label className="flex items-center gap-3">
-                  <input type="checkbox" checked readOnly className="w-4 h-4 text-green-600 rounded focus:ring-green-500" />
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked readOnly className="w-4 h-4 text-primary-orange accent-[#FF5A14] rounded focus:ring-primary-orange" />
                   <span className="text-sm font-medium text-slate-700">DLQ Error Topic Configuration</span>
                 </label>
               </div>

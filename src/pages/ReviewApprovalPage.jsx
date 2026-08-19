@@ -116,13 +116,13 @@ export default function ReviewApprovalPage() {
             <div className="pt-4 flex justify-center gap-4">
               <button 
                 onClick={() => navigate(`/requests/${id}/package`)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
+                className="bg-primary-orange hover:bg-hover-orange text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
               >
                 <span>⬇️</span> Download Skeleton ZIP
               </button>
               <button 
                 onClick={() => navigate(user?.dashboard || '/developer/dashboard')}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-6 py-2.5 rounded-lg border border-gray-300 transition-colors text-sm"
+                className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white font-bold px-6 py-2.5 rounded-lg border border-primary-orange transition-colors text-sm"
               >
                 Back to Dashboard
               </button>
@@ -251,7 +251,7 @@ export default function ReviewApprovalPage() {
               </div>
 
               <div className="pt-2 flex justify-end">
-                <button type="submit" disabled={loading} className="bg-button-orange hover:bg-hover-orange text-white px-8 py-3 rounded-lg font-bold shadow-md transition-colors disabled:opacity-50 text-sm flex items-center gap-2">
+                <button type="submit" disabled={loading} className="bg-primary-orange hover:bg-hover-orange text-white px-8 py-3 rounded-lg font-bold shadow-md transition-colors disabled:opacity-50 text-sm flex items-center gap-2">
                   <span>✍️</span> {isArchitect ? "Approve Architecture & Grant Git Commit Clearance" : "Approve Code Quality & Ready for Deployment"}
                 </button>
               </div>

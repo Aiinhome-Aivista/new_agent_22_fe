@@ -243,7 +243,7 @@ export default function NewRequestPage() {
           </div>
         </div>
       ) : (
-        <div className="w-full shrink-0 bg-gradient-to-t from-[#e2efff]/50 via-[#e2efff]/30 to-transparent pt-6 pb-6 px-4 flex flex-col items-center relative">
+        <div className="w-full shrink-0 bg-gradient-to-t from-[#e2efff]/50 via-[#e2efff]/30 to-transparent pt-4 px-4 flex flex-col items-center relative">
           
           {/* Sample Files display outside the pill */}
           {sampleFiles.length > 0 && (

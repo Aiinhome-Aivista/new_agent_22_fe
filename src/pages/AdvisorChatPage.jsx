@@ -284,7 +284,7 @@ export default function AdvisorChatPage() {
             <button 
               type="submit" 
               disabled={loading || !input.trim()} 
-              className="bg-sidebar hover:bg-gray-800 text-white px-8 py-4 rounded-2xl font-bold transition-all disabled:opacity-50 disabled:hover:bg-sidebar flex items-center gap-3 shadow-lg shadow-gray-800/20"
+              className="bg-primary-orange hover:bg-hover-orange text-white px-8 py-4 rounded-2xl font-bold transition-all disabled:opacity-50 disabled:hover:bg-primary-orange flex items-center gap-3 shadow-lg shadow-orange-500/25"
             >
               <span className="text-base">Send</span>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">

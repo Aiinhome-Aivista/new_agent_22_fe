@@ -1,12 +1,63 @@
 import { useState, useRef, useEffect } from 'react';
-import { askAdvisor } from '../api/api';
+import { askAdvisor, getRequests, getChatHistory } from '../api/api';
+import { useAuth } from '../context/AuthContext';
+
+const formatMessage = (text) => {
+  if (!text) return null;
+  
+  const blocks = text.split(/(```[\s\S]*?```)/g);
+  
+  return blocks.map((block, index) => {
+    if (block.startsWith('```') && block.endsWith('```')) {
+      const lines = block.split('\n');
+      const lang = lines[0].replace('```', '').trim();
+      const code = lines.slice(1, -1).join('\n');
+      return (
+        <div key={index} className="my-3 rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-sm">
+          {lang && (
+            <div className="bg-[#2d2d2d] px-3 py-1 text-xs font-mono text-gray-400 border-b border-gray-700 uppercase tracking-wider">
+              {lang}
+            </div>
+          )}
+          <pre className="p-3 overflow-x-auto text-[13px] font-mono text-gray-300 leading-relaxed whitespace-pre">
+            <code>{code}</code>
+          </pre>
+        </div>
+      );
+    } else {
+      return (
+        <span key={index}>
+          {block.split('\n').map((line, i, arr) => {
+            const parts = line.split(/(\*\*.*?\*\*|`.*?`)/g);
+            return (
+              <span key={i}>
+                {parts.map((part, j) => {
+                  if (part.startsWith('**') && part.endsWith('**')) {
+                    return <strong key={j} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+                  }
+                  if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
+                    return <code key={j} className="px-1.5 py-0.5 mx-0.5 bg-orange-50 text-button-orange rounded font-mono text-[13px] border border-orange-100">{part.slice(1, -1)}</code>;
+                  }
+                  return <span key={j}>{part}</span>;
+                })}
+                {i < arr.length - 1 && <br />}
+              </span>
+            );
+          })}
+        </span>
+      );
+    }
+  });
+};
 
 export default function AdvisorChatPage() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [reqId, setReqId] = useState('');
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionId, setSessionId] = useState('');
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -16,6 +67,43 @@ export default function AdvisorChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    getRequests().then(res => {
+      if (res.success) {
+        setRequests(res.data);
+      }
+    }).catch(err => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    const fetchHistory = async (sid) => {
+      try {
+        const res = await getChatHistory(sid);
+        if (res.success && res.data) {
+          const loadedMessages = [];
+          res.data.forEach(item => {
+            loadedMessages.push({ sender: 'user', text: item.question });
+            loadedMessages.push({ sender: 'ai', text: item.answer });
+          });
+          setMessages(loadedMessages);
+        } else {
+          setMessages([]);
+        }
+      } catch (err) {
+        console.error(err);
+        setMessages([]);
+      }
+    };
+
+    // Create a deterministic session ID based on user and request!
+    // This ensures history persists across logouts, page reloads, and even different computers.
+    const userIdentifier = user?.email || user?.session_id || 'guest';
+    const existingSession = `chat_${userIdentifier}_req_${reqId || 'global'}`;
+    
+    setSessionId(existingSession);
+    fetchHistory(existingSession);
+  }, [reqId, user]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -59,14 +147,30 @@ export default function AdvisorChatPage() {
             </div>
             
             <div className="flex items-center gap-3 mt-4 sm:mt-0 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-              <label className="text-sm font-semibold text-gray-600">Link Request ID:</label>
-              <input 
-                type="number" 
+              <label className="text-sm font-semibold text-gray-600">Context:</label>
+              <select 
                 value={reqId} 
                 onChange={(e) => setReqId(e.target.value)} 
-                placeholder="e.g. 1" 
-                className="w-20 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-orange focus:border-primary-orange transition-all placeholder:text-gray-400 font-mono text-center shadow-inner"
-              />
+                className="w-64 max-w-xs bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-orange focus:border-primary-orange transition-all shadow-inner truncate text-gray-700"
+              >
+                {requests.length === 0 ? (
+                  <option value="">Global Context (All Projects)</option>
+                ) : (
+                  <>
+                    <option value="">Global Context (All Projects)</option>
+                    <optgroup label="Specific Projects">
+                      {requests.map(req => {
+                        const shortName = req.request_name.length > 25 ? req.request_name.substring(0, 25) + '...' : req.request_name;
+                        return (
+                          <option key={req.id} value={req.id} title={req.request_name}>
+                            {req.id} - {shortName} ({req.status})
+                          </option>
+                        );
+                      })}
+                    </optgroup>
+                  </>
+                )}
+              </select>
             </div>
           </div>
           
@@ -88,7 +192,7 @@ export default function AdvisorChatPage() {
                     ? 'bg-gradient-to-br from-primary-orange to-button-orange text-white rounded-tr-sm' 
                     : 'bg-white text-gray-800 border border-gray-100 rounded-tl-sm'
                   }`}>
-                  {m.text}
+                  {m.sender === 'ai' ? formatMessage(m.text) : m.text}
                 </div>
 
               </div>

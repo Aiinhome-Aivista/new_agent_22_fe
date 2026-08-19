@@ -52,10 +52,10 @@ export default function StepRequestTable({ activeStage }) {
   const getActionConfig = () => {
     const orangeClass = 'bg-primary-orange text-white hover:bg-hover-orange border-primary-orange hover:border-hover-orange';
     switch (activeStage) {
-      case 'blueprint': return { text: 'Review Blueprint', colorClass: orangeClass };
-      case 'validation': return { text: 'Check Validation', colorClass: orangeClass };
-      case 'packages': return { text: 'View Packages', colorClass: orangeClass };
-      case 'review': return { text: 'Review Code', colorClass: orangeClass };
+      case 'blueprint': return { text: 'Review Blueprint', colorClass: 'text-primary-orange bg-orange-50 hover:bg-primary-orange hover:text-white border-border-orange/40 hover:border-primary-orange' };
+      case 'validation': return { text: 'Check Validation', colorClass: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200 hover:border-emerald-600' };
+      case 'packages': return { text: 'View Packages', colorClass: 'text-purple-700 bg-purple-50 hover:bg-purple-600 hover:text-white border-purple-200 hover:border-purple-600' };
+      case 'review': return { text: 'Review Code', colorClass: 'text-red-700 bg-red-50 hover:bg-red-600 hover:text-white border-red-200 hover:border-red-600' };
       case 'generation': 
       default:
         return { text: 'View Generation', colorClass: orangeClass };

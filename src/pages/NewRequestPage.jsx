@@ -39,6 +39,7 @@ export default function NewRequestPage() {
     { role: 'agent', text: "Hello! I'm your AI Architect. Tell me about the project you want to build." }
   ]);
   const chatEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   const languages = ['Java Kafka']; 
 
@@ -63,6 +64,11 @@ export default function NewRequestPage() {
            }
 
            if (loadedMessages) {
+             // Ensure the final agent message is displayed in history
+             const lastMsg = loadedMessages[loadedMessages.length - 1];
+             if (lastMsg && (lastMsg.role !== 'agent' || !lastMsg.text.includes("Perfect!"))) {
+               loadedMessages.push({ role: 'agent', text: "Perfect! I have enough information. I'm generating your blueprint now..." });
+             }
              setMessages(loadedMessages);
            } else {
              const promptText = spec?.schema_hints && spec.schema_hints !== 'Conversational Intake' 
@@ -118,6 +124,9 @@ export default function NewRequestPage() {
     const newMessages = [...messages, { role: 'user', text: userMsg, files: sampleFiles.map(f => f.name) }];
     setMessages(newMessages);
     setPrompt('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'; // Reset height
+    }
     const filesToUpload = [...sampleFiles]; // Store before clearing
     setSampleFiles([]);
     setLoading(true);
@@ -277,6 +286,7 @@ export default function NewRequestPage() {
 
             <div className="flex-1 px-3 py-3.5">
               <textarea
+                ref={textareaRef}
                 value={prompt}
                 readOnly={loading}
                 onChange={(e) => {

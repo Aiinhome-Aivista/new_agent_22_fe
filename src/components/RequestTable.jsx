@@ -31,7 +31,24 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
           {currentRequests.map(req => (
             <tr key={req.id} className="hover:bg-input-bg/30 transition-colors group">
               <td className="px-6 py-5 text-sm text-text-secondary font-mono font-medium">#{req.id}</td>
-              <td className="px-6 py-5 text-sm font-extrabold text-sidebar">{req.request_name}</td>
+              <td className="px-6 py-5 text-sm font-extrabold text-sidebar">
+                <div className="mb-1">{req.request_name}</div>
+                {(() => {
+                  if (!req.schema_hints) return null;
+                  try {
+                    const parsed = JSON.parse(req.schema_hints);
+                    if (Array.isArray(parsed)) {
+                      const userMsg = [...parsed].reverse().find(m => m.role === 'user');
+                      if (userMsg) {
+                        return <div className="text-xs font-normal text-text-secondary truncate max-w-xs" title={userMsg.text}>"{userMsg.text}"</div>;
+                      }
+                    }
+                  } catch (e) {
+                    return <div className="text-xs font-normal text-text-secondary truncate max-w-xs" title={req.schema_hints}>"{req.schema_hints}"</div>;
+                  }
+                  return null;
+                })()}
+              </td>
               <td className="px-6 py-5 text-sm">
                 <span className="bg-white border border-border-light/80 text-text-secondary font-mono text-xs font-semibold rounded-md px-2.5 py-1.5 inline-block shadow-sm">
                   {req.application_id}
@@ -43,35 +60,35 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
                 {actionOverride ? (
                   <button
                     onClick={() => navigate(`${actionOverride.pathPrefix}${req.id}${actionOverride.pathSuffix}`)}
-                    className="text-amber-700 bg-amber-50 hover:bg-amber-600 hover:text-white border border-amber-200 hover:border-amber-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                    className="bg-primary-orange text-white hover:bg-hover-orange border border-primary-orange hover:border-hover-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     {actionOverride.label}
                   </button>
                 ) : role === 'techlead' && ['packaged', 'validated'].includes(req.status) ? (
                   <button
                     onClick={() => handleNavigate(`/requests/${req.id}/review`, req.id)}
-                    className="text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                    className="bg-primary-orange text-white hover:bg-hover-orange border border-primary-orange hover:border-hover-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Approve / Rework
                   </button>
                 ) : role === 'architect' || role === 'solution architect' ? (
                   <button
                     onClick={() => handleNavigate(`/requests/${req.id}/blueprint`, req.id)}
-                    className="text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white border border-blue-200 hover:border-blue-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                    className="bg-primary-orange text-white hover:bg-hover-orange border border-primary-orange hover:border-hover-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     {['approved', 'packaged', 'validated', 'in_progress'].includes(req.status?.toLowerCase()) ? 'View Approved Blueprint' : 'Review Blueprint'}
                   </button>
                 ) : role === 'devops' && ['packaged', 'approved'].includes(req.status) ? (
                   <button
                     onClick={() => handleNavigate(`/packages?id=${req.id}`, req.id)}
-                    className="text-purple-700 bg-purple-50 hover:bg-purple-600 hover:text-white border border-purple-200 hover:border-purple-600 px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                    className="bg-primary-orange text-white hover:bg-hover-orange border border-primary-orange hover:border-hover-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Inspect Package
                   </button>
                 ) : role === 'developer' && ['packaged', 'approved'].includes(req.status) ? (
                   <button
                     onClick={() => handleNavigate(`/packages?id=${req.id}`, req.id)}
-                    className="text-primary-orange bg-input-bg hover:bg-primary-orange hover:text-white border border-border-orange/40 hover:border-primary-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
+                    className="bg-primary-orange text-white hover:bg-hover-orange border border-primary-orange hover:border-hover-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
                   >
                     Download Skeleton
                   </button>
@@ -80,7 +97,7 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
                     onClick={() => {
                       handleNavigate(`/requests/${req.id}/chat`, req.id);
                     }}
-                    className="text-text-secondary hover:text-primary-orange hover:bg-input-bg border border-transparent hover:border-border-orange/20 px-4 py-2 rounded-lg font-bold transition-all"
+                    className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white border border-primary-orange px-4 py-2 rounded-lg font-bold transition-all"
                   >
                     View Details
                   </button>

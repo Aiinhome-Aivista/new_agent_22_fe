@@ -38,7 +38,7 @@ export default function GenerationProgressPage() {
 
   const navigate = useNavigate();
   const [reqData, setReqData] = useState(null);
-  const [files, setFiles] = useState([]);
+  const [generatedFiles, setGeneratedFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [simulatedLogs, setSimulatedLogs] = useState([]);
   const [activeTab, setActiveTab] = useState('manifest');
@@ -47,11 +47,13 @@ export default function GenerationProgressPage() {
   useEffect(() => {
     if (!id || id === 'undefined') return;
 
-    let interval;
+    let timeoutId;
+    let isMounted = true;
 
-    const fetchStatus = () => {
-      getRequest(id).then(res => {
-        if (res.success) {
+    const fetchStatus = async () => {
+      try {
+        const res = await getRequest(id);
+        if (res.success && isMounted) {
           setReqData(res.data);
           
           const data = res.data;
@@ -59,26 +61,32 @@ export default function GenerationProgressPage() {
                          (data?.blueprint?.status === 'approved' && ['Validation', 'Packaging', 'Finished'].includes(data?.job?.current_step));
           const isFail = data?.job?.job_status === 'failed';
           
-          if ((isComp || isFail) && interval) {
-            clearInterval(interval);
+          const filesData = await getGeneratedFiles(id);
+          const fetchedFiles = filesData.data || [];
+          if (isMounted) {
+             setGeneratedFiles(fetchedFiles);
+             setSelectedFile(prev => {
+                if (!prev && fetchedFiles.length > 0) return fetchedFiles[0];
+                if (prev && fetchedFiles.find(f => f.file_name === prev.file_name)) return prev;
+                return fetchedFiles.length > 0 ? fetchedFiles[0] : null;
+             });
+          }
+
+          if (!isComp && !isFail && isMounted) {
+             timeoutId = setTimeout(fetchStatus, 3000);
           }
         }
-      }).catch(console.error);
-
-      getGeneratedFiles(id).then(data => {
-        const fetchedFiles = data.data || [];
-        setFiles(fetchedFiles);
-        setSelectedFile(prev => {
-          if (!prev && fetchedFiles.length > 0) return fetchedFiles[0];
-          if (prev && fetchedFiles.find(f => f.file_name === prev.file_name)) return prev;
-          return fetchedFiles.length > 0 ? fetchedFiles[0] : null;
-        });
-      }).catch(console.error);
+      } catch (err) {
+        console.error(err);
+        if (isMounted) timeoutId = setTimeout(fetchStatus, 3000);
+      }
     };
 
     fetchStatus();
-    interval = setInterval(fetchStatus, 3000);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [id]);
 
   useEffect(() => {
@@ -117,8 +125,27 @@ export default function GenerationProgressPage() {
   const isCompleted = ['validated', 'packaged', 'approved'].includes(reqData?.request?.status) || 
                       (reqData?.blueprint?.status === 'approved' && ['Validation', 'Packaging', 'Finished'].includes(reqData?.job?.current_step));
 
-  // Determine coverage percentage for UI badge (simulated based on file count)
-  const coverage = files.length > 0 ? "100% GENERATED" : "IN PROGRESS";
+  // Determine expected files from blueprint manifest
+  let expectedFiles = [];
+  try {
+    if (reqData?.blueprint?.file_manifest) {
+      const manifestObj = JSON.parse(reqData.blueprint.file_manifest);
+      expectedFiles = manifestObj.files || [];
+    }
+  } catch (e) {
+    console.error("Failed to parse manifest", e);
+  }
+
+  // Combine expected and generated
+  const displayList = expectedFiles.length > 0 
+    ? expectedFiles.map(ef => {
+        const genFile = generatedFiles.find(gf => gf.file_name === ef.filename || gf.file_name === ef.name);
+        return genFile ? { ...genFile, isGenerated: true } : { file_name: ef.filename || ef.name, isGenerated: false };
+      })
+    : generatedFiles.map(gf => ({ ...gf, isGenerated: true }));
+
+  // Determine coverage percentage for UI badge
+  const coverage = displayList.length > 0 && generatedFiles.length === displayList.length ? "100% GENERATED" : "IN PROGRESS";
 
   return (
     <div className="flex flex-col h-full bg-[#fcf9f8]">
@@ -196,7 +223,12 @@ export default function GenerationProgressPage() {
               <div className="flex-1 overflow-y-auto pr-2 pb-4">
                 <h3 className="text-xs font-black text-gray-400 mb-3 tracking-widest uppercase">File Artifacts</h3>
                 
-                {files.length === 0 ? (
+                {!reqData ? (
+                  <div className="flex flex-col items-center justify-center mt-10 p-6 bg-white border border-[#f0e6dc] rounded-lg">
+                    <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-500 rounded-full animate-spin mb-3"></div>
+                    <span className="text-gray-500 font-bold text-sm">Loading workspace...</span>
+                  </div>
+                ) : displayList.length === 0 ? (
                   <div className="flex flex-col items-center justify-center mt-10 p-6 bg-white border border-[#f0e6dc] rounded-lg">
                     {reqData?.request?.status === 'blueprint_review' ? (
                       <span className="text-gray-400 italic text-sm">Pipeline paused for Blueprint Review. Waiting for approval.</span>
@@ -204,33 +236,57 @@ export default function GenerationProgressPage() {
                       <>
                         <div className="w-8 h-8 border-4 border-primary-orange border-t-transparent rounded-full animate-spin mb-3"></div>
                         <span className="text-gray-500 font-bold text-sm">Generation in progress...</span>
-                        <span className="text-gray-400 text-xs mt-1 text-center">AI is writing code. Please wait.</span>
+                        <span className="text-gray-400 text-xs mt-1 text-center">AI is analyzing requirements. Please wait.</span>
                       </>
                     )}
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {files.map((f, idx) => {
+                    {displayList.map((f, idx) => {
                       const isActive = selectedFile?.file_name === f.file_name;
+                      const isGen = f.isGenerated;
                       return (
                         <button 
                           key={f.id || idx} 
-                          onClick={() => setSelectedFile(f)}
+                          onClick={() => {
+                            if (isGen) setSelectedFile(f);
+                          }}
+                          disabled={!isGen}
                           className={`w-full text-left p-3 rounded-lg flex items-center justify-between transition-all border ${
                             isActive 
                               ? 'bg-orange-50 border-orange-200 shadow-sm' 
-                              : 'bg-white border-[#f0e6dc] hover:border-gray-300'
+                              : isGen 
+                                ? 'bg-white border-[#f0e6dc] hover:border-gray-300 cursor-pointer'
+                                : 'bg-gray-50 border-dashed border-gray-200 cursor-not-allowed opacity-80'
                           }`}
                         >
                           <div className="flex items-center gap-3 overflow-hidden">
-                            <span className="text-gray-400 shrink-0">📄</span>
-                            <span className={`text-sm font-mono truncate ${isActive ? 'text-gray-900 font-bold' : 'text-gray-600 font-medium'}`}>
+                            {!isGen ? (
+                              isCompleted || isFailed ? (
+                                <span className="text-red-400 shrink-0">⚠️</span>
+                              ) : (
+                                <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin shrink-0"></div>
+                              )
+                            ) : (
+                              <span className="text-gray-400 shrink-0">📄</span>
+                            )}
+                            <span className={`text-sm font-mono truncate ${isActive ? 'text-gray-900 font-bold' : isGen ? 'text-gray-600 font-medium' : 'text-gray-400 italic'}`}>
                               {f.file_name}
                             </span>
                           </div>
-                          <span className="shrink-0 bg-green-50 text-green-700 text-[9px] font-black px-1.5 py-0.5 rounded border border-green-200 tracking-wider">
-                            GENERATED
-                          </span>
+                          {isGen ? (
+                            <span className="shrink-0 bg-green-50 text-green-700 text-[9px] font-black px-1.5 py-0.5 rounded border border-green-200 tracking-wider">
+                              GENERATED
+                            </span>
+                          ) : isCompleted || isFailed ? (
+                            <span className="shrink-0 bg-red-50 text-red-500 text-[9px] font-black px-1.5 py-0.5 rounded border border-red-200 tracking-wider">
+                              SKIPPED
+                            </span>
+                          ) : (
+                            <span className="shrink-0 bg-gray-100 text-gray-500 text-[9px] font-black px-1.5 py-0.5 rounded border border-gray-200 tracking-wider animate-pulse">
+                              PENDING
+                            </span>
+                          )}
                         </button>
                       );
                     })}
@@ -272,7 +328,7 @@ export default function GenerationProgressPage() {
 
             {/* Code Content */}
             <div className="flex-1 flex overflow-auto bg-[#1e1e1e]">
-              {selectedFile ? (
+              {selectedFile && selectedFile.isGenerated !== false ? (
                 <>
                   {/* Line Numbers */}
                   <div className="py-4 px-3 bg-[#1e1e1e] border-r border-gray-800 text-right shrink-0 select-none">
@@ -290,8 +346,8 @@ export default function GenerationProgressPage() {
                 </>
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-gray-500 font-mono text-sm">
-                  {files.length > 0 ? (
-                    "Select a file from the manifest to view source code"
+                  {displayList.length > 0 ? (
+                    "Select a generated file from the manifest to view source code"
                   ) : (
                     <>
                       <div className="w-10 h-10 border-4 border-gray-600 border-t-gray-300 rounded-full animate-spin mb-4"></div>

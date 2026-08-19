@@ -50,6 +50,7 @@ export default function StepRequestTable({ activeStage }) {
   };
 
   const getActionConfig = () => {
+    const orangeClass = 'bg-primary-orange text-white hover:bg-hover-orange border-primary-orange hover:border-hover-orange';
     switch (activeStage) {
       case 'blueprint': return { text: 'Review Blueprint', colorClass: 'text-primary-orange bg-orange-50 hover:bg-primary-orange hover:text-white border-border-orange/40 hover:border-primary-orange' };
       case 'validation': return { text: 'Check Validation', colorClass: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white border-emerald-200 hover:border-emerald-600' };
@@ -57,7 +58,7 @@ export default function StepRequestTable({ activeStage }) {
       case 'review': return { text: 'Review Code', colorClass: 'text-red-700 bg-red-50 hover:bg-red-600 hover:text-white border-red-200 hover:border-red-600' };
       case 'generation': 
       default:
-        return { text: 'View Generation', colorClass: 'text-primary-orange bg-input-bg hover:bg-primary-orange hover:text-white border-border-orange/40 hover:border-primary-orange' };
+        return { text: 'View Generation', colorClass: orangeClass };
     }
   };
 
@@ -109,7 +110,8 @@ export default function StepRequestTable({ activeStage }) {
                 <td className="px-6 py-5 text-sm font-medium text-right">
                   <button 
                     onClick={() => handleNavigate(req.id)}
-                    className={`border px-4 py-2 rounded-lg font-bold shadow-sm transition-all ${actionConfig.colorClass}`}
+                    disabled={req.status === 'draft'}
+                    className={`border px-4 py-2 rounded-lg font-bold shadow-sm transition-all ${req.status === 'draft' ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : actionConfig.colorClass}`}
                   >
                     {actionConfig.text}
                   </button>

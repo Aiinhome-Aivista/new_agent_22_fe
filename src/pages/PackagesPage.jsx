@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
-import { getPackages, getEnvironments, generateDevopsScripts, triggerPipeline, getRequests } from '../api/api';
+import { getPackages, getEnvironments, generateDevopsScripts, triggerPipeline, getRequests, getRequest } from '../api/api';
 import Loader from '../components/Loader';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -29,6 +29,8 @@ export default function PackagesPage() {
 
 
 
+  const [reqData, setReqData] = useState(null);
+
   useEffect(() => {
     if (!id || id === 'undefined') {
       getRequests().then(data => {
@@ -43,12 +45,16 @@ export default function PackagesPage() {
 
     Promise.all([
       getPackages(),
-      getEnvironments()
-    ]).then(([pkgData, envData]) => {
+      getEnvironments(),
+      getRequest(id)
+    ]).then(([pkgData, envData, reqRes]) => {
       const reqPkgs = (pkgData.data || []).filter(p => p.request_id === parseInt(id));
       setPackages(reqPkgs);
       if (envData.success) {
         setEnvironments(envData.data);
+      }
+      if (reqRes && reqRes.success) {
+        setReqData(reqRes.data);
       }
     }).catch(err => {
       console.error(err);
@@ -56,6 +62,19 @@ export default function PackagesPage() {
       setLoading(false);
     });
   }, [id]);
+
+  let fileChecklist = [];
+  try {
+    if (reqData?.blueprint?.file_manifest) {
+      const manifestObj = typeof reqData.blueprint.file_manifest === 'string' ? JSON.parse(reqData.blueprint.file_manifest) : reqData.blueprint.file_manifest;
+      fileChecklist = (manifestObj.files || []).map(f => f.filename || f.name);
+    }
+  } catch (e) {
+    console.error("Failed to parse manifest", e);
+  }
+  if (fileChecklist.length === 0) {
+      fileChecklist = ['Generating...'];
+  }
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -151,7 +170,7 @@ export default function PackagesPage() {
                 {packages.map((pkg) => (
                   <div key={pkg.id} className="p-3 bg-gray-50 rounded border border-gray-200 mb-3 text-sm">
                     <p className="font-bold text-gray-700">{pkg.request_name || `Package #${pkg.id}`}</p>
-                    <p className="text-xs text-gray-500 mb-2 truncate" title={pkg.zip_path}>{pkg.zip_path}</p>
+                    <p className="text-xs text-gray-500 mb-2 truncate" title={`package_${pkg.request_id}.zip`}>{`package_${pkg.request_id}.zip`}</p>
                     <a
                       href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/packages/download/${pkg.id}`}
                       className="text-primary-orange font-bold hover:underline flex items-center gap-1"
@@ -232,7 +251,7 @@ export default function PackagesPage() {
                   <div key={pkg.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-3">
                     <div className="flex justify-between items-center mb-2">
                       <span className="font-bold text-gray-800">{pkg.request_name || `Package #${pkg.id}`}</span>
-                      <span className="text-xs font-mono text-gray-500 truncate max-w-[200px]" title={pkg.zip_path}>{pkg.zip_path}</span>
+                      <span className="text-xs font-mono text-gray-500 truncate max-w-[200px]" title={`package_${pkg.request_id}.zip`}>{`package_${pkg.request_id}.zip`}</span>
                     </div>
                     <a
                       href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/packages/download/${pkg.id}`}
@@ -257,10 +276,10 @@ export default function PackagesPage() {
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <h3 className="font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">File Manifest Checklist</h3>
                 <div className="space-y-3">
-                  {['PaymentProcessor.java', 'application.yml', 'PaymentHandlerTest.java', 'Dockerfile & pom.xml'].map((file, idx) => (
+                  {fileChecklist.map((file, idx) => (
                     <div key={idx} className="flex items-center gap-3">
                       <div className="text-green-500"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg></div>
-                      <span className="text-sm font-medium text-gray-700">{file}</span>
+                      <span className="text-sm font-medium text-gray-700 truncate">{file}</span>
                     </div>
                   ))}
                 </div>
@@ -268,9 +287,9 @@ export default function PackagesPage() {
 
               <div className="bg-emerald-50 p-6 rounded-xl shadow-sm border border-emerald-100">
                 <h3 className="font-bold text-emerald-800 mb-2">Validation Summary</h3>
-                <p className="text-sm text-emerald-700 mb-3">All pattern checks and logic validations passed successfully.</p>
-                <button onClick={() => navigate(`/progress?id=${id}`)} className="text-sm font-bold text-emerald-700 hover:text-emerald-800 hover:underline">
-                  View Validation Details &rarr;
+                <p className="text-sm text-emerald-700 mb-4">All pattern checks and logic validations passed successfully.</p>
+                <button onClick={() => navigate(`/requests/${id}/review`)} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-bold shadow-sm transition-all text-center flex justify-center items-center gap-2">
+                  Proceed to Tech Lead Review &rarr;
                 </button>
               </div>
             </div>

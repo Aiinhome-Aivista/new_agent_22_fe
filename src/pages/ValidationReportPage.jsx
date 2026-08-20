@@ -6,6 +6,7 @@ import StatusBadge from '../components/StatusBadge';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import StepRequestTable from '../components/StepRequestTable';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../context/AuthContext';
 
 export default function ValidationReportPage() {
   const { id: pathId } = useParams();
@@ -13,6 +14,10 @@ export default function ValidationReportPage() {
   const queryId = searchParams.get('id');
   const id = pathId || queryId;
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const role = user?.role?.toLowerCase() || 'developer';
+  const isTechLead = role === 'techlead' || role === 'tech lead' || role.includes('tech');
   const [results, setResults] = useState([]);
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(true);
@@ -50,7 +55,7 @@ export default function ValidationReportPage() {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => navigate('/validation')} 
+              onClick={() => navigate(isTechLead ? '/techlead/dashboard' : '/validation')} 
               className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
               title="Go Back"
             >

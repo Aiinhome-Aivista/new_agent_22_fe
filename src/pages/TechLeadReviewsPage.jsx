@@ -59,9 +59,14 @@ export default function TechLeadReviewsPage() {
                   <td className="px-6 py-5 text-right flex justify-end">
                     <button 
                       onClick={() => navigate(`/requests/${rev.id}/review`)} 
-                      className="bg-primary-orange hover:bg-hover-orange text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"
+                      disabled={rev.status === 'approved' || rev.status === 'rejected'}
+                      className={`px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors ${
+                        rev.status === 'approved' || rev.status === 'rejected'
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-primary-orange hover:bg-hover-orange text-white'
+                      }`}
                     >
-                      Inspect & Sign-off
+                      {rev.status === 'approved' ? 'Approved' : rev.status === 'rejected' ? 'Rejected' : 'Inspect & Sign-off'}
                     </button>
                   </td>
                 </tr>

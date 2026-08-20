@@ -96,19 +96,19 @@ export default function ReviewerDashboard() {
             <h2 className="text-lg font-bold text-sidebar mb-4">Validation Severity Queue</h2>
             <div className="space-y-3">
               {validations.length > 0 ? validations.slice(0, 5).map((val, idx) => (
-                <div key={val.id || idx} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${val.severity === 'error' ? 'border-red-100 bg-red-50/50 hover:bg-red-50' : val.severity === 'warning' ? 'border-yellow-100 bg-yellow-50/50 hover:bg-yellow-50' : 'border-blue-100 bg-blue-50/50 hover:bg-blue-50'}`}>
+                <div key={val.id || idx} className="flex items-center justify-between p-3 rounded-xl border border-border-light/60 bg-white hover:border-border-orange/30 hover:bg-orange-50/20 transition-all shadow-sm">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${val.severity === 'error' ? 'bg-red-100 text-red-600' : val.severity === 'warning' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600'}`}>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-orange-50 text-primary-orange">
                       <ExclamationCircleIcon className="w-6 h-6" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-sidebar truncate max-w-[300px]" title={val.rule_name || val.message}>{val.rule_name || 'Validation Issue'}</p>
-                      <p className={`text-xs font-medium ${val.severity === 'error' ? 'text-red-600' : val.severity === 'warning' ? 'text-yellow-700' : 'text-blue-600'}`}>
+                      <p className={`text-xs font-medium ${val.severity === 'error' ? 'text-red-500' : val.severity === 'warning' ? 'text-amber-500' : 'text-primary-orange'}`}>
                         {val.severity === 'error' ? 'High Severity • Blocking deployment' : val.severity === 'warning' ? 'Medium Severity • Needs attention' : 'Low Severity • Info'}
                       </p>
                     </div>
                   </div>
-                  <button onClick={() => navigate(`/validation?id=${val.request_id}`)} className={`px-4 py-1.5 text-white rounded-lg text-xs font-bold shadow transition-colors ${val.severity === 'error' ? 'bg-red-600 hover:bg-red-700' : val.severity === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-500 hover:bg-blue-600'}`}>Review</button>
+                  <button onClick={() => navigate(`/validation?id=${val.request_id}`)} className="px-4 py-1.5 text-white bg-primary-orange hover:bg-hover-orange rounded-lg text-xs font-bold shadow transition-colors">Review</button>
                 </div>
               )) : (
                 <div className="text-sm text-gray-500 p-4 text-center border border-dashed border-gray-200 rounded-xl bg-gray-50">No pending validation issues found.</div>

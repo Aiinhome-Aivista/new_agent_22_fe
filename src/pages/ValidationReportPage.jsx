@@ -18,6 +18,11 @@ export default function ValidationReportPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     getValidationResults(id).then(data => {
       setResults(data.data?.results || data.data || []);
       setSummary(data.data?.summary || '');
@@ -27,8 +32,6 @@ export default function ValidationReportPage() {
       setLoading(false);
     });
   }, [id]);
-
-  if (loading) return <Loader />;
 
   if (!id) {
     return (
@@ -65,7 +68,7 @@ export default function ValidationReportPage() {
         </div>
         
         <div className="grid gap-6">
-          {summary && (
+          {summary && !loading && (
             <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded text-sm shadow-sm">
               <strong className="block mb-2">AI Summary:</strong>
               {summary}
@@ -83,22 +86,31 @@ export default function ValidationReportPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-light">
-                {results.map((r, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
-                    <td className="p-4 text-sm font-medium text-gray-900">{r.rule_name}</td>
-                    <td className="p-4">
-                      <span className={`text-xs font-bold ${r.passed ? 'text-green-600' : 'text-red-600'}`}>
-                        {r.passed ? 'PASS' : 'FAIL'}
-                      </span>
+                {loading ? (
+                  <tr>
+                    <td colSpan="4" className="p-8">
+                      <div className="flex justify-center items-center">
+                        <Loader />
+                      </div>
                     </td>
-                    <td className="p-4"><StatusBadge status={r.severity} /></td>
-                    <td className="p-4 text-sm text-gray-600">{r.message}</td>
                   </tr>
-                ))}
-                {results.length === 0 && (
+                ) : results.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="p-8 text-center text-gray-500">No validation results available.</td>
                   </tr>
+                ) : (
+                  results.map((r, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50">
+                      <td className="p-4 text-sm font-medium text-gray-900">{r.rule_name}</td>
+                      <td className="p-4">
+                        <span className={`text-xs font-bold ${r.passed ? 'text-green-600' : 'text-red-600'}`}>
+                          {r.passed ? 'PASS' : 'FAIL'}
+                        </span>
+                      </td>
+                      <td className="p-4"><StatusBadge status={r.severity} /></td>
+                      <td className="p-4 text-sm text-gray-600">{r.message}</td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>

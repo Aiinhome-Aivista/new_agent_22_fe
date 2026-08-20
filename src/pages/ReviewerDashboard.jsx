@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getDashboardMetrics, getRequests } from '../api/api';
+import { getDashboardMetrics, getTechLeadReviews, getTechLeadValidations } from '../api/api';
 import Loader from '../components/Loader';
 import RequestTable from '../components/RequestTable';
 import { useNavigate } from 'react-router-dom';
@@ -11,18 +11,35 @@ export default function ReviewerDashboard() {
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [validations, setValidations] = useState([]);
 
   useEffect(() => {
     getDashboardMetrics('techlead').then(res => {
       if (res.success) setMetrics(res.data);
     }).catch(console.error);
 
-    getRequests().then(res => {
-      if (res.data) setRequests(res.data);
+    getTechLeadReviews().then(res => {
+      if (res.data) {
+        const mappedRequests = res.data.map(req => ({
+          ...req,
+          request_name: req.serviceName || req.request_name,
+          application_id: req.targetAppId || req.application_id,
+          created_at: req.date || req.created_at
+        }));
+        setRequests(mappedRequests);
+      }
+    }).catch(console.error);
+
+    getTechLeadValidations().then(res => {
+      if (res.success) setValidations(res.data || []);
     }).catch(console.error);
   }, []);
 
   if (!metrics) return <Loader />;
+
+  const totalReviews = metrics.approvals + metrics.rejected;
+  const approvalRate = totalReviews > 0 ? Math.round((metrics.approvals / totalReviews) * 100) : 0;
+  const rejectionRate = totalReviews > 0 ? Math.round((metrics.rejected / totalReviews) * 100) : 0;
 
   return (
     <div className="animate-fade-in-up">
@@ -78,65 +95,85 @@ export default function ReviewerDashboard() {
           <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6">
             <h2 className="text-lg font-bold text-sidebar mb-4">Validation Severity Queue</h2>
             <div className="space-y-3">
-              {/* High Severity */}
-              <div className="flex items-center justify-between p-3 rounded-xl border border-red-100 bg-red-50/50 hover:bg-red-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center shadow-sm">
-                    <ExclamationCircleIcon className="w-6 h-6" />
+              {validations.length > 0 ? validations.slice(0, 5).map((val, idx) => (
+                <div key={val.id || idx} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${val.severity === 'error' ? 'border-red-100 bg-red-50/50 hover:bg-red-50' : val.severity === 'warning' ? 'border-yellow-100 bg-yellow-50/50 hover:bg-yellow-50' : 'border-blue-100 bg-blue-50/50 hover:bg-blue-50'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${val.severity === 'error' ? 'bg-red-100 text-red-600' : val.severity === 'warning' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600'}`}>
+                      <ExclamationCircleIcon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-sidebar truncate max-w-[300px]" title={val.rule_name || val.message}>{val.rule_name || 'Validation Issue'}</p>
+                      <p className={`text-xs font-medium ${val.severity === 'error' ? 'text-red-600' : val.severity === 'warning' ? 'text-yellow-700' : 'text-blue-600'}`}>
+                        {val.severity === 'error' ? 'High Severity • Blocking deployment' : val.severity === 'warning' ? 'Medium Severity • Needs attention' : 'Low Severity • Info'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-sidebar">Security Group Conflict in AWS ECS Config</p>
-                    <p className="text-xs text-red-600 font-medium">High Severity • Blocking deployment</p>
-                  </div>
+                  <button onClick={() => navigate(`/validation?id=${val.request_id}`)} className={`px-4 py-1.5 text-white rounded-lg text-xs font-bold shadow transition-colors ${val.severity === 'error' ? 'bg-red-600 hover:bg-red-700' : val.severity === 'warning' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-500 hover:bg-blue-600'}`}>Review</button>
                 </div>
-                <button className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold shadow hover:bg-red-700 transition-colors">Review Now</button>
-              </div>
-              
-              {/* Medium Severity */}
-              <div className="flex items-center justify-between p-3 rounded-xl border border-yellow-100 bg-yellow-50/50 hover:bg-yellow-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center shadow-sm">
-                    <ExclamationCircleIcon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-sidebar">Missing Dead Letter Queue for Notification Topic</p>
-                    <p className="text-xs text-yellow-700 font-medium">Medium Severity • Needs attention</p>
-                  </div>
-                </div>
-                <button className="px-4 py-1.5 bg-yellow-500 text-white rounded-lg text-xs font-bold shadow hover:bg-yellow-600 transition-colors">Review</button>
-              </div>
+              )) : (
+                <div className="text-sm text-gray-500 p-4 text-center border border-dashed border-gray-200 rounded-xl bg-gray-50">No pending validation issues found.</div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Right Column: Review Performance Stats */}
         <div className="flex flex-col gap-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6 h-full flex flex-col">
-            <h2 className="text-lg font-bold text-sidebar mb-6">Review Performance</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6 h-full flex flex-col relative overflow-hidden">
+            <div className="absolute -right-12 -top-12 w-48 h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full opacity-50 pointer-events-none"></div>
             
-            <div className="flex-grow flex flex-col justify-center space-y-6">
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="font-semibold text-text-secondary">Approval Rate</span>
-                  <span className="text-green-600 font-bold">85%</span>
-                </div>
-                <div className="w-full bg-input-bg rounded-full h-3">
-                  <div className="bg-green-500 h-3 rounded-full" style={{ width: '85%' }}></div>
+            <h2 className="text-lg font-bold text-sidebar mb-6 relative z-10">Review Performance</h2>
+            
+            <div className="flex-grow flex flex-col justify-center space-y-10 relative z-10">
+              {/* Donut Chart */}
+              <div className="flex items-center justify-center">
+                <div className="relative w-40 h-40 flex items-center justify-center rounded-full bg-white shadow-[0_0_20px_rgba(0,0,0,0.02)]">
+                  <svg className="absolute inset-0 w-full h-full -rotate-90 transform origin-center" viewBox="0 0 36 36">
+                    {/* Background track */}
+                    <path className="text-gray-100" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    
+                    {/* Approval segment */}
+                    {totalReviews > 0 && (
+                      <path className="text-green-500 transition-all duration-1000 ease-out" strokeDasharray={`${approvalRate}, 100`} strokeWidth="3" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    )}
+                    
+                    {/* Rejection segment */}
+                    {totalReviews > 0 && rejectionRate > 0 && (
+                      <path className="text-red-400 transition-all duration-1000 ease-out" strokeDasharray={`${rejectionRate}, 100`} strokeDashoffset={`-${approvalRate}`} strokeWidth="3" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    )}
+                  </svg>
+                  <div className="text-center z-10 flex flex-col items-center">
+                    <span className="text-4xl font-extrabold text-sidebar">{totalReviews}</span>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mt-1">Total Reviews</span>
+                  </div>
                 </div>
               </div>
-              
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="font-semibold text-text-secondary">Rejection Rate</span>
-                  <span className="text-red-500 font-bold">15%</span>
+
+              {/* Progress Bars */}
+              <div className="space-y-5 px-2">
+                <div>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="font-bold text-gray-600">Approved</span>
+                    <span className="text-green-600 font-extrabold">{metrics.approvals} <span className="text-xs font-normal text-gray-400">({approvalRate}%)</span></span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div className="bg-green-500 h-2 rounded-full transition-all duration-1000 shadow-sm" style={{ width: `${approvalRate}%` }}></div>
+                  </div>
                 </div>
-                <div className="w-full bg-input-bg rounded-full h-3">
-                  <div className="bg-red-400 h-3 rounded-full" style={{ width: '15%' }}></div>
+                
+                <div>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="font-bold text-gray-600">Rejected</span>
+                    <span className="text-red-500 font-extrabold">{metrics.rejected} <span className="text-xs font-normal text-gray-400">({rejectionRate}%)</span></span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2">
+                    <div className="bg-red-400 h-2 rounded-full transition-all duration-1000 shadow-sm" style={{ width: `${rejectionRate}%` }}></div>
+                  </div>
                 </div>
               </div>
             </div>
             
-            <div className="mt-6 pt-4 border-t border-border-light/60 text-center">
+            <div className="mt-8 pt-4 border-t border-border-light/60 text-center relative z-10">
               <p className="text-xs text-text-secondary">Based on last 30 days of activity.</p>
             </div>
           </div>
@@ -153,7 +190,7 @@ export default function ReviewerDashboard() {
             <p className="text-sm text-text-secondary mt-1">Review validation reports and approve repository commits.</p>
           </div>
         </div>
-        <RequestTable requests={requests} role="techlead" navigate={navigate} />
+        <RequestTable requests={requests.slice(0, 5)} role="techlead" navigate={navigate} />
       </div>
     </div>
   );

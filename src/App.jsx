@@ -15,6 +15,12 @@ import AuditTrailPage from './pages/AuditTrailPage';
 import AdvisorChatPage from './pages/AdvisorChatPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import StandardsPage from './pages/StandardsPage';
+import TechLeadValidationsPage from './pages/TechLeadValidationsPage';
+import TechLeadReviewsPage from './pages/TechLeadReviewsPage';
+import TechLeadReportsPage from './pages/TechLeadReportsPage';
+import DevOpsPackagesPage from './pages/DevOpsPackagesPage';
+import DevOpsEnvironmentsPage from './pages/DevOpsEnvironmentsPage';
+import DevOpsConfigsPage from './pages/DevOpsConfigsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import DeveloperDashboard from './pages/DeveloperDashboard';
@@ -40,25 +46,21 @@ function App() {
             <Route path="developer/dashboard" element={<DeveloperDashboard />} />
             <Route path="architect/dashboard" element={<ArchitectDashboard />} />
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
-            <Route path="devops/dashboard" element={<DevopsDashboard />} />
-            <Route path="devops/config" element={<DevopsConfigPage />} />
-            <Route path="config" element={<DevopsConfigPage />} />
-            <Route path="environment" element={<EnvironmentStatusPage />} />
-            <Route path="deploy" element={<DeploymentPage />} />
-            <Route path="cicd" element={<PipelinePage />} />
-            <Route path="logs" element={<SystemLogsPage />} />
 
-            <Route path="request/new" element={<NewRequestPage />} />
+            <Route path="request/new" element={<NewRequestPage key="new-request" />} />
+            <Route path="requests/:id/chat" element={<NewRequestPage key="historical-chat" />} />
             <Route path="progress" element={<GenerationProgressPage />} />
             <Route path="requests" element={<Dashboard />} />
 
             <Route path="review/patterns" element={<PatternReviewPage />} />
             <Route path="requests/:id/patterns" element={<PatternReviewPage />} />
 
+            <Route path="blueprint" element={<BlueprintPage />} />
             <Route path="review/blueprint" element={<BlueprintPage />} />
             <Route path="requests/:id/blueprint" element={<BlueprintPage />} />
 
             <Route path="requests/:id/generation" element={<GenerationProgressPage />} />
+            <Route path="validation" element={<ValidationReportPage />} />
             <Route
               path="requests/:id/validation"
               element={<ValidationReportPage />}
@@ -74,6 +76,7 @@ function App() {
             />
             <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
+            <Route path="chat" element={<AdvisorChatPage />} />
             
             <Route path="packaging" element={<PackagesPage />} />
             <Route path="packages" element={<PackagesPage />} />
@@ -84,19 +87,10 @@ function App() {
           
           <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
-            <Route
-              path="requests/:id/validation"
-              element={<ValidationReportPage />}
-            />
-            <Route
-              path="review/queue"
-              element={<ReviewApprovalPage />}
-            />
-            <Route
-              path="requests/:id/review"
-              element={<ReviewApprovalPage />}
-            />
-          </Route>
+            <Route path="techlead/validations" element={<TechLeadValidationsPage />} />
+            <Route path="techlead/reviews" element={<TechLeadReviewsPage />} />
+            <Route path="techlead/reports" element={<TechLeadReportsPage />} />
+            <Route path="requests/:id/validation" element={<ValidationReportPage />} />
 
           <Route element={<ProtectedRoute allowedRoles={['devops']} />}>
             <Route path="devops/dashboard" element={<DevopsDashboard />} />
@@ -107,9 +101,20 @@ function App() {
             <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
             <Route path="audit" element={<AuditTrailPage />} />
-            <Route path="chat" element={<AdvisorChatPage />} />
           </Route>
 
+          <Route element={<ProtectedRoute allowedRoles={['devops', 'platform engineer']} />}>
+            <Route path="devops/dashboard" element={<DevopsDashboard />} />
+            <Route path="devops/packages" element={<DevOpsPackagesPage />} />
+            <Route path="devops/environments" element={<DevOpsEnvironmentsPage />} />
+            <Route path="devops/configs" element={<DevOpsConfigsPage />} />
+            <Route path="devops/config" element={<DevopsConfigPage />} />
+            <Route path="config" element={<DevopsConfigPage />} />
+            <Route path="environment" element={<EnvironmentStatusPage />} />
+            <Route path="deploy" element={<DeploymentPage />} />
+            <Route path="cicd" element={<PipelinePage />} />
+            <Route path="logs" element={<SystemLogsPage />} />
+          </Route>
 
           {/* Catch-all for under construction pages */}
           <Route path="*" element={<PlaceholderPage />} />

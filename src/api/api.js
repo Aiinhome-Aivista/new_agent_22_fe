@@ -8,6 +8,7 @@ const api = axios.create({
 export const getRequests = (status) => api.get('/requirements/', { params: { status } }).then(res => res.data);
 export const getRequest = (id) => api.get(`/requirements/${id}`).then(res => res.data);
 export const createRequest = (data) => api.post('/requirements/', data).then(res => res.data);
+export const submitChatIntake = (data) => api.post('/requirements/intake-chat', data).then(res => res.data);
 
 // Patterns
 export const getPatterns = (reqId) => api.get(`/patterns/request/${reqId}`).then(res => res.data);
@@ -61,5 +62,14 @@ export const deleteStandard = (id) => api.delete(`/standards/${id}`).then(res =>
 export const getEnvironments = () => api.get('/environments/').then(res => res.data);
 export const getEnvironment = (envName) => api.get(`/environments/${envName}`).then(res => res.data);
 export const updateEnvironment = (envName, data) => api.put(`/environments/${envName}`, data).then(res => res.data);
+
+// Tech Lead
+export const getTechLeadValidations = () => api.get('/techlead/validations').then(res => res.data);
+export const actionValidation = (id, action) => api.post(`/techlead/validations/${id}/action`, { action }).then(res => res.data);
+export const getTechLeadReviews = () => api.get('/techlead/reviews').then(res => res.data);
+export const signoffReview = (data) => api.post('/techlead/reviews/signoff', data).then(res => res.data);
+export const getTechLeadReportSummary = () => api.get('/techlead/reports/summary').then(res => res.data);
+export const getTechLeadReports = () => api.get('/techlead/reports').then(res => res.data);
+export const downloadTechLeadReport = (id) => api.get(`/techlead/reports/download/${id}`, { responseType: 'blob' }).then(res => res.data);
 
 export default api;

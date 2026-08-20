@@ -1,20 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getStandards, saveStandard, deleteStandard } from '../api/api';
 import Loader from '../components/Loader';
-import { DocumentTextIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, PlusIcon, TrashIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../context/AuthContext';
 
 export default function StandardsPage() {
+  const { user } = useAuth();
   const [standards, setStandards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStandard, setSelectedStandard] = useState(null);
   
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ filename: '', folder: 'standards', content: '' });
+  const [isFolderOpen, setIsFolderOpen] = useState(false);
+  const folderDropdownRef = useRef(null);
 
-  const fetchStandards = () => {
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (folderDropdownRef.current && !folderDropdownRef.current.contains(event.target)) {
+        setIsFolderOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchStandards = (selectFirst = true) => {
     setLoading(true);
     getStandards().then(res => {
-      setStandards(res.data || []);
+      const list = res.data || [];
+      setStandards(list);
+      if (selectFirst && list.length > 0) {
+        setSelectedStandard(list[0]);
+      }
       setLoading(false);
     }).catch(err => {
       console.error(err);
@@ -23,21 +41,19 @@ export default function StandardsPage() {
   };
 
   useEffect(() => {
-    fetchStandards();
+    fetchStandards(true);
   }, []);
 
   const handleSave = async () => {
-    await saveStandard(editForm);
+    await saveStandard({ ...editForm, created_by: user?.id });
     setIsEditing(false);
-    fetchStandards();
-    setSelectedStandard(null);
+    fetchStandards(true);
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this standard?")) {
       await deleteStandard(id);
-      fetchStandards();
-      setSelectedStandard(null);
+      fetchStandards(true);
     }
   };
 
@@ -96,23 +112,56 @@ export default function StandardsPage() {
               <div className="flex gap-4 mb-4">
                 <div className="flex-1">
                   <label className="block text-xs font-bold text-gray-500 mb-1">Filename</label>
-                  <input type="text" value={editForm.filename} onChange={e => setEditForm({...editForm, filename: e.target.value})} className="w-full border rounded p-2 text-sm" placeholder="e.g. error_topic_rules.md" />
+                  <input 
+                    type="text" 
+                    value={editForm.filename} 
+                    onChange={e => setEditForm({...editForm, filename: e.target.value})} 
+                    className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none hover:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 focus:border-primary-orange transition-all font-semibold text-sidebar bg-white shadow-sm" 
+                    placeholder="e.g. error_topic_rules.md" 
+                  />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 relative" ref={folderDropdownRef}>
                   <label className="block text-xs font-bold text-gray-500 mb-1">Folder</label>
-                  <select value={editForm.folder} onChange={e => setEditForm({...editForm, folder: e.target.value})} className="w-full border rounded p-2 text-sm">
-                    <option value="standards">Standards</option>
-                    <option value="sample_scripts">Sample Scripts</option>
-                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setIsFolderOpen(!isFolderOpen)}
+                    className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none hover:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 focus:border-primary-orange transition-all font-semibold text-sidebar flex items-center justify-between shadow-sm"
+                  >
+                    <span>{editForm.folder === 'sample_scripts' ? 'Sample Scripts' : 'Standards'}</span>
+                    <ChevronDownIcon className={`w-4 h-4 ml-2 text-gray-400 transition-transform ${isFolderOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isFolderOpen && (
+                    <div className="absolute top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden py-1">
+                      <button
+                        type="button"
+                        onClick={() => { setEditForm({...editForm, folder: 'standards'}); setIsFolderOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${editForm.folder === 'standards' ? 'bg-orange-50 text-primary-orange font-bold' : 'text-gray-700 hover:bg-orange-50 hover:text-primary-orange font-medium'}`}
+                      >
+                        Standards
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setEditForm({...editForm, folder: 'sample_scripts'}); setIsFolderOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${editForm.folder === 'sample_scripts' ? 'bg-orange-50 text-primary-orange font-bold' : 'text-gray-700 hover:bg-orange-50 hover:text-primary-orange font-medium'}`}
+                      >
+                        Sample Scripts
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex-1 mb-4 flex flex-col">
                 <label className="block text-xs font-bold text-gray-500 mb-1">Markdown Content</label>
-                <textarea value={editForm.content} onChange={e => setEditForm({...editForm, content: e.target.value})} className="flex-1 w-full border rounded p-4 font-mono text-sm resize-none" />
+                <textarea 
+                  value={editForm.content} 
+                  onChange={e => setEditForm({...editForm, content: e.target.value})} 
+                  className="flex-1 w-full border border-gray-200 rounded-xl p-4 font-mono text-sm outline-none hover:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 focus:border-primary-orange transition-all resize-none text-sidebar bg-white shadow-sm" 
+                />
               </div>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setIsEditing(false)} className="px-4 py-2 border rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
-                <button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700">Save Standard</button>
+                <button onClick={() => setIsEditing(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button onClick={handleSave} className="px-5 py-2.5 bg-primary-orange text-white rounded-lg text-sm font-bold hover:bg-hover-orange transition-colors shadow-md shadow-orange-500/20">Save Standard</button>
               </div>
             </div>
           ) : selectedStandard ? (

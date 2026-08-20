@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 import * as Icons from '@heroicons/react/24/outline';
@@ -6,11 +6,55 @@ import * as Icons from '@heroicons/react/24/outline';
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
   };
+
+  const role = user?.role?.toLowerCase() || 'developer';
+  const isArchitect = role === 'solution architect' || role === 'architect';
+  const isTechLead = role === 'tech lead' || role === 'techlead';
+  const isDevOps = role === 'devops' || role === 'platform engineer';
+
+  const defaultMenu = [
+    { name: 'Dashboard', path: user?.dashboard || '/requests', icon: 'ChartBarIcon' },
+    { name: 'New Request (Intake)', path: '/request/new', icon: 'PlusIcon' },
+    { name: 'My Requests', path: '/requests', icon: 'FolderIcon' },
+    { name: 'Blueprint', path: '/review/blueprint', icon: 'RectangleGroupIcon' },
+    { name: 'Generation Progress', path: '/progress', icon: 'CpuChipIcon' },
+    { name: 'Validation', path: '/validation', icon: 'ShieldCheckIcon' },
+    { name: 'Generated Packages', path: '/packages', icon: 'ArchiveBoxIcon' },
+    { name: 'Review', path: '/review/queue', icon: 'ClipboardDocumentCheckIcon' },
+    { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
+  ];
+
+  const architectMenu = [
+    { name: 'Dashboard', path: user?.dashboard || '/architect/dashboard', icon: 'ChartBarIcon' },
+    { name: 'Blueprint Reviews', path: '/review/blueprint', icon: 'RectangleGroupIcon' },
+    { name: 'Architecture Standards', path: '/standards', icon: 'DocumentCheckIcon' },
+    { name: 'Pending Approvals', path: '/review/queue', icon: 'ClipboardDocumentCheckIcon' },
+    { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
+  ];
+
+  const techLeadMenu = [
+    { name: 'Dashboard', path: user?.dashboard || '/techlead/dashboard', icon: 'ChartBarIcon' },
+    { name: 'Validation Severity Queue', path: '/techlead/validations', icon: 'ShieldCheckIcon' },
+    { name: 'Code Reviews & Approvals', path: '/techlead/reviews', icon: 'ClipboardDocumentCheckIcon' },
+    { name: 'Validation Reports', path: '/techlead/reports', icon: 'DocumentTextIcon' },
+    { name: 'Advisor Chat', path: '/advisor', icon: 'ChatBubbleLeftIcon' }
+  ];
+
+  const devopsMenu = [
+    { name: 'Dashboard', path: user?.dashboard || '/devops/dashboard', icon: 'ChartBarIcon' },
+    { name: 'Packaging & Deployment', path: '/devops/packages', icon: 'ArchiveBoxIcon' },
+    { name: 'Environment Health', path: '/devops/environments', icon: 'ServerIcon' },
+    { name: 'Config Health & Audits', path: '/devops/configs', icon: 'WrenchScrewdriverIcon' },
+    { name: 'Advisor Chat', path: '/advisor', icon: 'ChatBubbleLeftIcon' }
+  ];
+
+  const activeMenu = isArchitect ? architectMenu : isTechLead ? techLeadMenu : isDevOps ? devopsMenu : defaultMenu;
 
   return (
     <div className="w-72 bg-sidebar text-white flex flex-col shadow-2xl z-20">
@@ -24,26 +68,48 @@ export default function Sidebar() {
       </div>
       
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
-        {user && user.menu && user.menu.map((item) => {
-          const Icon = Icons[item.icon] || Icons.DocumentIcon;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              replace
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
-                  isActive 
-                    ? 'bg-primary-orange text-white shadow-[0_4px_12px_rgba(255,90,20,0.4)]' 
-                    : 'text-gray-300 hover:bg-white/10 hover:text-white hover:translate-x-1'
-                }`
-              }
-            >
-              <Icon className="w-5 h-5" />
-              {item.name}
-            </NavLink>
-          );
-        })}
+        {
+          activeMenu.map((item) => {
+            const Icon = Icons[item.icon] || Icons.DocumentIcon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/requests' || item.path === '/devops' || item.path === '/devops/dashboard'}
+                className={({ isActive }) => {
+                  const currentPath = location.pathname;
+                  
+                  let isReallyActive = isActive;
+                  if (isDevOps) {
+                    if (item.name === 'Dashboard') {
+                      isReallyActive = currentPath === '/devops/dashboard' || currentPath === '/devops';
+                    } else if (item.name === 'Packaging & Deployment') {
+                      isReallyActive = currentPath === '/devops/packages';
+                    }
+                  } else {
+                    const forceActive = 
+                      (item.path === '/requests' && (currentPath === '/requests' || currentPath === '/requests/' || currentPath.match(/^\/requests\/\d+\/chat/))) ||
+                      (item.path === '/progress' && currentPath.includes('/generation')) ||
+                      (item.path === '/review/blueprint' && currentPath.includes('/blueprint')) ||
+                      (item.path === '/validation' && currentPath.includes('/validation')) ||
+                      (item.path === '/review/queue' && currentPath.includes('/review') && !currentPath.includes('/blueprint') && !currentPath.includes('/patterns')) ||
+                      (item.path === '/packages' && (currentPath.includes('/package') || currentPath.includes('/packaging')));
+                    isReallyActive = isActive || forceActive;
+                  }
+
+                  return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
+                    isReallyActive 
+                      ? 'bg-primary-orange text-white shadow-[0_4px_12px_rgba(255,90,20,0.4)]' 
+                      : 'text-gray-300 hover:bg-white/10 hover:text-white hover:translate-x-1'
+                  }`;
+                }}
+              >
+                <Icon className="w-5 h-5" />
+                {item.name}
+              </NavLink>
+            );
+          })
+        }
       </nav>
       
       <div className="p-4 border-t border-white/10 mt-auto">

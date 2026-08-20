@@ -3,10 +3,15 @@ import ProgressStepper from '../components/ProgressStepper';
 import { getValidationResults } from '../api/api';
 import Loader from '../components/Loader';
 import StatusBadge from '../components/StatusBadge';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import StepRequestTable from '../components/StepRequestTable';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function ValidationReportPage() {
-  const { id } = useParams();
+  const { id: pathId } = useParams();
+  const [searchParams] = useSearchParams();
+  const queryId = searchParams.get('id');
+  const id = pathId || queryId;
   const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [summary, setSummary] = useState('');
@@ -25,6 +30,14 @@ export default function ValidationReportPage() {
 
   if (loading) return <Loader />;
 
+  if (!id) {
+    return (
+      <div className="flex flex-col h-full bg-gray-50 p-8">
+        <StepRequestTable activeStage="validation" />
+      </div>
+    );
+  }
+
   const hasErrors = results.some(r => r.severity === 'error' && !r.passed);
 
   return (
@@ -32,13 +45,22 @@ export default function ValidationReportPage() {
       <ProgressStepper />
       <div className="p-8 flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Validation Checks</h2>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/validation')} 
+              className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+              title="Go Back"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold text-gray-800">Validation Checks</h2>
+          </div>
           <button 
-            onClick={() => navigate(`/requests/${id}/review`)} 
+            onClick={() => navigate(`/requests/${id}/packages`)} 
             disabled={hasErrors}
             className={`px-6 py-2 rounded font-medium transition-colors ${hasErrors ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-button-orange hover:bg-hover-orange text-white'}`}
           >
-            {hasErrors ? 'Fix Errors to Continue' : 'Next: review'}
+            {hasErrors ? 'Fix Errors to Continue' : 'Next: Packages'}
           </button>
         </div>
         

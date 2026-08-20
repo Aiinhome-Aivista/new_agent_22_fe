@@ -38,20 +38,22 @@ export default function DeveloperDashboard() {
           <div className="text-3xl bg-white/20 p-3 rounded-xl backdrop-blur-sm border border-white/30"><CodeBracketIcon className="w-8 h-8" /></div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
-          <div>
-            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Generation Statuses</h3>
-            <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.generation_status?.length || 0} active</p>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group relative overflow-hidden">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-primary-orange/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+          <div className="relative z-10">
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Active Workflows</h3>
+            <p className="text-4xl font-extrabold text-sidebar mt-2">{requests.filter(r => ['approved', 'generating'].includes(r.status)).length}</p>
           </div>
-          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors"><ArrowPathIcon className="w-8 h-8" /></div>
+          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors relative z-10"><ArrowPathIcon className="w-8 h-8 group-hover:animate-spin" /></div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group">
-          <div>
-            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Package Downloads</h3>
-            <p className="text-4xl font-extrabold text-sidebar mt-2">{metrics.downloads}</p>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex justify-between items-start transition-all hover:-translate-y-1 hover:shadow-md hover:border-border-orange/30 group relative overflow-hidden">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-green-500/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+          <div className="relative z-10">
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-green-500 transition-colors">Ready Packages</h3>
+            <p className="text-4xl font-extrabold text-sidebar mt-2">{requests.filter(r => ['packaged', 'completed'].includes(r.status)).length}</p>
           </div>
-          <div className="text-3xl bg-input-bg text-primary-orange p-3 rounded-xl border border-border-orange/20 group-hover:bg-primary-orange group-hover:text-white transition-colors"><ArchiveBoxArrowDownIcon className="w-8 h-8" /></div>
+          <div className="text-3xl bg-input-bg text-green-500 p-3 rounded-xl border border-green-500/20 group-hover:bg-green-500 group-hover:text-white transition-colors relative z-10"><ArchiveBoxArrowDownIcon className="w-8 h-8 group-hover:animate-bounce" /></div>
         </div>
       </div>
       
@@ -64,29 +66,30 @@ export default function DeveloperDashboard() {
           <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6">
             <h2 className="text-lg font-bold text-sidebar mb-4">Active Generations</h2>
             <div className="space-y-4">
-              {/* Mock Progress Item 1 */}
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="font-semibold text-sidebar">User Service API</span>
-                  <span className="text-primary-orange font-bold">75%</span>
-                </div>
-                <div className="w-full bg-input-bg rounded-full h-2">
-                  <div className="bg-gradient-to-r from-primary-orange to-button-orange h-2 rounded-full" style={{ width: '75%' }}></div>
-                </div>
-                <p className="text-xs text-text-secondary mt-1">Generating Kafka Handlers...</p>
-              </div>
-              
-              {/* Mock Progress Item 2 */}
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="font-semibold text-sidebar">Notification Engine</span>
-                  <span className="text-primary-orange font-bold">30%</span>
-                </div>
-                <div className="w-full bg-input-bg rounded-full h-2">
-                  <div className="bg-gradient-to-r from-primary-orange to-button-orange h-2 rounded-full" style={{ width: '30%' }}></div>
-                </div>
-                <p className="text-xs text-text-secondary mt-1">Parsing Blueprint...</p>
-              </div>
+              {requests.filter(r => !['completed', 'packaged', 'rejected'].includes(r.status)).slice(0, 3).map((req) => {
+                let progress = 10;
+                let statusText = 'Processing...';
+                
+                if (req.status === 'draft') { progress = 25; statusText = 'Pending Review...'; }
+                else if (req.status === 'approved') { progress = 50; statusText = 'Pending Generation...'; }
+                else if (req.status === 'generating') { progress = 75; statusText = 'Generating Code...'; }
+
+                return (
+                  <div key={req.id} className="group cursor-default">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-semibold text-sidebar group-hover:text-primary-orange transition-colors">{req.request_name}</span>
+                      <span className="text-primary-orange font-bold">{progress}%</span>
+                    </div>
+                    <div className="w-full bg-input-bg rounded-full h-2 overflow-hidden">
+                      <div className={`bg-gradient-to-r from-primary-orange to-button-orange h-2 rounded-full transition-all duration-1000 ${req.status === 'generating' ? 'animate-pulse' : ''}`} style={{ width: `${progress}%` }}></div>
+                    </div>
+                    <p className="text-xs text-text-secondary mt-1">{statusText}</p>
+                  </div>
+                );
+              })}
+              {requests.filter(r => !['completed', 'packaged', 'rejected'].includes(r.status)).length === 0 && (
+                <p className="text-sm text-text-secondary">No active generations at the moment.</p>
+              )}
             </div>
           </div>
 
@@ -94,28 +97,45 @@ export default function DeveloperDashboard() {
           <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6">
             <h2 className="text-lg font-bold text-sidebar mb-4">Recent Activity</h2>
             <div className="relative border-l border-border-light/60 ml-3 space-y-6">
-              <div className="relative pl-6">
-                <span className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-primary-orange ring-4 ring-white"></span>
-                <p className="text-sm font-semibold text-sidebar">Downloaded Payment Service Package</p>
-                <p className="text-xs text-text-secondary">2 hours ago</p>
-              </div>
-              <div className="relative pl-6">
-                <span className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-blue-400 ring-4 ring-white"></span>
-                <p className="text-sm font-semibold text-sidebar">Requested Order Service Generation</p>
-                <p className="text-xs text-text-secondary">Yesterday at 4:30 PM</p>
-              </div>
-              <div className="relative pl-6">
-                <span className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-green-400 ring-4 ring-white"></span>
-                <p className="text-sm font-semibold text-sidebar">Architect Approved Payment Service</p>
-                <p className="text-xs text-text-secondary">Yesterday at 1:15 PM</p>
-              </div>
+              {requests.slice(0, 5).map((req) => {
+                let color = 'bg-gray-400';
+                let activityText = `Created request ${req.request_name}`;
+                
+                if (req.status === 'draft') { color = 'bg-blue-400'; }
+                else if (req.status === 'approved') { color = 'bg-green-400'; activityText = `Approved request ${req.request_name}`; }
+                else if (req.status === 'generating') { color = 'bg-primary-orange'; activityText = `Started generation for ${req.request_name}`; }
+                else if (req.status === 'packaged' || req.status === 'completed') { color = 'bg-green-500'; activityText = `Completed ${req.request_name}`; }
+                else if (req.status === 'rejected') { color = 'bg-red-400'; activityText = `Rejected ${req.request_name}`; }
+
+                const formatIST = (dateStr) => {
+                  if (!dateStr) return '';
+                  const d = new Date(dateStr);
+                  const corrected = new Date(d.getTime() - (5.5 * 60 * 60 * 1000));
+                  return corrected.toLocaleString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    month: 'short', day: 'numeric', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+                  });
+                };
+
+                return (
+                  <div key={req.id} className="relative pl-6">
+                    <span className={`absolute -left-1.5 top-1 w-3 h-3 rounded-full ${color} ring-4 ring-white`}></span>
+                    <p className="text-sm font-semibold text-sidebar">{activityText}</p>
+                    <p className="text-xs text-text-secondary">{formatIST(req.created_at)}</p>
+                  </div>
+                );
+              })}
+              {requests.length === 0 && (
+                <p className="text-sm text-text-secondary ml-3">No recent activity found.</p>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Right Column: Quick Actions */}
+        {/* Right Column: Quick Actions & Overview */}
         <div className="flex flex-col gap-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden relative h-full flex flex-col">
+          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden relative flex flex-col">
             <div className="absolute top-0 right-0 w-64 h-64 bg-input-bg rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/4"></div>
             <div className="p-6 relative z-10 flex flex-col h-full">
               <h2 className="text-xl font-extrabold text-sidebar mb-2">Quick Actions</h2>
@@ -130,10 +150,45 @@ export default function DeveloperDashboard() {
                   <span>Consult AI Advisor</span>
                   <svg className="w-5 h-5 text-primary-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
                 </button>
-                <button onClick={() => navigate('/patterns')} className="w-full flex items-center justify-between bg-white border border-border-light/60 hover:border-border-orange/50 text-sidebar px-4 py-3 rounded-xl text-sm font-semibold shadow-sm transition-all hover:shadow hover:-translate-y-0.5">
-                  <span>View Patterns</span>
-                  <ArchiveBoxArrowDownIcon className="w-5 h-5 text-primary-orange" />
-                </button>
+               
+              </div>
+            </div>
+          </div>
+
+          {/* Status Overview */}
+          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6">
+            <h2 className="text-lg font-bold text-sidebar mb-4">Pipeline Overview</h2>
+            <div className="space-y-5">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-text-secondary font-medium">Pending Review</span>
+                  <span className="font-bold text-sidebar">{requests.filter(r => r.status === 'draft').length}</span>
+                </div>
+                <div className="w-full bg-input-bg rounded-full h-2">
+                  <div className="bg-blue-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.max(2, (requests.filter(r => r.status === 'draft').length / (requests.length || 1)) * 100)}%` }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-text-secondary font-medium">Generating</span>
+                  <span className="font-bold text-sidebar">{requests.filter(r => r.status === 'generating').length}</span>
+                </div>
+                <div className="w-full bg-input-bg rounded-full h-2">
+                  <div className="bg-primary-orange h-2 rounded-full transition-all duration-1000 relative overflow-hidden" style={{ width: `${Math.max(2, (requests.filter(r => r.status === 'generating').length / (requests.length || 1)) * 100)}%` }}>
+                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-text-secondary font-medium">Completed</span>
+                  <span className="font-bold text-sidebar">{requests.filter(r => ['packaged', 'completed'].includes(r.status)).length}</span>
+                </div>
+                <div className="w-full bg-input-bg rounded-full h-2">
+                  <div className="bg-green-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.max(2, (requests.filter(r => ['packaged', 'completed'].includes(r.status)).length / (requests.length || 1)) * 100)}%` }}></div>
+                </div>
               </div>
             </div>
           </div>

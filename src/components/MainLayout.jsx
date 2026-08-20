@@ -2,6 +2,7 @@ import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { useAuth } from '../context/AuthContext';
+import ErrorBoundary from './ErrorBoundary';
 
 export default function MainLayout() {
   const { user } = useAuth();
@@ -22,12 +23,14 @@ export default function MainLayout() {
         <Navbar title={title} />
         <main className="flex-1 overflow-y-auto p-6 lg:p-8 bg-input-bg/30 relative">
           <div className="max-w-7xl mx-auto h-full">
-            <Outlet />
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
           </div>
         </main>
         {/* Footer */}
         <footer className="py-4 px-6 border-t border-border-light/50 text-center text-sm font-medium text-placeholder bg-white z-10">
-          &copy; {new Date().getFullYear()} DigiconFX Agent 22. All rights reserved.
+          &copy; {new Date().getFullYear()} DigiconFX Kafka API Building Agent. All rights reserved.
         </footer>
       </div>
     </div>

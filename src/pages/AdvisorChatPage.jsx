@@ -1,13 +1,86 @@
 import { useState, useRef, useEffect } from 'react';
-import { askAdvisor } from '../api/api';
+import { askAdvisor, getRequests, getChatHistory } from '../api/api';
+import { useAuth } from '../context/AuthContext';
+
+const formatMessage = (text) => {
+  if (!text) return null;
+  
+  const blocks = text.split(/(```[\s\S]*?```)/g);
+  
+  return blocks.map((block, index) => {
+    if (block.startsWith('```') && block.endsWith('```')) {
+      const lines = block.split('\n');
+      const lang = lines[0].replace('```', '').trim();
+      const code = lines.slice(1, -1).join('\n');
+      return (
+        <div key={index} className="my-3 rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-800 shadow-sm">
+          {lang && (
+            <div className="bg-[#2d2d2d] px-3 py-1 text-xs font-mono text-gray-400 border-b border-gray-700 uppercase tracking-wider">
+              {lang}
+            </div>
+          )}
+          <pre className="p-3 overflow-x-auto text-[13px] font-mono text-gray-300 leading-relaxed whitespace-pre">
+            <code>{code}</code>
+          </pre>
+        </div>
+      );
+    } else {
+      return (
+        <span key={index}>
+          {block.split('\n').map((line, i, arr) => {
+            const parts = line.split(/(\*\*.*?\*\*|`.*?`)/g);
+            return (
+              <span key={i}>
+                {parts.map((part, j) => {
+                  if (part.startsWith('**') && part.endsWith('**')) {
+                    return <strong key={j} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+                  }
+                  if (part.startsWith('`') && part.endsWith('`') && part.length > 2) {
+                    return <code key={j} className="px-1.5 py-0.5 mx-0.5 bg-orange-50 text-button-orange rounded font-mono text-[13px] border border-orange-100">{part.slice(1, -1)}</code>;
+                  }
+                  return <span key={j}>{part}</span>;
+                })}
+                {i < arr.length - 1 && <br />}
+              </span>
+            );
+          })}
+        </span>
+      );
+    }
+  });
+};
 
 export default function AdvisorChatPage() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [reqId, setReqId] = useState('');
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionId, setSessionId] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const messagesEndRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const getSelectedLabel = () => {
+    if (!reqId) return "Global Context (All Projects)";
+    const req = requests.find(r => r.id.toString() === reqId.toString());
+    if (req) {
+      const shortName = req.request_name.length > 25 ? req.request_name.substring(0, 25) + '...' : req.request_name;
+      return `${req.id} - ${shortName} (${req.status})`;
+    }
+    return "Global Context (All Projects)";
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -16,6 +89,43 @@ export default function AdvisorChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    getRequests().then(res => {
+      if (res.success) {
+        setRequests(res.data);
+      }
+    }).catch(err => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    const fetchHistory = async (sid) => {
+      try {
+        const res = await getChatHistory(sid);
+        if (res.success && res.data) {
+          const loadedMessages = [];
+          res.data.forEach(item => {
+            loadedMessages.push({ sender: 'user', text: item.question });
+            loadedMessages.push({ sender: 'ai', text: item.answer });
+          });
+          setMessages(loadedMessages);
+        } else {
+          setMessages([]);
+        }
+      } catch (err) {
+        console.error(err);
+        setMessages([]);
+      }
+    };
+
+    // Create a deterministic session ID based on user and request!
+    // This ensures history persists across logouts, page reloads, and even different computers.
+    const userIdentifier = user?.email || user?.session_id || 'guest';
+    const existingSession = `chat_${userIdentifier}_req_${reqId || 'global'}`;
+    
+    setSessionId(existingSession);
+    fetchHistory(existingSession);
+  }, [reqId, user]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -59,14 +169,50 @@ export default function AdvisorChatPage() {
             </div>
             
             <div className="flex items-center gap-3 mt-4 sm:mt-0 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-              <label className="text-sm font-semibold text-gray-600">Link Request ID:</label>
-              <input 
-                type="number" 
-                value={reqId} 
-                onChange={(e) => setReqId(e.target.value)} 
-                placeholder="e.g. 1" 
-                className="w-20 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary-orange focus:border-primary-orange transition-all placeholder:text-gray-400 font-mono text-center shadow-inner"
-              />
+              <label className="text-sm font-semibold text-gray-600">Context:</label>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-72 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none hover:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 transition-all shadow-sm flex items-center justify-between text-gray-700 font-medium"
+                >
+                  <span className="truncate">{getSelectedLabel()}</span>
+                  <svg className={`w-4 h-4 ml-2 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute top-full mt-1 right-0 w-80 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-80 overflow-y-auto">
+                    <button
+                      onClick={() => { setReqId(''); setIsDropdownOpen(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${!reqId ? 'bg-orange-50 text-primary-orange font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Global Context (All Projects)
+                    </button>
+                    
+                    {requests.length > 0 && (
+                      <>
+                        <div className="px-4 py-1.5 bg-gray-50 border-y border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                          Specific Projects
+                        </div>
+                        {requests.map(req => {
+                          const isSelected = reqId.toString() === req.id.toString();
+                          return (
+                            <button
+                              key={req.id}
+                              onClick={() => { setReqId(req.id.toString()); setIsDropdownOpen(false); }}
+                              title={req.request_name}
+                              className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-2 ${isSelected ? 'bg-orange-50 text-primary-orange font-bold' : 'text-gray-700 hover:bg-gray-50 hover:text-primary-orange'}`}
+                            >
+                              <span className={`shrink-0 font-mono ${isSelected ? 'text-primary-orange/70' : 'text-gray-400'}`}>#{req.id}</span>
+                              <span className="truncate flex-1">{req.request_name}</span>
+                              <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${isSelected ? 'bg-primary-orange/10 text-primary-orange' : 'bg-gray-100 text-gray-500'}`}>{req.status}</span>
+                            </button>
+                          );
+                        })}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
@@ -88,7 +234,7 @@ export default function AdvisorChatPage() {
                     ? 'bg-gradient-to-br from-primary-orange to-button-orange text-white rounded-tr-sm' 
                     : 'bg-white text-gray-800 border border-gray-100 rounded-tl-sm'
                   }`}>
-                  {m.text}
+                  {m.sender === 'ai' ? formatMessage(m.text) : m.text}
                 </div>
 
               </div>
@@ -138,7 +284,7 @@ export default function AdvisorChatPage() {
             <button 
               type="submit" 
               disabled={loading || !input.trim()} 
-              className="bg-sidebar hover:bg-gray-800 text-white px-8 py-4 rounded-2xl font-bold transition-all disabled:opacity-50 disabled:hover:bg-sidebar flex items-center gap-3 shadow-lg shadow-gray-800/20"
+              className="bg-primary-orange hover:bg-hover-orange text-white px-8 py-4 rounded-2xl font-bold transition-all disabled:opacity-50 disabled:hover:bg-primary-orange flex items-center gap-3 shadow-lg shadow-orange-500/25"
             >
               <span className="text-base">Send</span>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">

@@ -28,11 +28,24 @@ export default function ArchitectDashboard() {
 
   const getStatusColor = (status) => {
     switch(status) {
-      case 'approved': return { bg: 'bg-green-100', text: 'text-green-700', icon: 'text-green-600' };
+      case 'approved':
+      case 'validated':
+        return { bg: 'bg-green-100', text: 'text-green-700', icon: 'text-green-600' };
       case 'draft': return { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: 'text-yellow-600' };
       case 'rework': return { bg: 'bg-red-100', text: 'text-red-700', icon: 'text-red-600' };
       default: return { bg: 'bg-gray-100', text: 'text-gray-700', icon: 'text-gray-600' };
     }
+  };
+
+  const formatIST = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const corrected = new Date(d.getTime() - (5.5 * 60 * 60 * 1000));
+    return corrected.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: true
+    });
   };
 
   if (loading || !metrics) return <Loader />;
@@ -54,7 +67,12 @@ export default function ArchitectDashboard() {
           </div>
           <div>
             <p className="text-4xl font-extrabold">{metrics.architecture_reviews}</p>
-            <p className="text-sm text-white/80 mt-2 flex items-center gap-1"><ArrowTrendingUpIcon className="w-4 h-4" /> +12% this week</p>
+            <p className="text-sm text-white/80 mt-2 flex items-center gap-1">
+              {requests.filter(r => r.status === 'draft').length > 0 
+                ? <><ArrowTrendingUpIcon className="w-4 h-4" /> {requests.filter(r => r.status === 'draft').length} pending action</>
+                : 'All caught up'
+              }
+            </p>
           </div>
         </div>
 
@@ -68,7 +86,10 @@ export default function ArchitectDashboard() {
           </div>
           <div className="relative z-10">
             <p className="text-4xl font-extrabold text-sidebar">{metrics.pattern_matches}</p>
-            <p className="text-sm text-green-500 mt-2 flex items-center gap-1 font-medium"><ArrowTrendingUpIcon className="w-4 h-4" /> Near Perfect</p>
+            <p className="text-sm text-green-500 mt-2 flex items-center gap-1 font-medium">
+              <ShieldCheckIcon className="w-4 h-4" /> 
+              {metrics.pattern_matches > 0 ? 'Verified patterns' : 'Awaiting verification'}
+            </p>
           </div>
         </div>
 
@@ -82,7 +103,9 @@ export default function ArchitectDashboard() {
           </div>
           <div className="relative z-10">
             <p className="text-4xl font-extrabold text-sidebar">{metrics.blueprint_history}</p>
-            <p className="text-sm text-text-secondary mt-2 font-medium">All time generated</p>
+            <p className="text-sm text-text-secondary mt-2 font-medium">
+              {requests.filter(r => ['approved', 'validated', 'generating', 'packaged', 'completed'].includes(r.status)).length} active blueprints
+            </p>
           </div>
         </div>
 
@@ -96,7 +119,10 @@ export default function ArchitectDashboard() {
           </div>
           <div className="relative z-10">
             <p className="text-4xl font-extrabold text-sidebar">{metrics.knowledge_updates}</p>
-            <p className="text-sm text-green-500 mt-2 flex items-center gap-1 font-medium"><ArrowTrendingUpIcon className="w-4 h-4" /> +2 this month</p>
+            <p className="text-sm text-text-secondary mt-2 flex items-center gap-1 font-medium">
+              <LightBulbIcon className="w-4 h-4" /> 
+              {metrics.knowledge_updates > 0 ? 'Standards updated' : 'Up to date'}
+            </p>
           </div>
         </div>
       </div>
@@ -108,24 +134,25 @@ export default function ArchitectDashboard() {
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Recent Blueprints List (Dynamic) */}
           <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-purple-400"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-primary-orange"></div>
             <h2 className="text-lg font-bold text-sidebar mb-4">Recent Architecture Requests</h2>
             <div className="space-y-3">
               {requests.slice(0, 4).map((req) => {
                 const colors = getStatusColor(req.status);
+                const displayStatus = req.status === 'validated' ? 'approved' : req.status;
                 return (
-                  <div key={req.id} onClick={() => navigate(`/requests/${req.id}`)} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200 cursor-pointer group hover:shadow-sm">
+                  <div key={req.id} onClick={() => navigate(`/requests/${req.id}/blueprint`)} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200 cursor-pointer group hover:shadow-sm">
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-xl ${colors.bg} ${colors.icon} flex items-center justify-center group-hover:scale-110 transition-transform`}>
                         <DocumentCheckIcon className="w-5 h-5" />
                       </div>
                       <div>
                         <p className="text-sm font-bold text-sidebar group-hover:text-primary-orange transition-colors">{req.request_name}</p>
-                        <p className="text-xs text-text-secondary capitalize">{req.status} • Updated recently</p>
+                        <p className="text-xs text-text-secondary capitalize">{displayStatus} • {formatIST(req.created_at)}</p>
                       </div>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${colors.bg} ${colors.text} capitalize shadow-sm`}>
-                      {req.status}
+                      {displayStatus}
                     </span>
                   </div>
                 );
@@ -134,7 +161,7 @@ export default function ArchitectDashboard() {
                 <div className="text-center py-6 text-gray-500 italic">No recent requests found.</div>
               )}
             </div>
-            <button onClick={() => navigate('/blueprints')} className="mt-5 w-full bg-slate-50 hover:bg-slate-100 text-sm font-bold text-slate-700 py-2.5 rounded-xl transition-colors border border-slate-200">
+            <button onClick={() => navigate('/review/blueprint')} className="mt-5 w-full bg-slate-50 hover:bg-slate-100 text-sm font-bold text-slate-700 py-2.5 rounded-xl transition-colors border border-slate-200">
               View all requests &rarr;
             </button>
           </div>
@@ -143,6 +170,41 @@ export default function ArchitectDashboard() {
         {/* Right Column: Pattern Compliance Meter & Standards */}
         <div className="flex flex-col gap-6">
 
+          {/* Architecture Health Widget */}
+          <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 p-6">
+            <h2 className="text-lg font-bold text-sidebar mb-4">Pipeline Health</h2>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-text-secondary font-medium">Drafts (Needs Review)</span>
+                  <span className="font-bold text-sidebar">{requests.filter(r => r.status === 'draft').length}</span>
+                </div>
+                <div className="w-full bg-input-bg rounded-full h-2">
+                  <div className="bg-yellow-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.max(2, (requests.filter(r => r.status === 'draft').length / (requests.length || 1)) * 100)}%` }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-text-secondary font-medium">Approved Patterns</span>
+                  <span className="font-bold text-sidebar">{requests.filter(r => ['approved', 'validated', 'generating', 'packaged', 'completed'].includes(r.status)).length}</span>
+                </div>
+                <div className="w-full bg-input-bg rounded-full h-2">
+                  <div className="bg-green-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.max(2, (requests.filter(r => ['approved', 'validated', 'generating', 'packaged', 'completed'].includes(r.status)).length / (requests.length || 1)) * 100)}%` }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-text-secondary font-medium">Requires Rework</span>
+                  <span className="font-bold text-sidebar">{requests.filter(r => r.status === 'rework' || r.status === 'rejected').length}</span>
+                </div>
+                <div className="w-full bg-input-bg rounded-full h-2">
+                  <div className="bg-red-400 h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.max(2, (requests.filter(r => r.status === 'rework' || r.status === 'rejected').length / (requests.length || 1)) * 100)}%` }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
           
           {/* Enhanced Design Standards Section */}
           <div className="bg-gradient-to-br from-[#1E293B] to-[#0F172A] rounded-2xl p-6 text-white relative overflow-hidden shadow-xl border border-gray-800 h-full flex flex-col">

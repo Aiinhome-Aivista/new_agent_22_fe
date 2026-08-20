@@ -1,16 +1,24 @@
 import { useState, useEffect } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
 import { addReview, getRequest } from '../api/api';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import StepRequestTable from '../components/StepRequestTable';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function ReviewApprovalPage() {
-  const { id } = useParams();
+  const { id: pathId } = useParams();
+  const [searchParams] = useSearchParams();
+  const queryId = searchParams.get('id');
+  const id = pathId || queryId;
+  
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const isDeveloper = user?.role === 'developer';
+  const role = user?.role?.toLowerCase() || 'developer';
+  const isDeveloper = role === 'developer';
+  const isArchitect = role === 'solution architect' || role === 'architect';
 
   const [reqData, setReqData] = useState(null);
   const [loadingReq, setLoadingReq] = useState(true);
@@ -52,7 +60,7 @@ export default function ReviewApprovalPage() {
       await addReview({ request_id: parseInt(id), ...formData });
       setSuccessModal(true);
       setTimeout(() => {
-        navigate(user?.dashboard || '/techlead/dashboard');
+        navigate(isArchitect ? '/architect/dashboard' : (user?.dashboard || '/techlead/dashboard'));
       }, 2500);
     } catch (err) {
       console.error(err);
@@ -62,6 +70,14 @@ export default function ReviewApprovalPage() {
 
   if (loadingReq) return <Loader />;
 
+  if (!id) {
+    return (
+      <div className="flex flex-col h-full bg-gray-50 p-8">
+        <StepRequestTable activeStage="review" />
+      </div>
+    );
+  }
+
   const req = reqData?.request || {};
   const spec = reqData?.spec || {};
   const valSummary = reqData?.validation_summary || {};
@@ -70,6 +86,16 @@ export default function ReviewApprovalPage() {
     <div className="flex flex-col h-full">
       <ProgressStepper />
       <div className="p-8 max-w-4xl mx-auto w-full">
+        <div className="flex items-center gap-4 mb-6">
+          <button 
+            onClick={() => navigate('/review/queue')} 
+            className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+            title="Go Back"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+          </button>
+          <h2 className="text-2xl font-extrabold text-gray-800">Pipeline Review</h2>
+        </div>
         {isDeveloper ? (
           /* Developer Persona Read-Only Status Card */
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-border-light text-center space-y-6">
@@ -80,22 +106,22 @@ export default function ReviewApprovalPage() {
               <span className="bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block mb-3">
                 Awaiting Tech Lead Approval
               </span>
-              <h2 className="text-2xl font-extrabold text-gray-800">Submitted for Architecture Review</h2>
+              <h2 className="text-2xl font-extrabold text-gray-800">Review Pending for {req.request_name || `Request #${req.id || id}`}</h2>
               <p className="text-gray-600 text-sm mt-2 max-w-md mx-auto leading-relaxed">
-                Your microservice skeleton code has been generated, validated, and packaged. The final architecture review and repository commit approval is currently pending Tech Lead / Solution Architect sign-off.
+                Your microservice codebase has been successfully generated, validated, and packaged. The pipeline is currently paused pending final Code Quality & Repository Commit sign-off from the Tech Lead.
               </p>
             </div>
 
             <div className="pt-4 flex justify-center gap-4">
               <button 
                 onClick={() => navigate(`/requests/${id}/package`)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
+                className="bg-primary-orange hover:bg-hover-orange text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
               >
                 <span>⬇️</span> Download Skeleton ZIP
               </button>
               <button 
                 onClick={() => navigate(user?.dashboard || '/developer/dashboard')}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-6 py-2.5 rounded-lg border border-gray-300 transition-colors text-sm"
+                className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white font-bold px-6 py-2.5 rounded-lg border border-primary-orange transition-colors text-sm"
               >
                 Back to Dashboard
               </button>
@@ -104,7 +130,7 @@ export default function ReviewApprovalPage() {
         ) : (
           /* Tech Lead / Solution Architect Form with Inspection Details */
           <div className="space-y-6">
-            {/* Inspection Card for Tech Lead */}
+            {/* Inspection Card based on Persona */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light space-y-4">
               <div className="flex items-center justify-between border-b border-border-light pb-4">
                 <div>
@@ -121,40 +147,67 @@ export default function ReviewApprovalPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <div>
-                  <span className="text-xs text-gray-500 font-medium block">Target App ID</span>
-                  <strong className="font-mono text-gray-800">{req.application_id || 'N/A'}</strong>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-medium block">Package Name</span>
-                  <strong className="font-mono text-gray-800">{req.package_name || spec.package_name || 'N/A'}</strong>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-medium block">Source Topic</span>
-                  <strong className="font-mono text-gray-800">{spec.source_topics || 'N/A'}</strong>
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-medium block">Target Topic</span>
-                  <strong className="font-mono text-gray-800">{spec.target_topics || 'N/A'}</strong>
-                </div>
-              </div>
+              {!isArchitect ? (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div>
+                      <span className="text-xs text-gray-500 font-medium block">Target App ID</span>
+                      <strong className="font-mono text-gray-800">{req.application_id || 'N/A'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 font-medium block">Package Name</span>
+                      <strong className="font-mono text-gray-800">{req.package_name || spec.package_name || 'N/A'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 font-medium block">Source Topic</span>
+                      <strong className="font-mono text-gray-800">{spec.source_topics || 'N/A'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 font-medium block">Target Topic</span>
+                      <strong className="font-mono text-gray-800">{spec.target_topics || 'N/A'}</strong>
+                    </div>
+                  </div>
 
-              <div className="flex items-center justify-between text-xs text-gray-500 pt-2">
-                <span>Consumer Group: <strong className="font-mono text-gray-700">{spec.consumer_group}</strong></span>
-                <span>Error Topic Policy: <strong className="font-mono text-gray-700">{spec.error_topic_policy || 'DLQ'}</strong></span>
-                <button 
-                  onClick={() => navigate(`/requests/${id}/package`)}
-                  className="text-primary-orange font-bold hover:underline"
-                >
-                  🔍 Inspect Code Skeleton Files &rarr;
-                </button>
-              </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2">
+                    <div className="flex gap-4">
+                      <span>Consumer Group: <strong className="font-mono text-gray-700">{spec.consumer_group}</strong></span>
+                      <span>Error Topic Policy: <strong className="font-mono text-gray-700">{spec.error_topic_policy || 'DLQ'}</strong></span>
+                    </div>
+                    <button 
+                      onClick={() => navigate(`/requests/${id}/package`)}
+                      className="text-primary-orange font-bold hover:underline"
+                    >
+                      🔍 Inspect Code Skeleton Files &rarr;
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-4 text-sm bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                      <span className="text-xs text-slate-500 font-medium block mb-1">Pattern Matching Summary</span>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <strong className="text-slate-800">Stateful Processor Pattern</strong>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-500 font-medium block mb-1">Architecture Compliance</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="flex items-center gap-1 text-emerald-700"><span className="text-xs">✓</span> State Store</span>
+                        <span className="flex items-center gap-1 text-emerald-700"><span className="text-xs">✓</span> DLQ Configured</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Review Decision Form */}
             <form onSubmit={handleOpenConfirm} className="bg-white p-6 rounded-2xl shadow-sm border border-border-light space-y-6">
-              <h2 className="text-xl font-bold text-gray-800">Submit Architecture Review & Sign-Off</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                {isArchitect ? "Submit Architecture Review & Sign-Off" : "Submit Code Quality Review & Sign-Off"}
+              </h2>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer Name</label>
@@ -197,8 +250,8 @@ export default function ReviewApprovalPage() {
               </div>
 
               <div className="pt-2 flex justify-end">
-                <button type="submit" disabled={loading} className="bg-button-orange hover:bg-hover-orange text-white px-8 py-3 rounded-lg font-bold shadow-md transition-colors disabled:opacity-50 text-sm flex items-center gap-2">
-                  <span>✍️</span> Submit Architecture Review
+                <button type="submit" disabled={loading} className="bg-primary-orange hover:bg-hover-orange text-white px-8 py-3 rounded-lg font-bold shadow-md transition-colors disabled:opacity-50 text-sm flex items-center gap-2">
+                  <span>✍️</span> {isArchitect ? "Approve Architecture & Grant Git Commit Clearance" : "Approve Code Quality & Ready for Deployment"}
                 </button>
               </div>
             </form>
@@ -224,7 +277,7 @@ export default function ReviewApprovalPage() {
                  'Confirm Request Rejection'}
               </h3>
               <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                Are you sure you want to <strong className="capitalize">{formData.decision}</strong> request <strong>#{req.id || id} ({req.request_name || 'Payment Processing Service'})</strong>?
+                Are you sure you want to <strong className="capitalize">{formData.decision}</strong> request <strong>#{req.id || id} {req.request_name ? `(${req.request_name})` : ''}</strong>?
                 {formData.decision === 'approved' && ' This will officially sign off all 6 pipeline stages.'}
                 {formData.decision === 'rework' && ' This will send the request back to the Solution Architect for blueprint revision.'}
                 {formData.decision === 'rejected' && ' This will reject the microservice request.'}
@@ -270,7 +323,7 @@ export default function ReviewApprovalPage() {
               Request <strong>#{req.id || id}</strong> decision recorded as <strong className="capitalize">{formData.decision}</strong>.
             </p>
             <div className="pt-2 text-xs font-semibold text-gray-700 bg-gray-100 py-2 px-4 rounded-lg inline-block border border-gray-300">
-              Redirecting to Tech Lead Portal...
+              Redirecting to {isArchitect ? 'Architect' : 'Tech Lead'} Portal...
             </div>
           </div>
         </div>

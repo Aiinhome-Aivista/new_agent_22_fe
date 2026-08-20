@@ -39,8 +39,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        
-        <Route element={<MainLayout />}/>
+
+        <Route element={<MainLayout />}>
           {/* Shared Pipeline & Feature Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="developer/dashboard" element={<DeveloperDashboard />} />
@@ -77,14 +77,14 @@ function App() {
             <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
             <Route path="chat" element={<AdvisorChatPage />} />
-            
+
             <Route path="packaging" element={<PackagesPage />} />
             <Route path="packages" element={<PackagesPage />} />
             <Route path="requests/:id/package" element={<PackagesPage />} />
             <Route path="requests/:id/packages" element={<PackagesPage />} />
             <Route path="requests/:id/packaging" element={<PackagesPage />} />
           </Route>
-          
+
           <Route element={<ProtectedRoute allowedRoles={['techlead']} />}>
             <Route path="techlead/dashboard" element={<ReviewerDashboard />} />
             <Route path="techlead/validations" element={<TechLeadValidationsPage />} />
@@ -92,11 +92,11 @@ function App() {
             <Route path="techlead/reports" element={<TechLeadReportsPage />} />
             <Route path="requests/:id/validation" element={<ValidationReportPage />} />
 
-          <Route element={<ProtectedRoute allowedRoles={['devops']} />}>
-            <Route path="devops/dashboard" element={<DevopsDashboard />} />
-            <Route path="packaging" element={<PackagesPage />} />
-            <Route path="requests/:id/package" element={<PackagesPage />} />
-          </Route>
+            <Route element={<ProtectedRoute allowedRoles={['devops']} />}>
+              <Route path="devops/dashboard" element={<DevopsDashboard />} />
+              <Route path="packaging" element={<PackagesPage />} />
+              <Route path="requests/:id/package" element={<PackagesPage />} />
+            </Route>
 
             <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
@@ -115,10 +115,10 @@ function App() {
             <Route path="cicd" element={<PipelinePage />} />
             <Route path="logs" element={<SystemLogsPage />} />
           </Route>
-
+        
           {/* Catch-all for under construction pages */}
           <Route path="*" element={<PlaceholderPage />} />
-
+        </Route>
       </Routes>
     </AuthProvider>
   );

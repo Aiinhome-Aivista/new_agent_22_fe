@@ -40,7 +40,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         
-        <Route element={<MainLayout />}>
+        <Route element={<MainLayout />}/>
           {/* Shared Pipeline & Feature Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="developer/dashboard" element={<DeveloperDashboard />} />

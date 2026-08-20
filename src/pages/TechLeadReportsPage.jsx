@@ -21,13 +21,13 @@ export default function TechLeadReportsPage() {
       });
   }, []);
 
-  const handleDownload = async (id, title) => {
+  const handleDownload = async (id, title, format) => {
     try {
-      const blob = await downloadTechLeadReport(id);
+      const blob = await downloadTechLeadReport(id, format);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `audit_report_${id}.json`;
+      a.download = `audit_report_${id}.${format}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -92,7 +92,7 @@ export default function TechLeadReportsPage() {
             <thead>
               <tr className="bg-white text-gray-500 text-[11px] font-bold uppercase tracking-wider border-b border-border-light/60">
                 <th className="px-6 py-4">Report Title</th>
-                <th className="px-6 py-4">Format</th>
+                <th className="px-6 py-4">Formats</th>
                 <th className="px-6 py-4">Size</th>
                 <th className="px-6 py-4">Generated Date</th>
                 <th className="px-6 py-4 text-right">Download</th>
@@ -107,20 +107,24 @@ export default function TechLeadReportsPage() {
                 <tr key={rep.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-5 font-bold text-gray-800 text-sm">{rep.title}</td>
                   <td className="px-6 py-5">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${
-                      rep.type === 'PDF' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-blue-50 text-blue-700 border border-blue-100'
-                    }`}>
+                    <span className="px-2 py-1 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
                       {rep.type}
                     </span>
                   </td>
                   <td className="px-6 py-5 font-mono text-xs text-gray-500">{rep.size}</td>
                   <td className="px-6 py-5 text-sm font-medium text-gray-500">{rep.date}</td>
-                  <td className="px-6 py-5 text-right flex justify-end">
+                  <td className="px-6 py-5 text-right flex justify-end gap-2">
                     <button 
-                      onClick={() => handleDownload(rep.id, rep.title)}
-                      className="text-gray-500 hover:text-primary-orange transition-colors p-2 rounded-lg hover:bg-gray-100 flex items-center gap-2 text-xs font-bold border border-gray-200"
+                      onClick={() => handleDownload(rep.id, rep.title, 'pdf')}
+                      className="text-red-600 hover:text-red-700 transition-colors p-2 rounded-lg hover:bg-red-50 flex items-center gap-1 text-xs font-bold border border-red-200"
                     >
-                      <DocumentArrowDownIcon className="w-4 h-4" /> Download
+                      <DocumentArrowDownIcon className="w-4 h-4" /> PDF
+                    </button>
+                    <button 
+                      onClick={() => handleDownload(rep.id, rep.title, 'docx')}
+                      className="text-blue-600 hover:text-blue-700 transition-colors p-2 rounded-lg hover:bg-blue-50 flex items-center gap-1 text-xs font-bold border border-blue-200"
+                    >
+                      <DocumentArrowDownIcon className="w-4 h-4" /> DOCX
                     </button>
                   </td>
                 </tr>

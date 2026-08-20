@@ -43,7 +43,7 @@ export default function Sidebar() {
     { name: 'Validation Severity Queue', path: '/techlead/validations', icon: 'ShieldCheckIcon' },
     { name: 'Code Reviews & Approvals', path: '/techlead/reviews', icon: 'ClipboardDocumentCheckIcon' },
     { name: 'Validation Reports', path: '/techlead/reports', icon: 'DocumentTextIcon' },
-    { name: 'Advisor Chat', path: '/advisor', icon: 'ChatBubbleLeftIcon' }
+    { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
   ];
 
   const devopsMenu = [
@@ -51,7 +51,7 @@ export default function Sidebar() {
     { name: 'Packaging & Deployment', path: '/devops/packages', icon: 'ArchiveBoxIcon' },
     { name: 'Environment Health', path: '/devops/environments', icon: 'ServerIcon' },
     { name: 'Config Health & Audits', path: '/devops/configs', icon: 'WrenchScrewdriverIcon' },
-    { name: 'Advisor Chat', path: '/advisor', icon: 'ChatBubbleLeftIcon' }
+    { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
   ];
 
   const activeMenu = isArchitect ? architectMenu : isTechLead ? techLeadMenu : isDevOps ? devopsMenu : defaultMenu;
@@ -91,8 +91,8 @@ export default function Sidebar() {
                       (item.path === '/requests' && (currentPath === '/requests' || currentPath === '/requests/' || currentPath.match(/^\/requests\/\d+\/chat/))) ||
                       (item.path === '/progress' && currentPath.includes('/generation')) ||
                       (item.path === '/review/blueprint' && currentPath.includes('/blueprint')) ||
-                      (item.path === '/validation' && currentPath.includes('/validation')) ||
-                      (item.path === '/review/queue' && currentPath.includes('/review') && !currentPath.includes('/blueprint') && !currentPath.includes('/patterns')) ||
+                      ((item.path === '/validation' || item.path === '/techlead/validations') && currentPath.includes('/validation')) ||
+                      ((item.path === '/review/queue' || item.path === '/techlead/reviews') && currentPath.includes('/review') && !currentPath.includes('/blueprint') && !currentPath.includes('/patterns')) ||
                       (item.path === '/packages' && (currentPath.includes('/package') || currentPath.includes('/packaging')));
                     isReallyActive = isActive || forceActive;
                   }

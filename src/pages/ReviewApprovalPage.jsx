@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
-import { addReview, getRequest } from '../api/api';
+import { addReview, getRequest, getGeneratedFiles } from '../api/api';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import StepRequestTable from '../components/StepRequestTable';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, CubeIcon, CodeBracketIcon } from '@heroicons/react/24/outline';
 
 export default function ReviewApprovalPage() {
   const { id: pathId } = useParams();
@@ -21,6 +21,8 @@ export default function ReviewApprovalPage() {
   const isArchitect = role === 'solution architect' || role === 'architect';
 
   const [reqData, setReqData] = useState(null);
+  const [generatedFiles, setGeneratedFiles] = useState([]);
+  const [openFileId, setOpenFileId] = useState(null);
   const [loadingReq, setLoadingReq] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -37,10 +39,14 @@ export default function ReviewApprovalPage() {
       setLoadingReq(false);
       return;
     }
-    getRequest(id).then(res => {
-      if (res.success) {
-        setReqData(res.data);
+    Promise.all([
+      getRequest(id),
+      getGeneratedFiles(id).catch(() => ({ data: [] }))
+    ]).then(([resReq, resFiles]) => {
+      if (resReq.success) {
+        setReqData(resReq.data);
       }
+      setGeneratedFiles(resFiles.data || []);
       setLoadingReq(false);
     }).catch(err => {
       console.error(err);
@@ -86,10 +92,10 @@ export default function ReviewApprovalPage() {
   return (
     <div className="flex flex-col h-full">
       <ProgressStepper />
-      <div className="p-8 max-w-4xl mx-auto w-full">
+      <div className="p-8 max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-4 mb-6">
           <button 
-            onClick={() => navigate('/review/queue')} 
+            onClick={() => navigate(isArchitect ? '/review/queue' : '/techlead/reviews')} 
             className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
             title="Go Back"
           >
@@ -150,36 +156,30 @@ export default function ReviewApprovalPage() {
 
               {!isArchitect ? (
                 <>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div className="overflow-hidden">
                       <span className="text-xs text-gray-500 font-medium block">Target App ID</span>
-                      <strong className="font-mono text-gray-800">{req.application_id || 'N/A'}</strong>
+                      <strong className="font-mono text-gray-800 break-words block">{req.application_id || 'N/A'}</strong>
                     </div>
-                    <div>
+                    <div className="overflow-hidden">
                       <span className="text-xs text-gray-500 font-medium block">Package Name</span>
-                      <strong className="font-mono text-gray-800">{req.package_name || spec.package_name || 'N/A'}</strong>
+                      <strong className="font-mono text-gray-800 break-words block">{req.package_name || spec.package_name || 'N/A'}</strong>
                     </div>
-                    <div>
+                    <div className="overflow-hidden">
                       <span className="text-xs text-gray-500 font-medium block">Source Topic</span>
-                      <strong className="font-mono text-gray-800">{spec.source_topics || 'N/A'}</strong>
+                      <strong className="font-mono text-gray-800 break-words block">{spec.source_topics || 'N/A'}</strong>
                     </div>
-                    <div>
+                    <div className="overflow-hidden">
                       <span className="text-xs text-gray-500 font-medium block">Target Topic</span>
-                      <strong className="font-mono text-gray-800">{spec.target_topics || 'N/A'}</strong>
+                      <strong className="font-mono text-gray-800 break-words block">{spec.target_topics || 'N/A'}</strong>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2">
-                    <div className="flex gap-4">
-                      <span>Consumer Group: <strong className="font-mono text-gray-700">{spec.consumer_group}</strong></span>
-                      <span>Error Topic Policy: <strong className="font-mono text-gray-700">{spec.error_topic_policy || 'DLQ'}</strong></span>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center text-xs text-gray-500 pt-2 gap-4">
+                    <div className="flex flex-col sm:flex-row gap-4 overflow-hidden w-full">
+                      <span className="truncate">Consumer Group: <strong className="font-mono text-gray-700">{spec.consumer_group}</strong></span>
+                      <span className="truncate">Error Topic Policy: <strong className="font-mono text-gray-700">{spec.error_topic_policy || 'DLQ'}</strong></span>
                     </div>
-                    <button 
-                      onClick={() => navigate(`/requests/${id}/package`)}
-                      className="text-primary-orange font-bold hover:underline"
-                    >
-                      🔍 Inspect Code Skeleton Files &rarr;
-                    </button>
                   </div>
                 </>
               ) : (
@@ -203,6 +203,77 @@ export default function ReviewApprovalPage() {
                 </>
               )}
             </div>
+
+            {/* Architecture Blueprint Section */}
+            {reqData?.blueprint && (
+              <details className="bg-white rounded-2xl shadow-sm border border-border-light group">
+                <summary className="p-6 cursor-pointer flex justify-between items-center text-lg font-bold text-gray-800 list-none [&::-webkit-details-marker]:hidden hover:bg-orange-50/50 transition-colors rounded-2xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-primary-orange"><CubeIcon className="w-6 h-6" /></span> Generated Architecture Blueprint
+                  </div>
+                  <span className="transition group-open:rotate-180 text-primary-orange">
+                    <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                  </span>
+                </summary>
+                <div className="p-6 pt-0 border-t border-border-light/50">
+                  <div className="bg-gray-900 rounded-xl p-4 overflow-hidden mt-4">
+                    <pre className="text-xs text-green-400 overflow-x-auto custom-scrollbar pb-2">
+                      <code>
+                        {reqData.blueprint.file_manifest ? 
+                          (function() {
+                            try { return JSON.stringify(JSON.parse(reqData.blueprint.file_manifest), null, 2); }
+                            catch(e) { return reqData.blueprint.file_manifest; }
+                          })() : "No blueprint found."}
+                      </code>
+                    </pre>
+                  </div>
+                </div>
+              </details>
+            )}
+
+            {/* Generated Files Section */}
+            {generatedFiles && generatedFiles.length > 0 && !isArchitect && (
+              <details className="bg-white rounded-2xl shadow-sm border border-border-light group">
+                <summary className="p-6 cursor-pointer flex justify-between items-center text-lg font-bold text-gray-800 list-none [&::-webkit-details-marker]:hidden hover:bg-orange-50/50 transition-colors rounded-2xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-primary-orange"><CodeBracketIcon className="w-6 h-6" /></span> Generated Source Code Files
+                  </div>
+                  <span className="transition group-open:rotate-180 text-primary-orange">
+                    <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                  </span>
+                </summary>
+                <div className="p-6 pt-0 border-t border-border-light/50">
+                  <div className="space-y-4 mt-4">
+                    {generatedFiles.map(file => (
+                      <div key={file.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                        <button 
+                          type="button"
+                          onClick={() => setOpenFileId(openFileId === file.id ? null : file.id)}
+                          className="w-full bg-gray-50 hover:bg-gray-100 px-4 py-3 cursor-pointer flex justify-between items-center transition-colors text-left focus:outline-none"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className={`transition text-gray-400 ${openFileId === file.id ? 'rotate-90' : ''}`}>
+                              <svg fill="none" height="16" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16"><path d="M9 18l6-6-6-6"></path></svg>
+                            </span>
+                            <span className="font-mono text-sm font-bold text-gray-700">{file.file_name}</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-primary-orange bg-orange-50 border border-orange-100 px-2 py-0.5 rounded uppercase">{file.file_type}</span>
+                        </button>
+                        {openFileId === file.id && (
+                          <div className="bg-slate-900 p-4 overflow-hidden border-t border-gray-200">
+                            <pre className="text-xs text-blue-300 overflow-x-auto custom-scrollbar pb-2">
+                              <code>
+                                {file.preview}
+                              </code>
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </details>
+            )}
 
             {/* Review Decision Form */}
             <form onSubmit={handleOpenConfirm} className="bg-white p-6 rounded-2xl shadow-sm border border-border-light space-y-6">

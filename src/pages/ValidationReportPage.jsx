@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
-import { getValidationResults } from '../api/api';
+import { getValidationResults, fixValidation } from '../api/api';
 import Loader from '../components/Loader';
 import StatusBadge from '../components/StatusBadge';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import StepRequestTable from '../components/StepRequestTable';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, WrenchScrewdriverIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function ValidationReportPage() {
@@ -21,12 +21,9 @@ export default function ValidationReportPage() {
   const [results, setResults] = useState([]);
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(true);
+  const [fixingRule, setFixingRule] = useState(null);
 
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+  const fetchResults = () => {
     setLoading(true);
     getValidationResults(id).then(data => {
       setResults(data.data?.results || data.data || []);
@@ -36,7 +33,29 @@ export default function ValidationReportPage() {
       console.error(err);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    fetchResults();
   }, [id]);
+
+  const handleFix = async (rule) => {
+    if (fixingRule) return;
+    setFixingRule(rule.rule_name);
+    try {
+      await fixValidation(id, rule.rule_name, rule.message);
+      fetchResults();
+    } catch (err) {
+      console.error(err);
+      alert('Auto-fix failed. Please check the logs.');
+    } finally {
+      setFixingRule(null);
+    }
+  };
 
   if (!id) {
     return (
@@ -88,6 +107,7 @@ export default function ValidationReportPage() {
                   <th className="p-4 font-medium">Status</th>
                   <th className="p-4 font-medium">Severity</th>
                   <th className="p-4 font-medium">Message</th>
+                  <th className="p-4 font-medium text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-light">
@@ -114,6 +134,27 @@ export default function ValidationReportPage() {
                       </td>
                       <td className="p-4"><StatusBadge status={r.severity} /></td>
                       <td className="p-4 text-sm text-gray-600">{r.message}</td>
+                      <td className="p-4 text-right">
+                        {!r.passed && (
+                          <button
+                            onClick={() => handleFix(r)}
+                            disabled={fixingRule !== null}
+                            className={`flex items-center gap-1.5 ml-auto px-3 py-1.5 rounded text-xs font-bold transition-colors ${fixingRule === r.rule_name ? 'bg-orange-100 text-orange-500 cursor-wait' : fixingRule ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-orange-100 text-primary-orange hover:bg-primary-orange hover:text-white'}`}
+                          >
+                            {fixingRule === r.rule_name ? (
+                              <>
+                                <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                                Fixing...
+                              </>
+                            ) : (
+                              <>
+                                <WrenchScrewdriverIcon className="w-4 h-4" />
+                                Auto Fix
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}

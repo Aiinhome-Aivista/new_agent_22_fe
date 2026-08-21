@@ -18,20 +18,11 @@ import StandardsPage from './pages/StandardsPage';
 import TechLeadValidationsPage from './pages/TechLeadValidationsPage';
 import TechLeadReviewsPage from './pages/TechLeadReviewsPage';
 import TechLeadReportsPage from './pages/TechLeadReportsPage';
-import DevOpsPackagesPage from './pages/DevOpsPackagesPage';
-import DevOpsEnvironmentsPage from './pages/DevOpsEnvironmentsPage';
-import DevOpsConfigsPage from './pages/DevOpsConfigsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import DeveloperDashboard from './pages/DeveloperDashboard';
 import ArchitectDashboard from './pages/ArchitectDashboard';
 import ReviewerDashboard from './pages/ReviewerDashboard';
-import DevopsDashboard from './pages/DevopsDashboard';
-import DevopsConfigPage from './pages/DevopsConfigPage';
-import EnvironmentStatusPage from './pages/EnvironmentStatusPage';
-import DeploymentPage from './pages/DeploymentPage';
-import PipelinePage from './pages/PipelinePage';
-import SystemLogsPage from './pages/SystemLogsPage';
 
 function App() {
   return (
@@ -98,19 +89,6 @@ function App() {
             <Route path="standards" element={<StandardsPage />} />
             <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
             <Route path="audit" element={<AuditTrailPage />} />
-          </Route>
-
-          <Route element={<ProtectedRoute allowedRoles={['devops', 'platform engineer']} />}>
-            <Route path="devops/dashboard" element={<DevopsDashboard />} />
-            <Route path="devops/packages" element={<DevOpsPackagesPage />} />
-            <Route path="devops/environments" element={<DevOpsEnvironmentsPage />} />
-            <Route path="devops/configs" element={<DevOpsConfigsPage />} />
-            <Route path="devops/config" element={<DevopsConfigPage />} />
-            <Route path="config" element={<DevopsConfigPage />} />
-            <Route path="environment" element={<EnvironmentStatusPage />} />
-            <Route path="deploy" element={<DeploymentPage />} />
-            <Route path="cicd" element={<PipelinePage />} />
-            <Route path="logs" element={<SystemLogsPage />} />
           </Route>
 
           {/* Catch-all for under construction pages */}

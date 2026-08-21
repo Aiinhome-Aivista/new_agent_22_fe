@@ -28,11 +28,10 @@ export const getGeneratedFiles = (reqId) => api.get(`/generate/request/${reqId}/
 
 // Validation
 export const getValidationResults = (reqId) => api.get(`/validation/request/${reqId}`).then(res => res.data);
+export const fixValidation = (reqId, ruleName, message) => api.post('/validation/fix', { request_id: reqId, rule_name: ruleName, message }).then(res => res.data);
 
-// Packages & DevOps
+// Packages
 export const getPackages = () => api.get('/packages/').then(res => res.data);
-export const generateDevopsScripts = (reqId, envName) => api.post('/packages/generate-scripts', { request_id: reqId, env_name: envName }).then(res => res.data);
-export const triggerPipeline = (reqId, envName) => api.post('/packages/trigger-pipeline', { request_id: reqId, env_name: envName }).then(res => res.data);
 
 // Reviews
 export const getReviewQueue = () =>api.get('/review/queue').then(res => res.data);

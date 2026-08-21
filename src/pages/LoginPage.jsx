@@ -15,8 +15,7 @@ export default function LoginPage() {
   const hardcodedPersonas = [
     { name: 'Rahul Ghosh', role: 'Developer', email: 'developer@example.com', password: 'password123', icon: 'RG', color: 'border-emerald-600 text-emerald-600 bg-emerald-50' },
     { name: 'Sanjib Sau', role: 'Solution Architect', email: 'architect@example.com', password: 'password123', icon: 'SS', color: 'border-blue-600 text-blue-600 bg-blue-50' },
-    { name: 'Sneha Sen', role: 'Tech Lead', email: 'techlead@example.com', password: 'password123', icon: 'SS', color: 'border-purple-600 text-purple-600 bg-purple-50' },
-    { name: 'Rakesh Singh', role: 'Platform / DevOps', email: 'devops@example.com', password: 'password123', icon: 'RS', color: 'border-amber-600 text-amber-600 bg-amber-50' }
+    { name: 'Sneha Sen', role: 'Tech Lead', email: 'techlead@example.com', password: 'password123', icon: 'SS', color: 'border-purple-600 text-purple-600 bg-purple-50' }
   ];
 
   const [personas] = useState(hardcodedPersonas);

@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { getStandards, saveStandard, deleteStandard } from '../api/api';
 import Loader from '../components/Loader';
-import { DocumentTextIcon, PlusIcon, TrashIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 
 export default function StandardsPage() {
@@ -11,27 +11,28 @@ export default function StandardsPage() {
   const [selectedStandard, setSelectedStandard] = useState(null);
   
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('standards');
   const [editForm, setEditForm] = useState({ filename: '', folder: 'standards', content: '' });
-  const [isFolderOpen, setIsFolderOpen] = useState(false);
-  const folderDropdownRef = useRef(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (folderDropdownRef.current && !folderDropdownRef.current.contains(event.target)) {
-        setIsFolderOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const tabs = [
+    { id: 'standards', label: 'Architecture Standards' },
+    { id: 'validation_rules', label: 'Validation Rules' },
+    { id: 'sample_scripts', label: 'Sample Scripts' }
+  ];
 
-  const fetchStandards = (selectFirst = true) => {
+  const fetchStandards = (selectFirst = true, tabToSelect = activeTab) => {
     setLoading(true);
     getStandards().then(res => {
       const list = res.data || [];
       setStandards(list);
-      if (selectFirst && list.length > 0) {
-        setSelectedStandard(list[0]);
+      
+      if (selectFirst) {
+        const filteredList = list.filter(std => std.folder === tabToSelect);
+        if (filteredList.length > 0) {
+          setSelectedStandard(filteredList[0]);
+        } else {
+          setSelectedStandard(null);
+        }
       }
       setLoading(false);
     }).catch(err => {
@@ -41,24 +42,38 @@ export default function StandardsPage() {
   };
 
   useEffect(() => {
-    fetchStandards(true);
+    fetchStandards(true, activeTab);
   }, []);
+
+  const handleTabChange = (tabId) => {
+    if (isEditing) {
+      if (!window.confirm("You have unsaved changes. Discard?")) return;
+      setIsEditing(false);
+    }
+    setActiveTab(tabId);
+    const filteredList = standards.filter(std => std.folder === tabId);
+    setSelectedStandard(filteredList.length > 0 ? filteredList[0] : null);
+  };
 
   const handleSave = async () => {
     await saveStandard({ ...editForm, created_by: user?.id });
     setIsEditing(false);
-    fetchStandards(true);
+    fetchStandards(true, activeTab);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this standard?")) {
+    if (window.confirm("Are you sure you want to delete this file?")) {
       await deleteStandard(id);
-      fetchStandards(true);
+      fetchStandards(true, activeTab);
     }
   };
 
   const openNew = () => {
-    setEditForm({ filename: '', folder: 'standards', content: '# New Architecture Standard\n\nExplain the rules here...' });
+    const defaultContent = activeTab === 'validation_rules' 
+      ? '# New Validation Rule\n\nExplain the rule here.'
+      : (activeTab === 'sample_scripts' ? '// New Sample Script\n\n' : '# New Architecture Standard\n\nExplain the rules here...');
+
+    setEditForm({ filename: '', folder: activeTab, content: defaultContent });
     setIsEditing(true);
     setSelectedStandard(null);
   };
@@ -70,25 +85,42 @@ export default function StandardsPage() {
 
   if (loading) return <Loader />;
 
+  const filteredStandards = standards.filter(std => std.folder === activeTab);
+
   return (
     <div className="animate-fade-in-up flex flex-col h-full">
-      <div className="mb-6 flex justify-between items-center px-6 pt-6">
-        <div>
-          <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Architecture Standards</h1>
-          <p className="text-text-secondary mt-1">Manage RAG knowledge base for patterns and guidelines.</p>
+      <div className="mb-4 flex flex-col px-6 pt-6 gap-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Architecture Standards</h1>
+            <p className="text-text-secondary mt-1">Manage rules, validation logic, and sample scripts.</p>
+          </div>
+          {!isEditing && (
+            <button onClick={openNew} className="flex items-center gap-2 bg-primary-orange text-white px-4 py-2 rounded-lg font-bold hover:bg-hover-orange transition-colors">
+              <PlusIcon className="w-5 h-5" /> Add File
+            </button>
+          )}
         </div>
-        {!isEditing && (
-          <button onClick={openNew} className="flex items-center gap-2 bg-primary-orange text-white px-4 py-2 rounded-lg font-bold hover:bg-hover-orange transition-colors">
-            <PlusIcon className="w-5 h-5" /> Add Standard
-          </button>
-        )}
+
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === tab.id ? 'border-primary-orange text-primary-orange' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden px-6 pb-6 gap-6">
         {/* Sidebar List */}
         {!isEditing && (
           <div className="w-1/3 bg-white border border-border-light rounded-xl overflow-y-auto p-4 flex flex-col gap-3 shadow-sm">
-            {standards.map(std => (
+            {filteredStandards.map(std => (
               <div 
                 key={std.id}
                 onClick={() => setSelectedStandard(std)}
@@ -97,11 +129,10 @@ export default function StandardsPage() {
                 <DocumentTextIcon className="w-6 h-6 text-gray-400 mt-1" />
                 <div className="flex-1 overflow-hidden">
                   <h4 className="font-bold text-gray-800 text-sm truncate">{std.filename}</h4>
-                  <p className="text-xs text-gray-500 capitalize">{std.folder.replace('_', ' ')}</p>
                 </div>
               </div>
             ))}
-            {standards.length === 0 && <p className="text-gray-500 text-sm text-center mt-4">No standards found.</p>}
+            {filteredStandards.length === 0 && <p className="text-gray-500 text-sm text-center mt-4">No files found.</p>}
           </div>
         )}
 
@@ -117,42 +148,21 @@ export default function StandardsPage() {
                     value={editForm.filename} 
                     onChange={e => setEditForm({...editForm, filename: e.target.value})} 
                     className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none hover:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 focus:border-primary-orange transition-all font-semibold text-sidebar bg-white shadow-sm" 
-                    placeholder="e.g. error_topic_rules.md" 
+                    placeholder="e.g. file_name.md" 
                   />
                 </div>
-                <div className="flex-1 relative" ref={folderDropdownRef}>
-                  <label className="block text-xs font-bold text-gray-500 mb-1">Folder</label>
-                  <button
-                    type="button"
-                    onClick={() => setIsFolderOpen(!isFolderOpen)}
-                    className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none hover:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 focus:border-primary-orange transition-all font-semibold text-sidebar flex items-center justify-between shadow-sm"
-                  >
-                    <span>{editForm.folder === 'sample_scripts' ? 'Sample Scripts' : 'Standards'}</span>
-                    <ChevronDownIcon className={`w-4 h-4 ml-2 text-gray-400 transition-transform ${isFolderOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {isFolderOpen && (
-                    <div className="absolute top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden py-1">
-                      <button
-                        type="button"
-                        onClick={() => { setEditForm({...editForm, folder: 'standards'}); setIsFolderOpen(false); }}
-                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${editForm.folder === 'standards' ? 'bg-orange-50 text-primary-orange font-bold' : 'text-gray-700 hover:bg-orange-50 hover:text-primary-orange font-medium'}`}
-                      >
-                        Standards
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setEditForm({...editForm, folder: 'sample_scripts'}); setIsFolderOpen(false); }}
-                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${editForm.folder === 'sample_scripts' ? 'bg-orange-50 text-primary-orange font-bold' : 'text-gray-700 hover:bg-orange-50 hover:text-primary-orange font-medium'}`}
-                      >
-                        Sample Scripts
-                      </button>
-                    </div>
-                  )}
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-gray-500 mb-1">Folder (Tab)</label>
+                  <input 
+                    type="text" 
+                    value={tabs.find(t => t.id === editForm.folder)?.label || editForm.folder} 
+                    disabled
+                    className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-sm text-gray-500 font-semibold"
+                  />
                 </div>
               </div>
               <div className="flex-1 mb-4 flex flex-col">
-                <label className="block text-xs font-bold text-gray-500 mb-1">Markdown Content</label>
+                <label className="block text-xs font-bold text-gray-500 mb-1">Content</label>
                 <textarea 
                   value={editForm.content} 
                   onChange={e => setEditForm({...editForm, content: e.target.value})} 
@@ -161,7 +171,7 @@ export default function StandardsPage() {
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={() => setIsEditing(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
-                <button onClick={handleSave} className="px-5 py-2.5 bg-primary-orange text-white rounded-lg text-sm font-bold hover:bg-hover-orange transition-colors shadow-md shadow-orange-500/20">Save Standard</button>
+                <button onClick={handleSave} className="px-5 py-2.5 bg-primary-orange text-white rounded-lg text-sm font-bold hover:bg-hover-orange transition-colors shadow-md shadow-orange-500/20">Save</button>
               </div>
             </div>
           ) : selectedStandard ? (
@@ -169,7 +179,7 @@ export default function StandardsPage() {
               <div className="flex justify-between items-center mb-6 pb-4 border-b">
                 <div>
                   <h2 className="text-xl font-bold text-gray-800">{selectedStandard.filename}</h2>
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedStandard.folder}</span>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedStandard.folder.replace('_', ' ')}</span>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => openEdit(selectedStandard)} className="px-3 py-1.5 border border-gray-300 rounded text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">Edit</button>
@@ -185,7 +195,7 @@ export default function StandardsPage() {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
               <DocumentTextIcon className="w-16 h-16 mb-4 opacity-50" />
-              <p>Select a standard to view or edit</p>
+              <p>Select a file to view or edit</p>
             </div>
           )}
         </div>

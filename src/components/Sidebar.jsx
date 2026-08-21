@@ -16,7 +16,6 @@ export default function Sidebar() {
   const role = user?.role?.toLowerCase() || 'developer';
   const isArchitect = role === 'solution architect' || role === 'architect';
   const isTechLead = role === 'tech lead' || role === 'techlead';
-  const isDevOps = role === 'devops' || role === 'platform engineer';
 
   const defaultMenu = [
     { name: 'Dashboard', path: user?.dashboard || '/requests', icon: 'ChartBarIcon' },
@@ -46,15 +45,7 @@ export default function Sidebar() {
     { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
   ];
 
-  const devopsMenu = [
-    { name: 'Dashboard', path: user?.dashboard || '/devops/dashboard', icon: 'ChartBarIcon' },
-    { name: 'Packaging & Deployment', path: '/devops/packages', icon: 'ArchiveBoxIcon' },
-    { name: 'Environment Health', path: '/devops/environments', icon: 'ServerIcon' },
-    { name: 'Config Health & Audits', path: '/devops/configs', icon: 'WrenchScrewdriverIcon' },
-    { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
-  ];
-
-  const activeMenu = isArchitect ? architectMenu : isTechLead ? techLeadMenu : isDevOps ? devopsMenu : defaultMenu;
+  const activeMenu = isArchitect ? architectMenu : isTechLead ? techLeadMenu : defaultMenu;
 
   return (
     <div className="w-72 bg-sidebar text-white flex flex-col shadow-2xl z-20">
@@ -75,19 +66,12 @@ export default function Sidebar() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                end={item.path === '/requests' || item.path === '/devops' || item.path === '/devops/dashboard'}
+                end={item.path === '/requests'}
                 className={({ isActive }) => {
                   const currentPath = location.pathname;
                   
                   let isReallyActive = isActive;
-                  if (isDevOps) {
-                    if (item.name === 'Dashboard') {
-                      isReallyActive = currentPath === '/devops/dashboard' || currentPath === '/devops';
-                    } else if (item.name === 'Packaging & Deployment') {
-                      isReallyActive = currentPath === '/devops/packages';
-                    }
-                  } else {
-                    const forceActive = 
+                  const forceActive = 
                       (item.path === '/requests' && (currentPath === '/requests' || currentPath === '/requests/' || currentPath.match(/^\/requests\/\d+\/chat/))) ||
                       (item.path === '/progress' && currentPath.includes('/generation')) ||
                       (item.path === '/review/blueprint' && currentPath.includes('/blueprint')) ||
@@ -95,7 +79,6 @@ export default function Sidebar() {
                       ((item.path === '/review/queue' || item.path === '/techlead/reviews') && currentPath.includes('/review') && !currentPath.includes('/blueprint') && !currentPath.includes('/patterns')) ||
                       (item.path === '/packages' && (currentPath.includes('/package') || currentPath.includes('/packaging')));
                     isReallyActive = isActive || forceActive;
-                  }
 
                   return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
                     isReallyActive 

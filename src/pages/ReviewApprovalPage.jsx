@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
-import { addReview, getRequest, getGeneratedFiles } from '../api/api';
+import { addReview, getRequest, getGeneratedFiles, getReviews } from '../api/api';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import StepRequestTable from '../components/StepRequestTable';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
-import { ArrowLeftIcon, CubeIcon, CodeBracketIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, CubeIcon, CodeBracketIcon, ArrowDownTrayIcon, CheckCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 export default function ReviewApprovalPage() {
   const { id: pathId } = useParams();
@@ -22,6 +22,7 @@ export default function ReviewApprovalPage() {
 
   const [reqData, setReqData] = useState(null);
   const [generatedFiles, setGeneratedFiles] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [openFileId, setOpenFileId] = useState(null);
   const [loadingReq, setLoadingReq] = useState(true);
 
@@ -35,18 +36,21 @@ export default function ReviewApprovalPage() {
   const [successModal, setSuccessModal] = useState(false);
 
   useEffect(() => {
+    setLoadingReq(true);
     if (!id) {
       setLoadingReq(false);
       return;
     }
     Promise.all([
       getRequest(id),
-      getGeneratedFiles(id).catch(() => ({ data: [] }))
-    ]).then(([resReq, resFiles]) => {
+      getGeneratedFiles(id).catch(() => ({ data: [] })),
+      getReviews(id).catch(() => ({ data: [] }))
+    ]).then(([resReq, resFiles, resReviews]) => {
       if (resReq.success) {
         setReqData(resReq.data);
       }
       setGeneratedFiles(resFiles.data || []);
+      setReviews(resReviews.data || []);
       setLoadingReq(false);
     }).catch(err => {
       console.error(err);
@@ -75,8 +79,6 @@ export default function ReviewApprovalPage() {
     }
   };
 
-  if (loadingReq) return <Loader />;
-
   if (!id) {
     return (
       <div className="flex flex-col h-full bg-gray-50 p-8">
@@ -93,47 +95,92 @@ export default function ReviewApprovalPage() {
     <div className="flex flex-col h-full">
       <ProgressStepper />
       <div className="p-8 max-w-7xl mx-auto w-full">
-        <div className="flex items-center gap-4 mb-6">
-          <button 
-            onClick={() => navigate(isArchitect ? '/review/queue' : '/techlead/reviews')} 
-            className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
-            title="Go Back"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
-          <h2 className="text-2xl font-extrabold text-gray-800">Pipeline Review</h2>
-        </div>
+        {loadingReq ? (
+          <Loader />
+        ) : (
+          <>
+            <div className="flex items-center gap-4 mb-6">
+              <button 
+                onClick={() => navigate(-1)} 
+                className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                title="Go Back"
+              >
+                <ArrowLeftIcon className="w-5 h-5" />
+              </button>
+              <h2 className="text-2xl font-extrabold text-gray-800">Pipeline Review</h2>
+            </div>
         {isDeveloper ? (
-          /* Developer Persona Read-Only Status Card */
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-border-light text-center space-y-6">
-            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto border border-amber-200 text-amber-600 text-4xl shadow-sm">
-              ⏳
-            </div>
-            <div>
-              <span className="bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block mb-3">
-                Awaiting Tech Lead Approval
-              </span>
-              <h2 className="text-2xl font-extrabold text-gray-800">Review Pending for {req.request_name || `Request #${req.id || id}`}</h2>
-              <p className="text-gray-600 text-sm mt-2 max-w-md mx-auto leading-relaxed">
-                Your microservice codebase has been successfully generated, validated, and packaged. The pipeline is currently paused pending final Code Quality & Repository Commit sign-off from the Tech Lead.
-              </p>
-            </div>
+          /* Developer Persona Status Card */
+          ['approved', 'packaged'].includes(req.status) ? (
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-emerald-200 text-center space-y-6">
+              <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-200 text-emerald-600 text-4xl shadow-sm">
+                <CheckCircleIcon className="w-10 h-10 stroke-[2.5]" />
+              </div>
+              <div>
+                <span className="bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block mb-3">
+                  Approved & Finalized
+                </span>
+                <h2 className="text-2xl font-extrabold text-gray-800">Pipeline Completed for {req.request_name || `Request #${req.id || id}`}</h2>
+                <p className="text-gray-600 text-sm mt-2 max-w-lg mx-auto leading-relaxed">
+                  Your microservice codebase has been officially reviewed and signed off by the Tech Lead. 
+                  {reviews.length > 0 && reviews[0].comments && (
+                    <span className="block mt-4 bg-gray-50 p-4 rounded-lg text-gray-700 italic border border-gray-200 text-left">
+                      <strong>Notes from Tech Lead:</strong><br/>
+                      "{reviews[0].comments}" <br/>
+                      <span className="text-xs text-gray-500 font-medium not-italic mt-1 block">— {reviews[0].reviewer_name}</span>
+                    </span>
+                  )}
+                </p>
+              </div>
 
-            <div className="pt-4 flex justify-center gap-4">
-              <button 
-                onClick={() => navigate(`/requests/${id}/package`)}
-                className="bg-primary-orange hover:bg-hover-orange text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
-              >
-                <span>⬇️</span> Download Skeleton ZIP
-              </button>
-              <button 
-                onClick={() => navigate(user?.dashboard || '/developer/dashboard')}
-                className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white font-bold px-6 py-2.5 rounded-lg border border-primary-orange transition-colors text-sm"
-              >
-                Back to Dashboard
-              </button>
+              <div className="pt-4 flex justify-center gap-4">
+                <button 
+                  onClick={() => navigate(`/requests/${id}/package`)}
+                  className="bg-primary-orange hover:bg-hover-orange text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
+                >
+                  <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
+                  <span>Download Skeleton ZIP</span>
+                </button>
+                <button 
+                  onClick={() => navigate(user?.dashboard || '/developer/dashboard')}
+                  className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white font-bold px-6 py-2.5 rounded-lg border border-primary-orange transition-colors text-sm"
+                >
+                  Back to Dashboard
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-border-light text-center space-y-6">
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto border border-amber-200 text-amber-600 text-4xl shadow-sm">
+                <ClockIcon className="w-10 h-10 stroke-[2.5]" />
+              </div>
+              <div>
+                <span className="bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block mb-3">
+                  Awaiting Tech Lead Approval
+                </span>
+                <h2 className="text-2xl font-extrabold text-gray-800">Review Pending for {req.request_name || `Request #${req.id || id}`}</h2>
+                <p className="text-gray-600 text-sm mt-2 max-w-md mx-auto leading-relaxed">
+                  Your microservice codebase has been successfully generated, validated, and packaged. The pipeline is currently paused pending final Code Quality & Repository Commit sign-off from the Tech Lead.
+                </p>
+              </div>
+
+              <div className="pt-4 flex justify-center gap-4">
+                <button 
+                  onClick={() => navigate(`/requests/${id}/package`)}
+                  className="bg-primary-orange hover:bg-hover-orange text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
+                >
+                  <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
+                  <span>Download Skeleton ZIP</span>
+                </button>
+                <button 
+                  onClick={() => navigate(user?.dashboard || '/developer/dashboard')}
+                  className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white font-bold px-6 py-2.5 rounded-lg border border-primary-orange transition-colors text-sm"
+                >
+                  Back to Dashboard
+                </button>
+              </div>
+            </div>
+          )
         ) : (
           /* Tech Lead / Solution Architect Form with Inspection Details */
           <div className="space-y-6">
@@ -328,6 +375,8 @@ export default function ReviewApprovalPage() {
               </div>
             </form>
           </div>
+        )}
+          </>
         )}
       </div>
 

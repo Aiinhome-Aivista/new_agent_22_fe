@@ -5,7 +5,7 @@ import Loader from '../components/Loader';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import StepRequestTable from '../components/StepRequestTable';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 export default function PackagesPage() {
   const { id: pathId } = useParams();
@@ -23,6 +23,7 @@ export default function PackagesPage() {
   const [reqData, setReqData] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
     if (!id || id === 'undefined') {
       getRequests().then(data => {
         setRequests(data.data || []);
@@ -65,8 +66,6 @@ export default function PackagesPage() {
 
 
 
-  if (loading) return <Loader />;
-
   if (!id || id === 'undefined') {
     return (
       <div className="flex flex-col h-full bg-gray-50 p-4 md:p-6">
@@ -79,25 +78,28 @@ export default function PackagesPage() {
     <div className="flex flex-col h-full bg-gray-50">
       <ProgressStepper />
       <div className="p-8 flex-1 overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/packages')} 
-              className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
-              title="Go Back"
-            >
-              <ArrowLeftIcon className="w-5 h-5" />
-            </button>
-            <h2 className="text-2xl font-extrabold text-sidebar">
-              Code Package Delivery
-            </h2>
-          </div>
-        </div>
+        {loading ? (
+          <Loader />
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => navigate('/packages')} 
+                  className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Go Back"
+                >
+                  <ArrowLeftIcon className="w-5 h-5" />
+                </button>
+                <h2 className="text-2xl font-extrabold text-sidebar">
+                  Code Package Delivery
+                </h2>
+              </div>
+            </div>
 
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <span className="text-xl">📦</span> Download Skeleton
                 </h3>
@@ -115,7 +117,10 @@ export default function PackagesPage() {
                       className="w-full inline-block text-center bg-primary-orange hover:bg-hover-orange text-white py-2 rounded-lg font-medium shadow-sm transition-all hover:-translate-y-0.5"
                       download
                     >
-                      ⬇️ Download ZIP
+                      <span className="flex items-center justify-center gap-2">
+                        <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
+                        Download ZIP
+                      </span>
                     </a>
                   </div>
                 ))}
@@ -143,12 +148,15 @@ export default function PackagesPage() {
                 <h3 className="font-bold text-emerald-800 mb-2">Validation Summary</h3>
                 <p className="text-sm text-emerald-700 mb-4">All pattern checks and logic validations passed successfully.</p>
                 <button onClick={() => navigate(`/requests/${id}/review`)} className="w-full bg-primary-orange hover:bg-hover-orange text-white py-3 rounded-lg font-bold shadow-sm transition-all text-center flex justify-center items-center gap-2">
-                  Proceed to Tech Lead Review &rarr;
+                  {reqData?.request?.status === 'approved' || reqData?.request?.status === 'packaged' 
+                    ? 'View Final Sign-off Details \u2192' 
+                    : 'Proceed to Tech Lead Review \u2192'}
                 </button>
               </div>
             </div>
-          </div>
-
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

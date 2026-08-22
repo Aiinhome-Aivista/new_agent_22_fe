@@ -15,11 +15,19 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep }
   const location = useLocation();
   const pathParts = location.pathname.split('/');
   const lastPart = pathParts.pop();
-  const currentPath = activeStep || (lastPart === 'progress' ? 'generation' : lastPart);
+  let currentPath = activeStep || (lastPart === 'progress' ? 'generation' : lastPart);
+  if (currentPath === 'packages' || currentPath === 'packaging') {
+    currentPath = 'package';
+  }
+  if (currentPath === 'queue' && location.pathname.includes('/review/')) {
+    currentPath = 'review';
+  }
 
-  // Try to extract request ID from URL if not passed as prop (e.g. /requests/123/generation)
+  // Try to extract request ID from URL path or query params
+  const searchParams = new URLSearchParams(location.search);
+  const queryId = searchParams.get('id');
   const urlRequestId = pathParts.find(p => !isNaN(p) && p.length > 0);
-  const requestId = propRequestId || urlRequestId;
+  const requestId = propRequestId || urlRequestId || queryId;
 
   const [reqData, setReqData] = useState(null);
 

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { submitChatIntake, runWorkflow, getRequest } from '../api/api';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useProject } from '../context/ProjectContext';
 import { SparklesIcon, PaperClipIcon, PaperAirplaneIcon, ChevronDownIcon, UserIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const TypewriterText = ({ text, animate }) => {
@@ -27,6 +28,7 @@ const TypewriterText = ({ text, animate }) => {
 
 export default function NewRequestPage() {
   const navigate = useNavigate();
+  const { currentTrack, currentProject } = useProject();
   const { id } = useParams();
   const [isReadOnly, setIsReadOnly] = useState(!!id);
   const [prompt, setPrompt] = useState('');
@@ -136,6 +138,13 @@ export default function NewRequestPage() {
       const payload = new FormData();
       payload.append('messages', JSON.stringify(newMessages));
       payload.append('language', language);
+      if (currentTrack) {
+        if (currentTrack.id) payload.append('track_id', currentTrack.id);
+        if (currentTrack.track_name) payload.append('track_name', currentTrack.track_name);
+      }
+      if (currentProject && currentProject.id) {
+        payload.append('project_id', currentProject.id);
+      }
       
       filesToUpload.forEach(file => {
         payload.append('file_upload', file);

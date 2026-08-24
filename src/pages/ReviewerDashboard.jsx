@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useProject } from '../context/ProjectContext';
 import { getDashboardMetrics, getTechLeadReviews, getTechLeadValidations } from '../api/api';
 import Loader from '../components/Loader';
 import RequestTable from '../components/RequestTable';
@@ -8,6 +9,7 @@ import { ClipboardDocumentCheckIcon, ExclamationCircleIcon, CheckCircleIcon, XCi
 
 export default function ReviewerDashboard() {
   const { user } = useAuth();
+  const { currentTrack } = useProject();
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [requests, setRequests] = useState([]);
@@ -20,12 +22,19 @@ export default function ReviewerDashboard() {
 
     getTechLeadReviews().then(res => {
       if (res.data) {
-        const mappedRequests = res.data.map(req => ({
+        let mappedRequests = res.data.map(req => ({
           ...req,
           request_name: req.serviceName || req.request_name,
           application_id: req.targetAppId || req.application_id,
           created_at: req.date || req.created_at
         }));
+        if (currentTrack) {
+          mappedRequests = mappedRequests.filter(r => 
+            r.track_id === currentTrack.id || 
+            r.track_name === currentTrack.track_name ||
+            (currentTrack.track_name && r.request_name && r.request_name.toLowerCase().includes(currentTrack.track_name.toLowerCase()))
+          );
+        }
         setRequests(mappedRequests);
       }
     }).catch(console.error);

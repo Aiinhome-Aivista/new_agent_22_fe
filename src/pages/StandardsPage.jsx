@@ -3,9 +3,11 @@ import { getStandards, saveStandard, deleteStandard } from '../api/api';
 import Loader from '../components/Loader';
 import { DocumentTextIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
+import { useProject } from '../context/ProjectContext';
 
 export default function StandardsPage() {
   const { user } = useAuth();
+  const { currentTrack, currentProject } = useProject();
   const [standards, setStandards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStandard, setSelectedStandard] = useState(null);
@@ -22,7 +24,7 @@ export default function StandardsPage() {
 
   const fetchStandards = (selectFirst = true, tabToSelect = activeTab) => {
     setLoading(true);
-    getStandards().then(res => {
+    getStandards(currentTrack?.id).then(res => {
       const list = res.data || [];
       setStandards(list);
       
@@ -43,7 +45,7 @@ export default function StandardsPage() {
 
   useEffect(() => {
     fetchStandards(true, activeTab);
-  }, []);
+  }, [currentTrack]);
 
   const handleTabChange = (tabId) => {
     if (isEditing) {
@@ -56,7 +58,12 @@ export default function StandardsPage() {
   };
 
   const handleSave = async () => {
-    await saveStandard({ ...editForm, created_by: user?.id });
+    const authorName = user?.name || user?.username || user?.email?.split('@')[0] || 'Solution Architect';
+    await saveStandard({ 
+      ...editForm, 
+      created_by: authorName,
+      track_id: currentTrack?.id
+    });
     setIsEditing(false);
     fetchStandards(true, activeTab);
   };

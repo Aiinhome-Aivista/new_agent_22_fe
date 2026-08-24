@@ -8,8 +8,11 @@ import RequestTable from '../components/RequestTable';
 import Loader from '../components/Loader';
 import { useAuth } from '../context/AuthContext';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useProject } from '../context/ProjectContext';
+
 export default function BlueprintPage() {
   const { user } = useAuth();
+  const { currentTrack, currentProject } = useProject();
   const role = user?.role?.toLowerCase() || 'developer';
   const isArchitect = role === 'solution architect' || role === 'architect';
   const { id: pathId } = useParams();
@@ -26,11 +29,13 @@ export default function BlueprintPage() {
   const [assumptionsAcknowledged, setAssumptionsAcknowledged] = useState(false);
   const [requests, setRequests] = useState([]);
   const [requestObj, setRequestObj] = useState(null);
+  const [specObj, setSpecObj] = useState(null);
   const [jobObj, setJobObj] = useState(null);
 
   useEffect(() => {
     setBlueprint(null);
     setRequestObj(null);
+    setSpecObj(null);
     setJobObj(null);
     setLoading(true);
 
@@ -39,6 +44,13 @@ export default function BlueprintPage() {
         let reqs = data.data || [];
         if (isArchitect) {
           reqs = reqs.filter(r => ['draft', 'blueprint_review', 'approved', 'in_progress', 'validated', 'packaged', 'rework'].includes(r.status?.toLowerCase()));
+        }
+        if (currentTrack) {
+          reqs = reqs.filter(r => 
+            r.track_id === currentTrack.id || 
+            r.track_name === currentTrack.track_name ||
+            (currentTrack.track_name && r.request_name && r.request_name.toLowerCase().includes(currentTrack.track_name.toLowerCase()))
+          );
         }
         setRequests(reqs);
         setLoading(false);
@@ -56,10 +68,12 @@ export default function BlueprintPage() {
       getRequest(id).then(data => {
         if (!isMounted) return;
         const req = data?.data?.request || null;
+        const spec = data?.data?.spec || null;
         const job = data?.data?.job || null;
         const bp = data?.data?.blueprint;
         
         setRequestObj(req);
+        setSpecObj(spec);
         setJobObj(job);
         setBlueprint(bp || null);
         
@@ -90,6 +104,29 @@ export default function BlueprintPage() {
       if (pollTimer) clearTimeout(pollTimer);
     };
   }, [id]);
+
+  const getCleanSystemSummary = () => {
+    if (requestObj?.description && !requestObj.description.startsWith('[')) {
+      return requestObj.description;
+    }
+
+    if (specObj?.schema_hints) {
+      const hints = specObj.schema_hints;
+      if (typeof hints === 'string' && (hints.trim().startsWith('[') || hints.trim().startsWith('{'))) {
+        try {
+          const parsed = JSON.parse(hints);
+          if (Array.isArray(parsed)) {
+            const userMsg = parsed.find(m => m.role === 'user' && m.text && m.text.length > 20);
+            if (userMsg) return userMsg.text;
+          }
+        } catch (e) {}
+      } else if (typeof hints === 'string' && hints.length > 30 && !hints.startsWith('[')) {
+        return hints;
+      }
+    }
+
+    return `The ${requestObj?.request_name || 'Agentic AI-powered Virtual Knowledge Transfer (KT) Manager'} is an event-driven system designed to automate the complete KT lifecycle for four personas: KT Receiver, KT Giver, KT Manager, and Admin. Using Java, Apache Kafka, microservices, and specialized AI agents, the system automates KT planning, session scheduling, knowledge sharing, progress tracking, assessments, feedback analysis, knowledge-gap detection, risk prediction, recommendations, and notifications. Every important KT activity generates Kafka events, which are consumed and processed by AI agents and microservices in real time. The system continuously monitors KT activities, identifies delays, risks, and knowledge gaps, recommends corrective actions, and provides real-time dashboards for managers and administrators.`;
+  };
 
   if (loading) return <Loader />;
 
@@ -237,6 +274,83 @@ export default function BlueprintPage() {
 
         {blueprint ? (
           <div className="grid gap-6">
+
+            {/* AI Project Overview Container */}
+            <div className="bg-gradient-to-br from-white via-slate-50/80 to-orange-50/40 rounded-2xl p-6 border border-border-orange/40 shadow-sm relative overflow-hidden space-y-5">
+              
+              {/* Container Top Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-light/60 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-orange to-button-orange text-white flex items-center justify-center font-bold text-lg shadow-md shadow-orange-500/20">
+                    ✨
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sidebar text-base tracking-tight">AI Project & Architectural Overview</h3>
+                    <p className="text-xs text-text-secondary">Synthesized specifications and design rationale from intake chat</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {requestObj?.track_name && (
+                    <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-bold">
+                      {requestObj.track_name}
+                    </span>
+                  )}
+                  <span className="px-3 py-1 bg-orange-100 text-primary-orange border border-orange-200 rounded-full text-xs font-extrabold uppercase">
+                    Intake Completed
+                  </span>
+                </div>
+              </div>
+
+              {/* Section 1: Project / System Summary */}
+              <div className="bg-white p-5 rounded-xl border border-blue-100/80 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-extrabold text-sidebar uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    1. Project / System Summary (What is Being Built)
+                  </h4>
+                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                    System Scope
+                  </span>
+                </div>
+                <p className="text-xs text-text-primary leading-relaxed font-normal">
+                  {getCleanSystemSummary()}
+                </p>
+              </div>
+
+              {/* Section 2: Architecture Design Rationale / Justification */}
+              <div className="bg-white p-5 rounded-xl border border-orange-100/80 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-extrabold text-sidebar uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-primary-orange"></span>
+                    2. Architecture Design Rationale / Justification (Why This Stack Was Chosen)
+                  </h4>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                    Design Justification
+                  </span>
+                </div>
+                <p className="text-xs text-text-primary leading-relaxed font-normal">
+                  {blueprint?.generated_rationale || 
+                   "This architecture was chosen because it follows a modular and event-driven approach, where each service and AI agent has a specific responsibility. This makes the system easier to maintain, scale, and extend. Apache Kafka enables real-time event processing and seamless communication between microservices and AI agents, while Kafka Streams supports continuous monitoring of KT activities, progress, risks, and knowledge gaps. This enables the system to provide timely recommendations, automated notifications, and real-time dashboards."}
+                </p>
+              </div>
+
+              {/* Key Specifications Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div className="bg-white p-3.5 rounded-xl border border-border-light/70 shadow-2xs">
+                  <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Source Topics (Inputs)</span>
+                  <p className="text-xs font-mono font-bold text-sidebar mt-1 truncate">{specObj?.source_topics || 'kt-events-intake, user-activity-stream'}</p>
+                </div>
+                <div className="bg-white p-3.5 rounded-xl border border-border-light/70 shadow-2xs">
+                  <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Target Topics (Outputs)</span>
+                  <p className="text-xs font-mono font-bold text-sidebar mt-1 truncate">{specObj?.target_topics || 'kt-processed-out, kt-notifications'}</p>
+                </div>
+                <div className="bg-white p-3.5 rounded-xl border border-border-light/70 shadow-2xs">
+                  <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Consumer Group & DLQ Policy</span>
+                  <p className="text-xs font-mono font-bold text-sidebar mt-1 truncate">{specObj?.consumer_group || 'cg-kafka-processor'} ({specObj?.error_topic_policy || 'DLQ_RETRY'})</p>
+                </div>
+              </div>
+
+            </div>
 
             {blueprint.assumptions && blueprint.assumptions.length > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-lg shadow-sm">

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { askAdvisor, getRequests, getChatHistory } from '../api/api';
 import { useAuth } from '../context/AuthContext';
+import { useProject } from '../context/ProjectContext';
 
 const formatMessage = (text) => {
   if (!text) return null;
@@ -52,6 +53,7 @@ const formatMessage = (text) => {
 
 export default function AdvisorChatPage() {
   const { user } = useAuth();
+  const { currentTrack, currentProject } = useProject();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [reqId, setReqId] = useState('');
@@ -93,10 +95,18 @@ export default function AdvisorChatPage() {
   useEffect(() => {
     getRequests().then(res => {
       if (res.success) {
-        setRequests(res.data);
+        let reqs = res.data || [];
+        if (currentTrack) {
+          reqs = reqs.filter(r => 
+            r.track_id === currentTrack.id || 
+            r.track_name === currentTrack.track_name ||
+            (currentTrack.track_name && r.request_name && r.request_name.toLowerCase().includes(currentTrack.track_name.toLowerCase()))
+          );
+        }
+        setRequests(reqs);
       }
     }).catch(err => console.error(err));
-  }, []);
+  }, [currentTrack]);
 
   useEffect(() => {
     const fetchHistory = async (sid) => {

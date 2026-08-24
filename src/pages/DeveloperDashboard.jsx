@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useProject } from '../context/ProjectContext';
 import { getDashboardMetrics, getRequests } from '../api/api';
 import Loader from '../components/Loader';
 import { useNavigate } from 'react-router-dom';
-import { CodeBracketIcon, ArrowPathIcon, ArchiveBoxArrowDownIcon } from '@heroicons/react/24/outline';
+import { CodeBracketIcon, ArrowPathIcon, ArchiveBoxArrowDownIcon, QueueListIcon } from '@heroicons/react/24/outline';
 
 export default function DeveloperDashboard() {
   const { user } = useAuth();
+  const { currentTrack, currentProject } = useProject();
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [requests, setRequests] = useState([]);
@@ -15,10 +17,20 @@ export default function DeveloperDashboard() {
     Promise.all([getDashboardMetrics('developer'), getRequests()])
       .then(([metricsRes, requestsRes]) => {
         if (metricsRes.success) setMetrics(metricsRes.data);
-        if (requestsRes.success) setRequests(requestsRes.data || []);
+        if (requestsRes.success) {
+          let reqs = requestsRes.data || [];
+          if (currentTrack) {
+            reqs = reqs.filter(r => 
+              r.track_id === currentTrack.id || 
+              r.track_name === currentTrack.track_name ||
+              (currentTrack.track_name && r.request_name && r.request_name.toLowerCase().includes(currentTrack.track_name.toLowerCase()))
+            );
+          }
+          setRequests(reqs);
+        }
       })
       .catch(console.error);
-  }, []);
+  }, [currentTrack]);
 
   if (!metrics) return <Loader />;
 

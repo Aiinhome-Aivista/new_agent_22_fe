@@ -11,6 +11,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      // Clear previous active session data on new login
+      localStorage.removeItem('agent22_active_project');
+      localStorage.removeItem('agent22_active_track');
+      localStorage.removeItem('lastGenerationRequestId');
+
       const response = await apiLogin({ email, password });
       if (response.success) {
         const userData = {
@@ -37,6 +42,9 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('agent22_user');
+    localStorage.removeItem('agent22_active_project');
+    localStorage.removeItem('agent22_active_track');
+    localStorage.removeItem('lastGenerationRequestId');
   };
 
   return (

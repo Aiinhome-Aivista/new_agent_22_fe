@@ -53,7 +53,7 @@ export const getAuditLogs = (reqId) => api.get(`/audit/request/${reqId}`).then(r
 export const getDashboardMetrics = (role) => api.get(`/dashboard/metrics/${role}`).then(res => res.data);
 
 // Standards
-export const getStandards = () => api.get('/standards/').then(res => res.data);
+export const getStandards = (trackId) => api.get('/standards/', { params: { track_id: trackId } }).then(res => res.data);
 export const saveStandard = (data) => api.post('/standards/', data).then(res => res.data);
 export const deleteStandard = (id) => api.delete(`/standards/${id}`).then(res => res.data);
 
@@ -71,4 +71,14 @@ export const getTechLeadReportSummary = () => api.get('/techlead/reports/summary
 export const getTechLeadReports = () => api.get('/techlead/reports').then(res => res.data);
 export const downloadTechLeadReport = (id, format = 'json') => api.get(`/techlead/reports/download/${id}?format=${format}`, { responseType: 'blob' }).then(res => res.data);
 
+// Projects
+export const getProjects = (params) => api.get('/projects/', { params }).then(res => res.data);
+export const createProject = (data) => api.post('/projects/', data).then(res => res.data);
+export const getProject = (id) => api.get(`/projects/${id}`).then(res => res.data);
+export const updateProject = (id, data) => api.put(`/projects/${id}`, data).then(res => res.data);
+export const deleteProject = (id) => api.delete(`/projects/${id}`).then(res => res.data);
+export const updateTrack = (trackId, data) => api.put(`/projects/tracks/${trackId}`, data).then(res => res.data);
+export const deleteTrack = (trackId) => api.delete(`/projects/tracks/${trackId}`).then(res => res.data);
+
 export default api;
+

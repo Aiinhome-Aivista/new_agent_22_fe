@@ -55,6 +55,8 @@ export const getDashboardMetrics = (role, trackId) => api.get(`/dashboard/metric
 // Standards
 export const getStandards = (trackId) => api.get('/standards/', { params: { track_id: trackId } }).then(res => res.data);
 export const saveStandard = (data) => api.post('/standards/', data).then(res => res.data);
+export const uploadStandard = (formData) => api.post('/standards/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => res.data);
+export const parseFileContent = (formData) => api.post('/standards/parse-file', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => res.data);
 export const deleteStandard = (id) => api.delete(`/standards/${id}`).then(res => res.data);
 
 // Environments

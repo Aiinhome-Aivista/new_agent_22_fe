@@ -455,7 +455,7 @@ export default function StandardsPage() {
                     ref={fileInputRef} 
                     onChange={handleFileSelectedForUpload} 
                     className="hidden" 
-                    accept=".md,.txt,.json,.yaml,.yml,.java,.py,.js,.sql,.properties,.pdf,.pptx,.ppt,.xlsx,.xls,.csv"
+                    accept=".md,.txt,.json,.yaml,.yml,.java,.py,.js,.sql,.properties,.pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.csv"
                   />
                   <button 
                     onClick={() => fileInputRef.current?.click()} 

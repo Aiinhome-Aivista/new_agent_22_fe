@@ -43,7 +43,7 @@ export const runWorkflow = (reqId, draftMode = false) => api.post('/workflow/run
 export const getWorkflowStatus = (jobId) => api.get(`/workflow/status/${jobId}`).then(res => res.data);
 
 // Chat
-export const askAdvisor = (sessionId, question, reqId) => api.post('/chat/ask', { session_id: sessionId, question, request_id: reqId }).then(res => res.data);
+export const askAdvisor = (sessionId, question, reqId, trackId) => api.post('/chat/ask', { session_id: sessionId, question, request_id: reqId, track_id: trackId }).then(res => res.data);
 export const getChatHistory = (sessionId) => api.get(`/chat/history/${sessionId}`).then(res => res.data);
 
 // Audit

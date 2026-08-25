@@ -22,3 +22,15 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
+
+/* Hide scrollbar visually while keeping scrolling functionality */
+.no-scrollbar::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar,
+.custom-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

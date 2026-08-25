@@ -99,18 +99,24 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep, 
 
     // Step 3: Validation
     if (stepIndex === 3) {
-      if (hasValErrors) return 'failed';
-      if (['validated', 'packaged', 'approved'].includes(reqStatus)) return 'completed';
-      if (currentStep === 'Validation') return 'active';
+      if (['validated', 'packaged', 'approved'].includes(reqStatus)) {
+        return hasValErrors ? 'failed' : 'completed';
+      }
+      if (currentStep === 'Validation') {
+        return (jobStatus === 'failed' || hasValErrors) ? 'failed' : 'active';
+      }
       if (jobStatus === 'failed' && currentStep === 'Validation') return 'failed';
       return 'pending';
     }
 
     // Step 4: Packages
     if (stepIndex === 4) {
-      if (hasValErrors) return 'failed';
-      if (['packaged', 'approved'].includes(reqStatus)) return 'completed';
-      if (currentStep === 'Packaging') return 'active';
+      if (['packaged', 'approved'].includes(reqStatus)) {
+        return 'completed';
+      }
+      if (currentStep === 'Packaging') {
+        return jobStatus === 'failed' ? 'failed' : 'active';
+      }
       if (jobStatus === 'failed' && currentStep === 'Packaging') return 'failed';
       return 'pending';
     }

@@ -11,7 +11,7 @@ const steps = [
   { path: 'review', label: 'Review' }
 ];
 
-export default function ProgressStepper({ requestId: propRequestId, activeStep }) {
+export default function ProgressStepper({ requestId: propRequestId, activeStep, reqData: externalReqData }) {
   const location = useLocation();
   const pathParts = location.pathname.split('/');
   const lastPart = pathParts.pop();
@@ -29,23 +29,27 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep }
   const urlRequestId = pathParts.find(p => !isNaN(p) && p.length > 0);
   const requestId = propRequestId || urlRequestId || queryId;
 
-  const [reqData, setReqData] = useState(null);
+  const [localReqData, setLocalReqData] = useState(null);
 
   useEffect(() => {
-    setReqData(null);
+    if (externalReqData) return; // Don't fetch if provided by parent
+    
+    setLocalReqData(null);
     if (!requestId) return;
 
     let isMounted = true;
     getRequest(requestId).then(res => {
       if (isMounted && res.success) {
-        setReqData(res.data);
+        setLocalReqData(res.data);
       }
     }).catch(console.error);
 
     return () => {
       isMounted = false;
     };
-  }, [requestId]);
+  }, [requestId, externalReqData]);
+  
+  const reqData = externalReqData || localReqData;
 
   const currentIndex = steps.findIndex(s => s.path === currentPath);
 

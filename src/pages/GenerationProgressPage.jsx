@@ -30,6 +30,30 @@ const syntaxHighlight = (code) => {
   return highlighted;
 };
 
+const checkIfNeedsWork = (code) => {
+  if (!code) return false;
+  const lowerCode = code.toLowerCase();
+  
+  // 1. Check for explicit keywords and common LLM placeholders
+  if (lowerCode.includes('todo') || 
+      lowerCode.includes('fixme') || 
+      lowerCode.includes('unsupportedoperationexception') || 
+      lowerCode.includes('implement logic') ||
+      lowerCode.includes('your logic here') ||
+      lowerCode.includes('add logic here') ||
+      lowerCode.includes('business logic for') ||
+      lowerCode.includes('route to dlq')) {
+      return true;
+  }
+  
+  // 2. Check for empty blocks with only comments: { \n // some comment \n }
+  if (/{[\s\n]*\/\/[^}\n]*[\s\n]*}/.test(code)) {
+    return true;
+  }
+  
+  return false;
+};
+
 export default function GenerationProgressPage() {
   const { id: pathId } = useParams();
   const [searchParams] = useSearchParams();
@@ -140,9 +164,9 @@ export default function GenerationProgressPage() {
   const displayList = (expectedFiles.length > 0 
     ? expectedFiles.map(ef => {
         const genFile = generatedFiles.find(gf => gf.file_name === ef.filename || gf.file_name === ef.name);
-        return genFile ? { ...genFile, isGenerated: true } : { file_name: ef.filename || ef.name, isGenerated: false };
+        return genFile ? { ...genFile, isGenerated: true, needsWork: checkIfNeedsWork(genFile.preview) } : { file_name: ef.filename || ef.name, isGenerated: false };
       })
-    : generatedFiles.map(gf => ({ ...gf, isGenerated: true }))
+    : generatedFiles.map(gf => ({ ...gf, isGenerated: true, needsWork: checkIfNeedsWork(gf.preview) }))
   ).filter(f => f.isGenerated || (!isCompleted && !isFailed));
 
   const isAlreadyValidated = ['validated', 'packaged', 'approved'].includes(reqData?.request?.status);
@@ -152,7 +176,7 @@ export default function GenerationProgressPage() {
 
   return (
     <div className="flex flex-col h-full bg-[#fcf9f8]">
-      <ProgressStepper requestId={id} activeStep="generation" />
+      <ProgressStepper requestId={id} activeStep="generation" reqData={reqData} />
       
       <div className="p-6 flex-1 overflow-hidden flex flex-col">
         {/* Workspace Top Header Panel */}
@@ -185,7 +209,16 @@ export default function GenerationProgressPage() {
           
           <div className="flex gap-3 mt-4 sm:mt-0">
             {isFailed && (
-              <button className="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-4 py-2 rounded font-bold text-sm transition-colors shadow-sm">
+              <button 
+                onClick={async () => {
+                  try {
+                    const { runWorkflow } = await import('../api/api');
+                    await runWorkflow(id);
+                  } catch (err) {
+                    console.error('Retry failed', err);
+                  }
+                }}
+                className="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-4 py-2 rounded font-bold text-sm transition-colors shadow-sm">
                 RETRY PIPELINE
               </button>
             )}
@@ -273,14 +306,21 @@ export default function GenerationProgressPage() {
                             ) : (
                               <span className="text-gray-400 shrink-0">📄</span>
                             )}
-                            <span className={`text-sm font-mono truncate ${isActive ? 'text-gray-900 font-bold' : isGen ? 'text-gray-600 font-medium' : 'text-gray-400 italic'}`}>
-                              {f.file_name}
+                            <span className={`text-sm font-mono truncate flex items-center ${isActive ? 'text-gray-900 font-bold' : isGen ? 'text-gray-600 font-medium' : 'text-gray-400 italic'}`}>
+                              {f.file_name} 
+                              {f.needsWork && <span className="text-yellow-500 ml-1.5 flex" title="Manual implementation required"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></span>}
                             </span>
                           </div>
                           {isGen ? (
-                            <span className="shrink-0 bg-green-50 text-green-700 text-[9px] font-black px-1.5 py-0.5 rounded border border-green-200 tracking-wider">
-                              GENERATED
-                            </span>
+                            f.needsWork ? (
+                              <span className="shrink-0 bg-yellow-50 text-yellow-600 text-[9px] font-black px-1.5 py-0.5 rounded border border-yellow-200 tracking-wider">
+                                NEEDS WORK
+                              </span>
+                            ) : (
+                              <span className="shrink-0 bg-green-50 text-green-700 text-[9px] font-black px-1.5 py-0.5 rounded border border-green-200 tracking-wider">
+                                GENERATED
+                              </span>
+                            )
                           ) : isCompleted || isFailed ? (
                             <span className="shrink-0 bg-red-50 text-red-500 text-[9px] font-black px-1.5 py-0.5 rounded border border-red-200 tracking-wider">
                               SKIPPED

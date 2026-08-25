@@ -62,9 +62,10 @@ export default function Sidebar() {
     { name: 'Advisor Chat', path: '/chat', icon: 'ChatBubbleLeftIcon' }
   ];
 
-  const hasActiveTrack = Boolean(currentTrack);
+  const isViewingDirectoryPage = location.pathname === '/projects' || location.pathname.startsWith('/projects/') || location.pathname === '/dashboard-overview';
+  const showTrackContext = Boolean(currentTrack) && !isViewingDirectoryPage;
 
-  const activeMenu = !hasActiveTrack 
+  const activeMenu = !showTrackContext 
     ? directoryMenu 
     : isArchitect 
       ? architectTrackMenu 
@@ -95,7 +96,7 @@ export default function Sidebar() {
       </div>
 
       {/* Active Track Banner in Sidebar */}
-      {currentTrack && (
+      {showTrackContext && (
         <div className="px-4 pt-4 pb-1">
           <div className="p-3 bg-white/5 border border-white/10 rounded-xl">
             <div className="flex justify-between items-center text-[10px] text-gray-400 mb-1">

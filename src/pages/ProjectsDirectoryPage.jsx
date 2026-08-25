@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../context/ProjectContext';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,7 @@ export default function ProjectsDirectoryPage({ onOpenTrackDashboard }) {
 
   const { 
     projects, 
+    currentProject,
     selectProject, 
     selectTrack,
     toggleProjectStatus,
@@ -34,8 +35,16 @@ export default function ProjectsDirectoryPage({ onOpenTrackDashboard }) {
     setStatusFilter
   } = useProject();
 
-  // Expanded project to view its tracks sub-cards
-  const [expandedProjectId, setExpandedProjectId] = useState(null);
+  // Expanded project to view its tracks sub-cards (defaults to currentProject?.id for browser back navigation)
+  const [expandedProjectId, setExpandedProjectId] = useState(currentProject?.id || null);
+
+  useEffect(() => {
+    if (!currentProject) {
+      setExpandedProjectId(null);
+    } else {
+      setExpandedProjectId(currentProject.id);
+    }
+  }, [currentProject]);
 
   const handleOpenTrack = (track, project) => {
     selectTrack(track, project);
@@ -88,7 +97,10 @@ export default function ProjectsDirectoryPage({ onOpenTrackDashboard }) {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
               <button 
-                onClick={() => setExpandedProjectId(null)}
+                onClick={() => {
+                  selectProject(null);
+                  setExpandedProjectId(null);
+                }}
                 className="flex items-center gap-1.5 text-xs font-bold text-text-secondary hover:text-primary-orange transition-colors mb-2"
               >
                 <ArrowLeftIcon className="w-4 h-4" />
@@ -367,7 +379,10 @@ export default function ProjectsDirectoryPage({ onOpenTrackDashboard }) {
                       ) : null}
 
                       <button
-                        onClick={() => setExpandedProjectId(project.id)}
+                        onClick={() => {
+                          selectProject(project);
+                          setExpandedProjectId(project.id);
+                        }}
                         className="text-xs font-extrabold text-primary-orange hover:text-hover-orange transition-colors flex items-center gap-1 group/btn"
                       >
                         View Tracks ({trackCount})

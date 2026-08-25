@@ -14,7 +14,7 @@ export default function DeveloperDashboard() {
   const [requests, setRequests] = useState([]);
 
   useEffect(() => {
-    Promise.all([getDashboardMetrics('developer'), getRequests()])
+    Promise.all([getDashboardMetrics('developer', currentTrack?.id), getRequests()])
       .then(([metricsRes, requestsRes]) => {
         if (metricsRes.success) setMetrics(metricsRes.data);
         if (requestsRes.success) {

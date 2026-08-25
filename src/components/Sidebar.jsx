@@ -12,7 +12,7 @@ import * as Icons from '@heroicons/react/24/outline';
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
-  const { currentTrack, selectTrack } = useProject();
+  const { currentTrack, selectTrack, selectProject } = useProject();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,8 +22,8 @@ export default function Sidebar() {
   };
 
   const role = user?.role?.toLowerCase() || 'developer';
-  const isArchitect = role === 'solution architect' || role === 'architect';
-  const isTechLead = role === 'tech lead' || role === 'techlead';
+  const isArchitect = role.includes('architect');
+  const isTechLead = role.includes('tech') || role.includes('lead');
 
   // Minimal Directory View Menu (Shared by ALL personas when no track is active)
   const directoryMenu = [
@@ -82,7 +82,7 @@ export default function Sidebar() {
       {/* DigiconFX Logo */}
       <div 
         className="p-6 flex items-center justify-between border-b border-white/10 cursor-pointer" 
-        onClick={() => { selectTrack(null, null); navigate('/projects'); }}
+        onClick={() => { selectProject(null); selectTrack(null, null); navigate('/projects'); }}
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-orange to-button-orange flex items-center justify-center text-white font-bold text-xl shadow-[0_4px_10px_rgba(255,90,20,0.3)]">
@@ -101,7 +101,7 @@ export default function Sidebar() {
             <div className="flex justify-between items-center text-[10px] text-gray-400 mb-1">
               <span className="font-bold uppercase tracking-wider text-primary-orange">Active Track</span>
               <button 
-                onClick={() => { selectTrack(null, null); navigate('/projects'); }}
+                onClick={() => { selectProject(null); selectTrack(null, null); navigate('/projects'); }}
                 className="text-gray-300 hover:text-white flex items-center gap-0.5 font-semibold"
               >
                 <ArrowLeftIcon className="w-3 h-3" /> Projects
@@ -125,7 +125,8 @@ export default function Sidebar() {
                 key={item.path}
                 to={item.path}
                 onClick={() => {
-                  if (item.name === 'Projects' || item.path === '/dashboard-overview') {
+                  if (item.name === 'Projects' || item.path === '/projects' || item.path === '/dashboard-overview') {
+                    selectProject(null);
                     selectTrack(null, null);
                   }
                 }}
@@ -138,12 +139,8 @@ export default function Sidebar() {
                     isReallyActive = (currentPath === '/projects' || currentPath.startsWith('/projects/'));
                   } else if (item.path === '/dashboard-overview') {
                     isReallyActive = (currentPath === '/dashboard-overview' || currentPath === '/dashboard-under-construction');
-                  } else if (item.path === '/developer/dashboard') {
-                    isReallyActive = (currentPath === '/developer/dashboard');
-                  } else if (item.path === '/architect/dashboard') {
-                    isReallyActive = (currentPath === '/architect/dashboard');
-                  } else if (item.path === '/techlead/dashboard') {
-                    isReallyActive = (currentPath === '/techlead/dashboard');
+                  } else if (item.name === 'Dashboard' || item.path.includes('dashboard')) {
+                    isReallyActive = currentPath.includes('dashboard');
                   } else if (item.path === '/request/new') {
                     isReallyActive = (currentPath === '/request/new');
                   } else if (item.path === '/requests') {

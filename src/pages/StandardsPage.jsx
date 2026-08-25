@@ -58,10 +58,11 @@ export default function StandardsPage() {
   };
 
   const handleSave = async () => {
-    const authorName = user?.name || user?.username || user?.email?.split('@')[0] || 'Solution Architect';
+    const authorName = user?.name || user?.username || (user?.email ? user.email.split('@')[0] : 'Sanjib Sau');
+    const authorIdentifier = user?.id ? `${authorName} (Architect #${user.id})` : authorName;
     await saveStandard({ 
       ...editForm, 
-      created_by: authorName,
+      created_by: authorIdentifier,
       track_id: currentTrack?.id
     });
     setIsEditing(false);
@@ -99,8 +100,14 @@ export default function StandardsPage() {
       <div className="mb-4 flex flex-col px-6 pt-6 gap-4">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Architecture Standards</h1>
-            <p className="text-text-secondary mt-1">Manage rules, validation logic, and sample scripts.</p>
+            <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">
+              {activeTab === 'standards' ? 'Architecture Standards' : activeTab === 'validation_rules' ? 'Validation Rules' : 'Sample Scripts'}
+            </h1>
+            <p className="text-text-secondary mt-1">
+              {activeTab === 'standards' && 'Manage blueprint generation rules and architectural design standards.'}
+              {activeTab === 'validation_rules' && 'Manage automated code validation rules and compliance checks.'}
+              {activeTab === 'sample_scripts' && 'Manage sample code generation scripts and reusable pattern templates.'}
+            </p>
           </div>
           {!isEditing && (
             <button onClick={openNew} className="flex items-center gap-2 bg-primary-orange text-white px-4 py-2 rounded-lg font-bold hover:bg-hover-orange transition-colors">
@@ -186,7 +193,12 @@ export default function StandardsPage() {
               <div className="flex justify-between items-center mb-6 pb-4 border-b">
                 <div>
                   <h2 className="text-xl font-bold text-gray-800">{selectedStandard.filename}</h2>
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{selectedStandard.folder.replace('_', ' ')}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{selectedStandard.folder.replace('_', ' ')}</span>
+                    <span className="text-xs font-bold text-primary-orange bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                      Author: {selectedStandard.created_by || 'Solution Architect'}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => openEdit(selectedStandard)} className="px-3 py-1.5 border border-gray-300 rounded text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">Edit</button>

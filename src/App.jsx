@@ -41,7 +41,7 @@ function App() {
           <Route element={<MainLayout />}>
             {/* Shared Pipeline & Feature Routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="projects" element={<ArchitectDashboard />} />
+              <Route path="projects" element={<ProjectsDirectoryPage />} />
               <Route path="projects/create" element={<CreateProjectPage />} />
               <Route path="projects/edit/:id" element={<EditProjectPage />} />
               <Route path="tracks/edit/:id" element={<EditTrackPage />} />

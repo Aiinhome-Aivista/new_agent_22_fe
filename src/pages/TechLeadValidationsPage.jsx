@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTechLeadValidations, actionValidation } from '../api/api';
+import { useProject } from '../context/ProjectContext';
 
 export default function TechLeadValidationsPage() {
   const navigate = useNavigate();
+  const { currentTrack } = useProject();
 
   const [validations, setValidations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ export default function TechLeadValidationsPage() {
   const fetchValidations = async () => {
     setLoading(true);
     try {
-      const res = await getTechLeadValidations();
+      const res = await getTechLeadValidations(currentTrack?.id);
       setValidations(res.data || []);
     } catch (err) {
       console.error('Error fetching validations:', err);
@@ -26,7 +28,7 @@ export default function TechLeadValidationsPage() {
 
   useEffect(() => {
     fetchValidations();
-  }, []);
+  }, [currentTrack]);
 
   const openModal = (e, type, val) => {
     e.preventDefault();

@@ -4,7 +4,7 @@ import { useProject } from '../context/ProjectContext';
 import { getDashboardMetrics, getRequests } from '../api/api';
 import Loader from '../components/Loader';
 import ProjectsDirectoryPage from './ProjectsDirectoryPage';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { 
   BuildingLibraryIcon, 
   ShieldCheckIcon, 
@@ -26,7 +26,7 @@ export default function ArchitectDashboard() {
 
   useEffect(() => {
     Promise.all([
-      getDashboardMetrics('architect'),
+      getDashboardMetrics('architect', currentTrack?.id),
       getRequests()
     ]).then(([metricsRes, requestsRes]) => {
       if (metricsRes.success) setMetrics(metricsRes.data);
@@ -36,7 +36,7 @@ export default function ArchitectDashboard() {
       console.error(err);
       setLoading(false);
     });
-  }, []);
+  }, [currentTrack]);
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -64,9 +64,9 @@ export default function ArchitectDashboard() {
 
   if (loading || !metrics) return <Loader />;
 
-  // If no track is currently selected, render the Projects Directory / Track Selection view
+  // If no track is currently selected, redirect to Projects Directory view
   if (!currentTrack || !currentProject) {
-    return <ProjectsDirectoryPage onOpenTrackDashboard={(track, project) => selectTrack(track, project)} />;
+    return <Navigate to="/projects" replace />;
   }
 
   // Filter requests strictly for the active track

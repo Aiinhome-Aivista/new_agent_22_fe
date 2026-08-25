@@ -16,7 +16,7 @@ export default function ReviewerDashboard() {
   const [validations, setValidations] = useState([]);
 
   useEffect(() => {
-    getDashboardMetrics('techlead').then(res => {
+    getDashboardMetrics('techlead', currentTrack?.id).then(res => {
       if (res.success) setMetrics(res.data);
     }).catch(console.error);
 
@@ -39,10 +39,10 @@ export default function ReviewerDashboard() {
       }
     }).catch(console.error);
 
-    getTechLeadValidations().then(res => {
+    getTechLeadValidations(currentTrack?.id).then(res => {
       if (res.success) setValidations(res.data || []);
     }).catch(console.error);
-  }, []);
+  }, [currentTrack]);
 
   if (!metrics) return <Loader />;
 

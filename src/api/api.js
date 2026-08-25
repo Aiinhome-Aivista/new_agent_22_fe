@@ -50,7 +50,7 @@ export const getChatHistory = (sessionId) => api.get(`/chat/history/${sessionId}
 export const getAuditLogs = (reqId) => api.get(`/audit/request/${reqId}`).then(res => res.data);
 
 // Dashboard
-export const getDashboardMetrics = (role) => api.get(`/dashboard/metrics/${role}`).then(res => res.data);
+export const getDashboardMetrics = (role, trackId) => api.get(`/dashboard/metrics/${role}`, { params: { track_id: trackId } }).then(res => res.data);
 
 // Standards
 export const getStandards = (trackId) => api.get('/standards/', { params: { track_id: trackId } }).then(res => res.data);
@@ -63,7 +63,7 @@ export const getEnvironment = (envName) => api.get(`/environments/${envName}`).t
 export const updateEnvironment = (envName, data) => api.put(`/environments/${envName}`, data).then(res => res.data);
 
 // Tech Lead
-export const getTechLeadValidations = () => api.get('/techlead/validations').then(res => res.data);
+export const getTechLeadValidations = (trackId) => api.get('/techlead/validations', { params: { track_id: trackId } }).then(res => res.data);
 export const actionValidation = (id, action) => api.post(`/techlead/validations/${id}/action`, { action }).then(res => res.data);
 export const getTechLeadReviews = () => api.get('/techlead/reviews').then(res => res.data);
 export const signoffReview = (data) => api.post('/techlead/reviews/signoff', data).then(res => res.data);

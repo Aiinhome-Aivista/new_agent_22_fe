@@ -27,6 +27,7 @@ export default function StandardsPage() {
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [isSavingUploaded, setIsSavingUploaded] = useState(false);
   const [modalNotice, setModalNotice] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null);
   const [deleteConfirmTarget, setDeleteConfirmTarget] = useState(null);
   const [isDeletingStandard, setIsDeletingStandard] = useState(false);
 
@@ -67,8 +68,18 @@ export default function StandardsPage() {
 
   const handleTabChange = (tabId) => {
     if (isEditing) {
-      if (!window.confirm("You have unsaved changes. Discard?")) return;
-      setIsEditing(false);
+      setConfirmModal({
+        title: "Discard Changes",
+        message: "You have unsaved changes. Are you sure you want to discard them?",
+        onConfirm: () => {
+          setConfirmModal(null);
+          setIsEditing(false);
+          setActiveTab(tabId);
+          const filteredList = standards.filter(std => std.folder === tabId);
+          setSelectedStandard(filteredList.length > 0 ? filteredList[0] : null);
+        }
+      });
+      return;
     }
     setActiveTab(tabId);
     const filteredList = standards.filter(std => std.folder === tabId);
@@ -299,6 +310,7 @@ export default function StandardsPage() {
     setUploadedFileStatus(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
 
   const openNew = () => {
     const defaultContent = activeTab === 'validation_rules' 
@@ -666,6 +678,33 @@ export default function StandardsPage() {
             >
               Understood
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Custom UI Confirmation Modal (For Discard Changes) */}
+      {confirmModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 flex flex-col items-center text-center transform transition-all scale-100">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 text-3xl shadow-sm bg-red-50 text-red-500 border border-red-100">
+              ⚠️
+            </div>
+            <h3 className="text-base font-extrabold text-sidebar mb-2">{confirmModal.title}</h3>
+            <p className="text-xs text-gray-600 mb-6 leading-relaxed whitespace-pre-line font-medium">{confirmModal.message}</p>
+            <div className="flex gap-3 w-full">
+              <button 
+                onClick={() => setConfirmModal(null)}
+                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmModal.onConfirm}
+                className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 transition-colors shadow-md shadow-red-500/20"
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}

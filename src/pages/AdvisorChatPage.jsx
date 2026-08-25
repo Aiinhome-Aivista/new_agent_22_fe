@@ -147,7 +147,7 @@ export default function AdvisorChatPage() {
     setLoading(true);
     
     try {
-      const res = await askAdvisor(sessionId, userMsg, reqId ? parseInt(reqId) : null);
+      const res = await askAdvisor(sessionId, userMsg, reqId ? parseInt(reqId) : null, currentTrack?.id);
       setMessages(prev => [...prev, { sender: 'ai', text: res.data.answer }]);
     } catch (err) {
       setMessages(prev => [...prev, { sender: 'ai', text: 'Sorry, I encountered an error answering your question.' }]);

@@ -91,6 +91,83 @@ export default function ReviewApprovalPage() {
   const spec = reqData?.spec || {};
   const valSummary = reqData?.validation_summary || {};
 
+  const renderStatusCard = () => (
+    ['approved', 'packaged'].includes(req.status) ? (
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-emerald-200 text-center space-y-6">
+        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-200 text-emerald-600 text-4xl shadow-sm">
+          <CheckCircleIcon className="w-10 h-10 stroke-[2.5]" />
+        </div>
+        <div>
+          <span className="bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block mb-3">
+            Approved & Finalized
+          </span>
+          <h2 className="text-2xl font-extrabold text-gray-800">Pipeline Completed for {req.request_name || `Request #${req.id || id}`}</h2>
+          <p className="text-gray-600 text-sm mt-2 max-w-lg mx-auto leading-relaxed">
+            Your microservice codebase has been officially reviewed and signed off by the Tech Lead. 
+            {reviews.length > 0 && reviews[0].comments && (
+              <span className="block mt-4 bg-gray-50 p-4 rounded-lg text-gray-700 italic border border-gray-200 text-left">
+                <strong>Notes from Tech Lead:</strong><br/>
+                "{reviews[0].comments}" <br/>
+                <span className="text-xs text-gray-500 font-medium not-italic mt-1 block">— {reviews[0].reviewer_name}</span>
+              </span>
+            )}
+          </p>
+        </div>
+
+        {!isArchitect && (
+          <div className="pt-4 flex justify-center gap-4">
+            <button 
+              onClick={() => navigate(`/requests/${id}/package`)}
+              className="bg-primary-orange hover:bg-hover-orange text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
+            >
+              <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
+              <span>Download Skeleton ZIP</span>
+            </button>
+            <button 
+              onClick={() => navigate(user?.dashboard || (isDeveloper ? '/developer/dashboard' : '/architect/dashboard'))}
+              className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white font-bold px-6 py-2.5 rounded-lg border border-primary-orange transition-colors text-sm"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        )}
+      </div>
+    ) : (
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-border-light text-center space-y-6">
+        <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto border border-amber-200 text-amber-600 text-4xl shadow-sm">
+          <ClockIcon className="w-10 h-10 stroke-[2.5]" />
+        </div>
+        <div>
+          <span className="bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block mb-3">
+            Awaiting Tech Lead Approval
+          </span>
+          <h2 className="text-2xl font-extrabold text-gray-800">Review Pending for {req.request_name || `Request #${req.id || id}`}</h2>
+          <p className="text-gray-600 text-sm mt-2 max-w-md mx-auto leading-relaxed">
+            Your microservice codebase has been successfully generated, validated, and packaged. The pipeline is currently paused pending final Code Quality & Repository Commit sign-off from the Tech Lead.
+          </p>
+        </div>
+
+        {!isArchitect && (
+          <div className="pt-4 flex justify-center gap-4">
+            <button 
+              onClick={() => navigate(`/requests/${id}/package`)}
+              className="bg-primary-orange hover:bg-hover-orange text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
+            >
+              <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
+              <span>Download Skeleton ZIP</span>
+            </button>
+            <button 
+              onClick={() => navigate(user?.dashboard || (isDeveloper ? '/developer/dashboard' : '/architect/dashboard'))}
+              className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white font-bold px-6 py-2.5 rounded-lg border border-primary-orange transition-colors text-sm"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  );
+
   return (
     <div className="flex flex-col h-full">
       <ProgressStepper />
@@ -111,76 +188,7 @@ export default function ReviewApprovalPage() {
             </div>
         {isDeveloper ? (
           /* Developer Persona Status Card */
-          ['approved', 'packaged'].includes(req.status) ? (
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-emerald-200 text-center space-y-6">
-              <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-200 text-emerald-600 text-4xl shadow-sm">
-                <CheckCircleIcon className="w-10 h-10 stroke-[2.5]" />
-              </div>
-              <div>
-                <span className="bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block mb-3">
-                  Approved & Finalized
-                </span>
-                <h2 className="text-2xl font-extrabold text-gray-800">Pipeline Completed for {req.request_name || `Request #${req.id || id}`}</h2>
-                <p className="text-gray-600 text-sm mt-2 max-w-lg mx-auto leading-relaxed">
-                  Your microservice codebase has been officially reviewed and signed off by the Tech Lead. 
-                  {reviews.length > 0 && reviews[0].comments && (
-                    <span className="block mt-4 bg-gray-50 p-4 rounded-lg text-gray-700 italic border border-gray-200 text-left">
-                      <strong>Notes from Tech Lead:</strong><br/>
-                      "{reviews[0].comments}" <br/>
-                      <span className="text-xs text-gray-500 font-medium not-italic mt-1 block">— {reviews[0].reviewer_name}</span>
-                    </span>
-                  )}
-                </p>
-              </div>
-
-              <div className="pt-4 flex justify-center gap-4">
-                <button 
-                  onClick={() => navigate(`/requests/${id}/package`)}
-                  className="bg-primary-orange hover:bg-hover-orange text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
-                >
-                  <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
-                  <span>Download Skeleton ZIP</span>
-                </button>
-                <button 
-                  onClick={() => navigate(user?.dashboard || '/developer/dashboard')}
-                  className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white font-bold px-6 py-2.5 rounded-lg border border-primary-orange transition-colors text-sm"
-                >
-                  Back to Dashboard
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-border-light text-center space-y-6">
-              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto border border-amber-200 text-amber-600 text-4xl shadow-sm">
-                <ClockIcon className="w-10 h-10 stroke-[2.5]" />
-              </div>
-              <div>
-                <span className="bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-block mb-3">
-                  Awaiting Tech Lead Approval
-                </span>
-                <h2 className="text-2xl font-extrabold text-gray-800">Review Pending for {req.request_name || `Request #${req.id || id}`}</h2>
-                <p className="text-gray-600 text-sm mt-2 max-w-md mx-auto leading-relaxed">
-                  Your microservice codebase has been successfully generated, validated, and packaged. The pipeline is currently paused pending final Code Quality & Repository Commit sign-off from the Tech Lead.
-                </p>
-              </div>
-
-              <div className="pt-4 flex justify-center gap-4">
-                <button 
-                  onClick={() => navigate(`/requests/${id}/package`)}
-                  className="bg-primary-orange hover:bg-hover-orange text-white font-bold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm flex items-center gap-2"
-                >
-                  <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
-                  <span>Download Skeleton ZIP</span>
-                </button>
-                <button 
-                  onClick={() => navigate(user?.dashboard || '/developer/dashboard')}
-                  className="bg-white text-primary-orange hover:bg-primary-orange hover:text-white font-bold px-6 py-2.5 rounded-lg border border-primary-orange transition-colors text-sm"
-                >
-                  Back to Dashboard
-                </button>
-              </div>
-            </div>
-          )
+          renderStatusCard()
         ) : (
           /* Tech Lead / Solution Architect Form with Inspection Details */
           <div className="space-y-6">
@@ -201,8 +209,6 @@ export default function ReviewApprovalPage() {
                 </div>
               </div>
 
-              {!isArchitect ? (
-                <>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-200">
                     <div className="overflow-hidden">
                       <span className="text-xs text-gray-500 font-medium block">Target App ID</span>
@@ -228,27 +234,6 @@ export default function ReviewApprovalPage() {
                       <span className="truncate">Error Topic Policy: <strong className="font-mono text-gray-700">{spec.error_topic_policy || 'DLQ'}</strong></span>
                     </div>
                   </div>
-                </>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-4 text-sm bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div>
-                      <span className="text-xs text-slate-500 font-medium block mb-1">Pattern Matching Summary</span>
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <strong className="text-slate-800">Stateful Processor Pattern</strong>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-xs text-slate-500 font-medium block mb-1">Architecture Compliance</span>
-                      <div className="flex flex-col gap-1">
-                        <span className="flex items-center gap-1 text-emerald-700"><span className="text-xs">✓</span> State Store</span>
-                        <span className="flex items-center gap-1 text-emerald-700"><span className="text-xs">✓</span> DLQ Configured</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
 
             {/* Architecture Blueprint Section */}
@@ -279,7 +264,7 @@ export default function ReviewApprovalPage() {
             )}
 
             {/* Generated Files Section */}
-            {generatedFiles && generatedFiles.length > 0 && !isArchitect && (
+            {generatedFiles && generatedFiles.length > 0 && (
               <details className="bg-white rounded-2xl shadow-sm border border-border-light group">
                 <summary className="p-6 cursor-pointer flex justify-between items-center text-lg font-bold text-gray-800 list-none [&::-webkit-details-marker]:hidden hover:bg-orange-50/50 transition-colors rounded-2xl">
                   <div className="flex items-center gap-2">
@@ -322,58 +307,63 @@ export default function ReviewApprovalPage() {
               </details>
             )}
 
+            {/* Architect Persona Status Card */}
+            {isArchitect && renderStatusCard()}
+
             {/* Review Decision Form */}
-            <form onSubmit={handleOpenConfirm} className="bg-white p-6 rounded-2xl shadow-sm border border-border-light space-y-6">
-              <h2 className="text-xl font-bold text-gray-800">
-                {isArchitect ? "Submit Architecture Review & Sign-Off" : "Submit Code Quality Review & Sign-Off"}
-              </h2>
+            {!isArchitect && (
+              <form onSubmit={handleOpenConfirm} className="bg-white p-6 rounded-2xl shadow-sm border border-border-light space-y-6">
+                <h2 className="text-xl font-bold text-gray-800">
+                  Submit Code Quality Review & Sign-Off
+                </h2>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer Name</label>
-                <input 
-                  required 
-                  type="text" 
-                  value={formData.reviewer_name} 
-                  onChange={(e) => setFormData({...formData, reviewer_name: e.target.value})} 
-                  className="w-full bg-input-bg border border-border-light rounded-lg p-2.5 text-sm focus:border-border-orange outline-none font-medium text-gray-800" 
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Review Decision</label>
-                <div className="flex gap-6">
-                  <label className="flex items-center gap-2 cursor-pointer bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-4 py-2.5 rounded-lg transition-colors">
-                    <input type="radio" name="decision" value="approved" checked={formData.decision === 'approved'} onChange={(e) => setFormData({...formData, decision: e.target.value})} className="w-4 h-4 text-emerald-600 focus:ring-emerald-600" />
-                    <span className="text-sm font-bold text-emerald-800">Approve & Commit</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer bg-amber-50 hover:bg-amber-100 border border-amber-200 px-4 py-2.5 rounded-lg transition-colors">
-                    <input type="radio" name="decision" value="rework" checked={formData.decision === 'rework'} onChange={(e) => setFormData({...formData, decision: e.target.value})} className="w-4 h-4 text-amber-500 focus:ring-amber-500" />
-                    <span className="text-sm font-bold text-amber-800">Request Rework</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer bg-red-50 hover:bg-red-100 border border-red-200 px-4 py-2.5 rounded-lg transition-colors">
-                    <input type="radio" name="decision" value="rejected" checked={formData.decision === 'rejected'} onChange={(e) => setFormData({...formData, decision: e.target.value})} className="w-4 h-4 text-red-600 focus:ring-red-600" />
-                    <span className="text-sm font-bold text-red-800">Reject</span>
-                  </label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reviewer Name</label>
+                  <input 
+                    required 
+                    type="text" 
+                    value={formData.reviewer_name} 
+                    onChange={(e) => setFormData({...formData, reviewer_name: e.target.value})} 
+                    className="w-full bg-input-bg border border-border-light rounded-lg p-2.5 text-sm focus:border-border-orange outline-none font-medium text-gray-800" 
+                  />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Architecture Review Comments</label>
-                <textarea 
-                  value={formData.comments} 
-                  onChange={(e) => setFormData({...formData, comments: e.target.value})} 
-                  rows="3" 
-                  className="w-full bg-input-bg border border-border-light rounded-lg p-2.5 text-sm focus:border-border-orange outline-none font-medium text-gray-800" 
-                  placeholder="Optional review notes or guidelines..."
-                ></textarea>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Review Decision</label>
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-4 py-2.5 rounded-lg transition-colors">
+                      <input type="radio" name="decision" value="approved" checked={formData.decision === 'approved'} onChange={(e) => setFormData({...formData, decision: e.target.value})} className="w-4 h-4 text-emerald-600 focus:ring-emerald-600" />
+                      <span className="text-sm font-bold text-emerald-800">Approve & Commit</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer bg-amber-50 hover:bg-amber-100 border border-amber-200 px-4 py-2.5 rounded-lg transition-colors">
+                      <input type="radio" name="decision" value="rework" checked={formData.decision === 'rework'} onChange={(e) => setFormData({...formData, decision: e.target.value})} className="w-4 h-4 text-amber-500 focus:ring-amber-500" />
+                      <span className="text-sm font-bold text-amber-800">Request Rework</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer bg-red-50 hover:bg-red-100 border border-red-200 px-4 py-2.5 rounded-lg transition-colors">
+                      <input type="radio" name="decision" value="rejected" checked={formData.decision === 'rejected'} onChange={(e) => setFormData({...formData, decision: e.target.value})} className="w-4 h-4 text-red-600 focus:ring-red-600" />
+                      <span className="text-sm font-bold text-red-800">Reject</span>
+                    </label>
+                  </div>
+                </div>
 
-              <div className="pt-2 flex justify-end">
-                <button type="submit" disabled={loading} className="bg-primary-orange hover:bg-hover-orange text-white px-8 py-3 rounded-lg font-bold shadow-md transition-colors disabled:opacity-50 text-sm flex items-center gap-2">
-                  <span>✍️</span> {isArchitect ? "Approve Architecture & Grant Git Commit Clearance" : "Approve Code Quality & Ready for Deployment"}
-                </button>
-              </div>
-            </form>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Architecture Review Comments</label>
+                  <textarea 
+                    value={formData.comments} 
+                    onChange={(e) => setFormData({...formData, comments: e.target.value})} 
+                    rows="3" 
+                    className="w-full bg-input-bg border border-border-light rounded-lg p-2.5 text-sm focus:border-border-orange outline-none font-medium text-gray-800" 
+                    placeholder="Optional review notes or guidelines..."
+                  ></textarea>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button type="submit" disabled={loading} className="bg-primary-orange hover:bg-hover-orange text-white px-8 py-3 rounded-lg font-bold shadow-md transition-colors disabled:opacity-50 text-sm flex items-center gap-2">
+                    <span>✍️</span> Approve Code Quality & Ready for Deployment
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         )}
           </>

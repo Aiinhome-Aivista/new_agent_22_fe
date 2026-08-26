@@ -337,6 +337,16 @@ export default function StandardsPage() {
     setIsEditing(true);
   };
 
+  const handleBackToList = () => {
+    setIsEditing(false);
+    if (!selectedStandard) {
+      const filteredList = standards.filter(std => std.folder === activeTab);
+      if (filteredList.length > 0) {
+        setSelectedStandard(filteredList[0]);
+      }
+    }
+  };
+
   if (loading) return <Loader />;
 
   const filteredStandards = standards.filter(std => std.folder === activeTab);
@@ -360,7 +370,7 @@ export default function StandardsPage() {
               <PlusIcon className="w-5 h-5" /> Add / Upload File
             </button>
           ) : (
-            <button onClick={() => setIsEditing(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm">
+            <button onClick={handleBackToList} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm">
               ← Back to List
             </button>
           )}
@@ -437,7 +447,7 @@ export default function StandardsPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
-                <button onClick={() => setIsEditing(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button onClick={handleBackToList} className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
                 <button 
                   onClick={handleSaveManual} 
                   disabled={isSavingManual || selectedUploadFiles.length > 0 || !manualForm.filename.trim()}
@@ -584,7 +594,7 @@ export default function StandardsPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
-                <button onClick={() => setIsEditing(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button onClick={handleBackToList} className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
                 <button 
                   onClick={handleSaveUploaded} 
                   disabled={isSavingUploaded || !isExtracted || !uploadForm.filename.trim()}

@@ -74,12 +74,25 @@ export default function AdvisorChatPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const getShortTrackName = (track) => {
+    if (!track?.track_name) return '';
+    return track.track_name.split(':')[0].trim();
+  };
+
   const getSelectedLabel = () => {
-    if (!reqId) return "Global Context (All Projects)";
+    if (!reqId) {
+      if (currentTrack?.track_name) {
+        return `${getShortTrackName(currentTrack)} (All Requests)`;
+      }
+      return "Global Context (All Projects)";
+    }
     const req = requests.find(r => r.id.toString() === reqId.toString());
     if (req) {
       const shortName = req.request_name.length > 25 ? req.request_name.substring(0, 25) + '...' : req.request_name;
       return `${req.id} - ${shortName} (${req.status})`;
+    }
+    if (currentTrack?.track_name) {
+      return `${getShortTrackName(currentTrack)} (All Requests)`;
     }
     return "Global Context (All Projects)";
   };
@@ -96,12 +109,8 @@ export default function AdvisorChatPage() {
     getRequests().then(res => {
       if (res.success) {
         let reqs = res.data || [];
-        if (currentTrack) {
-          reqs = reqs.filter(r => 
-            r.track_id === currentTrack.id || 
-            r.track_name === currentTrack.track_name ||
-            (currentTrack.track_name && r.request_name && r.request_name.toLowerCase().includes(currentTrack.track_name.toLowerCase()))
-          );
+        if (currentTrack?.id) {
+          reqs = reqs.filter(r => Number(r.track_id) === Number(currentTrack.id));
         }
         setRequests(reqs);
       }
@@ -195,13 +204,13 @@ export default function AdvisorChatPage() {
                       onClick={() => { setReqId(''); setIsDropdownOpen(false); }}
                       className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${!reqId ? 'bg-orange-50 text-primary-orange font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                     >
-                      Global Context (All Projects)
+                      {currentTrack?.track_name ? `${getShortTrackName(currentTrack)} (All Requests)` : 'Global Context (All Projects)'}
                     </button>
                     
-                    {requests.length > 0 && (
+                    {requests.length > 0 ? (
                       <>
                         <div className="px-4 py-1.5 bg-gray-50 border-y border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                          Specific Projects
+                          {currentTrack ? `Requests in ${getShortTrackName(currentTrack)}` : 'Specific Requests'}
                         </div>
                         {requests.map(req => {
                           const isSelected = reqId.toString() === req.id.toString();
@@ -219,6 +228,12 @@ export default function AdvisorChatPage() {
                           );
                         })}
                       </>
+                    ) : (
+                      currentTrack && (
+                        <div className="px-4 py-3 text-xs text-gray-400 font-medium italic border-t border-gray-100 text-center">
+                          No specific requests in this track yet
+                        </div>
+                      )
                     )}
                   </div>
                 )}

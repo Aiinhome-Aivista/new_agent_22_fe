@@ -19,12 +19,8 @@ export default function DeveloperDashboard() {
         if (metricsRes.success) setMetrics(metricsRes.data);
         if (requestsRes.success) {
           let reqs = requestsRes.data || [];
-          if (currentTrack) {
-            reqs = reqs.filter(r => 
-              r.track_id === currentTrack.id || 
-              r.track_name === currentTrack.track_name ||
-              (currentTrack.track_name && r.request_name && r.request_name.toLowerCase().includes(currentTrack.track_name.toLowerCase()))
-            );
+          if (currentTrack?.id) {
+            reqs = reqs.filter(r => Number(r.track_id) === Number(currentTrack.id));
           }
           setRequests(reqs);
         }

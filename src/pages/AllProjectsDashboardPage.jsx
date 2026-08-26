@@ -139,28 +139,28 @@ export default function AllProjectsDashboardPage() {
         </div>
 
         {/* Active Mapped Tracks Card */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-md hover:border-blue-300 group relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full mix-blend-multiply filter blur-xl opacity-50 -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-md hover:border-primary-orange/50 group relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50/60 rounded-full mix-blend-multiply filter blur-xl opacity-50 -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
-            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-blue-600 transition-colors">Mapped Tracks</h3>
-            <div className="bg-blue-50 text-blue-600 p-2 rounded-xl border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Mapped Tracks</h3>
+            <div className="bg-orange-50 text-primary-orange p-2 rounded-xl border border-orange-100 group-hover:bg-primary-orange group-hover:text-white transition-colors duration-300">
               <QueueListIcon className="w-6 h-6" />
             </div>
           </div>
           <div className="relative z-10">
             <p className="text-4xl font-extrabold text-sidebar">{totalTracks}</p>
-            <p className="text-xs text-blue-600 mt-2 flex items-center gap-1 font-bold">
+            <p className="text-xs text-primary-orange mt-2 flex items-center gap-1 font-bold">
               <ArrowTrendingUpIcon className="w-4 h-4" /> Active Kafka Pipelines
             </p>
           </div>
         </div>
 
         {/* Architecture Blueprints Card */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-md hover:border-purple-300 group relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50 rounded-full mix-blend-multiply filter blur-xl opacity-50 -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-md hover:border-primary-orange/50 group relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50/60 rounded-full mix-blend-multiply filter blur-xl opacity-50 -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
-            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-purple-600 transition-colors">Blueprint History</h3>
-            <div className="bg-purple-50 text-purple-600 p-2 rounded-xl border border-purple-100 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Blueprint History</h3>
+            <div className="bg-orange-50 text-primary-orange p-2 rounded-xl border border-orange-100 group-hover:bg-primary-orange group-hover:text-white transition-colors duration-300">
               <DocumentCheckIcon className="w-6 h-6" />
             </div>
           </div>
@@ -173,18 +173,18 @@ export default function AllProjectsDashboardPage() {
         </div>
 
         {/* Verified Standards Card */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-md hover:border-amber-300 group relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full mix-blend-multiply filter blur-xl opacity-50 -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-border-light/60 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-md hover:border-primary-orange/50 group relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50/60 rounded-full mix-blend-multiply filter blur-xl opacity-50 -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
           <div className="flex justify-between items-start mb-4 relative z-10">
-            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-amber-600 transition-colors">Knowledge Updates</h3>
-            <div className="bg-amber-50 text-amber-600 p-2 rounded-xl border border-amber-100 group-hover:bg-amber-600 group-hover:text-white transition-colors duration-300">
+            <h3 className="text-text-secondary text-xs font-bold uppercase tracking-wider group-hover:text-primary-orange transition-colors">Knowledge Updates</h3>
+            <div className="bg-orange-50 text-primary-orange p-2 rounded-xl border border-orange-100 group-hover:bg-primary-orange group-hover:text-white transition-colors duration-300">
               <LightBulbIcon className="w-6 h-6" />
             </div>
           </div>
           <div className="relative z-10">
             <p className="text-4xl font-extrabold text-sidebar">{metrics.knowledge_updates}</p>
             <p className="text-xs text-text-secondary mt-2 flex items-center gap-1 font-semibold">
-              <LightBulbIcon className="w-4 h-4 text-amber-500" /> Standards Updated
+              <LightBulbIcon className="w-4 h-4 text-primary-orange" /> Standards Updated
             </p>
           </div>
         </div>

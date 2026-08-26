@@ -2,24 +2,30 @@ import { useEffect, useState } from 'react';
 import { getRequests } from '../api/api';
 import Loader from '../components/Loader';
 import { useAuth } from '../context/AuthContext';
+import { useProject } from '../context/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import RequestTable from '../components/RequestTable';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { currentTrack } = useProject();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     getRequests().then(data => {
-      setRequests(data.data || []);
+      let reqList = data.data || [];
+      if (currentTrack?.id) {
+        reqList = reqList.filter(r => Number(r.track_id) === Number(currentTrack.id));
+      }
+      setRequests(reqList);
       setLoading(false);
     }).catch(err => {
       console.error(err);
       setLoading(false);
     });
-  }, []);
+  }, [currentTrack]);
 
   if (loading) return <Loader />;
 

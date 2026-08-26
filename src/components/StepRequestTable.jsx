@@ -3,8 +3,10 @@ import { getRequests } from '../api/api';
 import StatusBadge from './StatusBadge';
 import { useNavigate } from 'react-router-dom';
 import Loader from './Loader';
+import { useProject } from '../context/ProjectContext';
 
 export default function StepRequestTable({ activeStage }) {
+  const { currentTrack } = useProject();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,14 +19,17 @@ export default function StepRequestTable({ activeStage }) {
 
   useEffect(() => {
     getRequests().then(res => {
-      const data = Array.isArray(res) ? res : (res.data || []);
+      let data = Array.isArray(res) ? res : (res.data || []);
+      if (currentTrack?.id) {
+        data = data.filter(r => Number(r.track_id) === Number(currentTrack.id));
+      }
       setRequests(data);
       setLoading(false);
     }).catch(err => {
       console.error(err);
       setLoading(false);
     });
-  }, []);
+  }, [currentTrack]);
 
   const handleNavigate = (reqId) => {
     localStorage.setItem('lastGenerationRequestId', reqId);

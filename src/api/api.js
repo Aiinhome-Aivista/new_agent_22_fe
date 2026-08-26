@@ -25,6 +25,7 @@ export const getBlueprint = (requestId) => api.get(`/blueprint/request/${request
 
 // Generation
 export const getGeneratedFiles = (reqId) => api.get(`/generate/request/${reqId}/files`).then(res => res.data);
+export const analyzeGeneratedFiles = (reqId, force=false) => api.post(`/generate/request/${reqId}/analyze-needs-work`, { force }).then(res => res.data);
 
 // Validation
 export const getValidationResults = (reqId) => api.get(`/validation/request/${reqId}`).then(res => res.data);

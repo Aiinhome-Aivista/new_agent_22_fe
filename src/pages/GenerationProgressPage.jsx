@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import ProgressStepper from '../components/ProgressStepper';
-import { getRequest, getGeneratedFiles, getRequests } from '../api/api';
+import { getRequest, getGeneratedFiles, getRequests, analyzeGeneratedFiles } from '../api/api';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import StepRequestTable from '../components/StepRequestTable';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
@@ -30,29 +30,6 @@ const syntaxHighlight = (code) => {
   return highlighted;
 };
 
-const checkIfNeedsWork = (code) => {
-  if (!code) return false;
-  const lowerCode = code.toLowerCase();
-  
-  // 1. Check for explicit keywords and common LLM placeholders
-  if (lowerCode.includes('todo') || 
-      lowerCode.includes('fixme') || 
-      lowerCode.includes('unsupportedoperationexception') || 
-      lowerCode.includes('implement logic') ||
-      lowerCode.includes('your logic here') ||
-      lowerCode.includes('add logic here') ||
-      lowerCode.includes('business logic for') ||
-      lowerCode.includes('route to dlq')) {
-      return true;
-  }
-  
-  // 2. Check for empty blocks with only comments: { \n // some comment \n }
-  if (/{[\s\n]*\/\/[^}\n]*[\s\n]*}/.test(code)) {
-    return true;
-  }
-  
-  return false;
-};
 
 export default function GenerationProgressPage() {
   const { id: pathId } = useParams();
@@ -66,6 +43,8 @@ export default function GenerationProgressPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [simulatedLogs, setSimulatedLogs] = useState([]);
   const [activeTab, setActiveTab] = useState('manifest');
+  const [needsWorkMap, setNeedsWorkMap] = useState({});
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const terminalEndRef = useRef(null);
 
   useEffect(() => {
@@ -129,6 +108,21 @@ export default function GenerationProgressPage() {
   }, [reqData]);
 
   useEffect(() => {
+    if (generatedFiles.length > 0 && Object.keys(needsWorkMap).length === 0 && !isAnalyzing) {
+      setIsAnalyzing(true);
+      analyzeGeneratedFiles(id).then(res => {
+        if (res.success && res.data) {
+          setNeedsWorkMap(res.data);
+        }
+        setIsAnalyzing(false);
+      }).catch(err => {
+        console.error("AI Analysis failed", err);
+        setIsAnalyzing(false);
+      });
+    }
+  }, [generatedFiles, id, isAnalyzing, needsWorkMap]);
+
+  useEffect(() => {
     if (activeTab === 'audit') {
       terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
@@ -164,9 +158,9 @@ export default function GenerationProgressPage() {
   const displayList = (expectedFiles.length > 0 
     ? expectedFiles.map(ef => {
         const genFile = generatedFiles.find(gf => gf.file_name === ef.filename || gf.file_name === ef.name);
-        return genFile ? { ...genFile, isGenerated: true, needsWork: checkIfNeedsWork(genFile.preview) } : { file_name: ef.filename || ef.name, isGenerated: false };
+        return genFile ? { ...genFile, isGenerated: true, needsWork: needsWorkMap[genFile.file_name] || false } : { file_name: ef.filename || ef.name, isGenerated: false };
       })
-    : generatedFiles.map(gf => ({ ...gf, isGenerated: true, needsWork: checkIfNeedsWork(gf.preview) }))
+    : generatedFiles.map(gf => ({ ...gf, isGenerated: true, needsWork: needsWorkMap[gf.file_name] || false }))
   ).filter(f => f.isGenerated || (!isCompleted && !isFailed));
 
   const isAlreadyValidated = ['validated', 'packaged', 'approved'].includes(reqData?.request?.status);
@@ -257,7 +251,30 @@ export default function GenerationProgressPage() {
             {/* Tab Content */}
             {activeTab === 'manifest' ? (
               <div className="flex-1 overflow-y-auto pr-2 pb-4">
-                <h3 className="text-xs font-black text-gray-400 mb-3 tracking-widest uppercase">File Artifacts</h3>
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-xs font-black text-gray-400 tracking-widest uppercase">File Artifacts</h3>
+                  {displayList.length > 0 && !isAnalyzing && (
+                    <button 
+                      onClick={() => {
+                        setIsAnalyzing(true);
+                        import('../api/api').then(({ analyzeGeneratedFiles }) => {
+                          analyzeGeneratedFiles(id, true).then(res => {
+                            if (res.success && res.data) setNeedsWorkMap(res.data);
+                            setIsAnalyzing(false);
+                          }).catch(err => {
+                            console.error("AI Analysis failed", err);
+                            setIsAnalyzing(false);
+                          });
+                        });
+                      }}
+                      className="text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-200 px-2 py-1 rounded font-bold hover:bg-indigo-100 flex items-center gap-1 transition-colors"
+                      title="Force AI to re-analyze files for stubs"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                      RE-ANALYZE
+                    </button>
+                  )}
+                </div>
                 
                 {!reqData ? (
                   <div className="flex flex-col items-center justify-center mt-10 p-6 bg-white border border-[#f0e6dc] rounded-lg">
@@ -312,7 +329,11 @@ export default function GenerationProgressPage() {
                             </span>
                           </div>
                           {isGen ? (
-                            f.needsWork ? (
+                            isAnalyzing ? (
+                              <span className="shrink-0 bg-blue-50 text-blue-500 text-[9px] font-black px-1.5 py-0.5 rounded border border-blue-200 tracking-wider animate-pulse">
+                                ANALYZING...
+                              </span>
+                            ) : f.needsWork ? (
                               <span className="shrink-0 bg-yellow-50 text-yellow-600 text-[9px] font-black px-1.5 py-0.5 rounded border border-yellow-200 tracking-wider">
                                 NEEDS WORK
                               </span>

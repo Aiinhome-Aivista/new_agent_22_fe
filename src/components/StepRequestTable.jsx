@@ -13,6 +13,7 @@ export default function StepRequestTable({ activeStage }) {
   const itemsPerPage = 5;
   const navigate = useNavigate();
 
+
   const totalPages = Math.ceil(requests.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentRequests = requests.slice(startIndex, startIndex + itemsPerPage);

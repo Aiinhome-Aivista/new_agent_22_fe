@@ -5,7 +5,20 @@ const api = axios.create({
 });
 
 // Requirements
-export const getRequests = (status) => api.get('/requirements/', { params: { status } }).then(res => res.data);
+export const getRequests = (params = {}) => {
+  if (!params.track_id) {
+    const activeTrackStr = localStorage.getItem('agent22_active_track');
+    if (activeTrackStr) {
+      try {
+        const activeTrack = JSON.parse(activeTrackStr);
+        if (activeTrack && activeTrack.id) {
+          params.track_id = activeTrack.id;
+        }
+      } catch (e) {}
+    }
+  }
+  return api.get('/requirements/', { params }).then(res => res.data);
+};
 export const getRequest = (id) => api.get(`/requirements/${id}`).then(res => res.data);
 export const createRequest = (data) => api.post('/requirements/', data).then(res => res.data);
 export const submitChatIntake = (data) => api.post('/requirements/intake-chat', data).then(res => res.data);

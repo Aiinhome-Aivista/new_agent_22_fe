@@ -4,12 +4,20 @@ import { useProject } from '../context/ProjectContext';
 import { getDashboardMetrics, getTechLeadReviews, getTechLeadValidations } from '../api/api';
 import Loader from '../components/Loader';
 import RequestTable from '../components/RequestTable';
-import { useNavigate } from 'react-router-dom';
-import { ClipboardDocumentCheckIcon, ExclamationCircleIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { 
+  ClipboardDocumentCheckIcon, 
+  ExclamationCircleIcon, 
+  CheckCircleIcon, 
+  XCircleIcon,
+  ChevronRightIcon,
+  FolderIcon,
+  QueueListIcon
+} from '@heroicons/react/24/outline';
 
 export default function ReviewerDashboard() {
   const { user } = useAuth();
-  const { currentTrack } = useProject();
+  const { currentProject, currentTrack, selectTrack } = useProject();
   const navigate = useNavigate();
   const [metrics, setMetrics] = useState(null);
   const [requests, setRequests] = useState([]);
@@ -20,7 +28,7 @@ export default function ReviewerDashboard() {
       if (res.success) setMetrics(res.data);
     }).catch(console.error);
 
-    getTechLeadReviews().then(res => {
+    getTechLeadReviews(currentTrack?.id).then(res => {
       if (res.data) {
         let mappedRequests = res.data.map(req => ({
           ...req,
@@ -28,13 +36,6 @@ export default function ReviewerDashboard() {
           application_id: req.targetAppId || req.application_id,
           created_at: req.date || req.created_at
         }));
-        if (currentTrack) {
-          mappedRequests = mappedRequests.filter(r => 
-            r.track_id === currentTrack.id || 
-            r.track_name === currentTrack.track_name ||
-            (currentTrack.track_name && r.request_name && r.request_name.toLowerCase().includes(currentTrack.track_name.toLowerCase()))
-          );
-        }
         setRequests(mappedRequests);
       }
     }).catch(console.error);
@@ -46,15 +47,47 @@ export default function ReviewerDashboard() {
 
   if (!metrics) return <Loader />;
 
+  if (!currentTrack || !currentProject) {
+    return <Navigate to="/projects" replace />;
+  }
+
   const totalReviews = metrics.approvals + metrics.rejected;
   const approvalRate = totalReviews > 0 ? Math.round((metrics.approvals / totalReviews) * 100) : 0;
   const rejectionRate = totalReviews > 0 ? Math.round((metrics.rejected / totalReviews) * 100) : 0;
 
   return (
     <div className="animate-fade-in-up">
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Tech Lead Portal</h1>
-        <p className="text-text-secondary mt-1">Manage validation reports and process code approvals.</p>
+      {/* Track Context & Breadcrumb Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          {/* Breadcrumb Navigation */}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary mb-1">
+            <button 
+              onClick={() => { selectTrack(null, null); navigate('/projects'); }}
+              className="hover:text-primary-orange transition-colors font-bold flex items-center gap-1"
+            >
+              <FolderIcon className="w-3.5 h-3.5 text-primary-orange" />
+              Projects Directory
+            </button>
+            <ChevronRightIcon className="w-3 h-3 text-placeholder" />
+            <span className="font-bold text-sidebar">{currentProject.name}</span>
+            <ChevronRightIcon className="w-3 h-3 text-placeholder" />
+            <span className="text-primary-orange font-extrabold flex items-center gap-1">
+              <QueueListIcon className="w-3.5 h-3.5" />
+              {currentTrack.track_name}
+            </span>
+          </div>
+
+          <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Tech Lead Portal</h1>
+          <p className="text-text-secondary mt-1">Manage validation reports and process code approvals for <span className="font-bold text-sidebar">{currentTrack.track_name}</span>.</p>
+        </div>
+
+        <button
+          onClick={() => { selectTrack(null, currentProject); navigate('/projects'); }}
+          className="self-start md:self-auto text-xs font-bold text-primary-orange hover:bg-orange-50 border border-orange-200 px-3.5 py-1.5 rounded-xl transition-all"
+        >
+          Switch Track / Project &rarr;
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

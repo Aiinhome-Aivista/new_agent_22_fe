@@ -81,10 +81,10 @@ export const updateEnvironment = (envName, data) => api.put(`/environments/${env
 // Tech Lead
 export const getTechLeadValidations = (trackId) => api.get('/techlead/validations', { params: { track_id: trackId } }).then(res => res.data);
 export const actionValidation = (id, action) => api.post(`/techlead/validations/${id}/action`, { action }).then(res => res.data);
-export const getTechLeadReviews = () => api.get('/techlead/reviews').then(res => res.data);
+export const getTechLeadReviews = (trackId) => api.get('/techlead/reviews', { params: { track_id: trackId } }).then(res => res.data);
 export const signoffReview = (data) => api.post('/techlead/reviews/signoff', data).then(res => res.data);
-export const getTechLeadReportSummary = () => api.get('/techlead/reports/summary').then(res => res.data);
-export const getTechLeadReports = () => api.get('/techlead/reports').then(res => res.data);
+export const getTechLeadReportSummary = (trackId) => api.get('/techlead/reports/summary', { params: { track_id: trackId } }).then(res => res.data);
+export const getTechLeadReports = (trackId) => api.get('/techlead/reports', { params: { track_id: trackId } }).then(res => res.data);
 export const downloadTechLeadReport = (id, format = 'json') => api.get(`/techlead/reports/download/${id}?format=${format}`, { responseType: 'blob' }).then(res => res.data);
 
 // Projects

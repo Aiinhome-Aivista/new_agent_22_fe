@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { getTechLeadValidations, actionValidation } from '../api/api';
 import { useProject } from '../context/ProjectContext';
+import { 
+  ChevronRightIcon,
+  FolderIcon,
+  QueueListIcon
+} from '@heroicons/react/24/outline';
 
 export default function TechLeadValidationsPage() {
   const navigate = useNavigate();
-  const { currentTrack } = useProject();
+  const { currentProject, currentTrack, selectTrack } = useProject();
 
   const [validations, setValidations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,13 +77,50 @@ export default function TechLeadValidationsPage() {
 
   const filtered = validations.filter(v => activeTab === 'all' || v.severity_display === activeTab);
 
+  if (!currentTrack || !currentProject) {
+    return <Navigate to="/projects" replace />;
+  }
+
   return (
     <div className="flex flex-col h-full bg-gray-50 p-8">
       <div className="animate-fade-in-up max-w-6xl mx-auto w-full">
+        
+        {/* Track Context & Breadcrumb Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            {/* Breadcrumb Navigation */}
+            <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary mb-1">
+              <button 
+                onClick={() => { selectTrack(null, null); navigate('/projects'); }}
+                className="hover:text-primary-orange transition-colors font-bold flex items-center gap-1"
+              >
+                <FolderIcon className="w-3.5 h-3.5 text-primary-orange" />
+                Projects Directory
+              </button>
+              <ChevronRightIcon className="w-3 h-3 text-placeholder" />
+              <span className="font-bold text-sidebar">{currentProject.name}</span>
+              <ChevronRightIcon className="w-3 h-3 text-placeholder" />
+              <span className="text-primary-orange font-extrabold flex items-center gap-1">
+                <QueueListIcon className="w-3.5 h-3.5" />
+                {currentTrack.track_name}
+              </span>
+            </div>
+
+            <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Validation Severity Queue</h1>
+            <p className="text-text-secondary mt-1">Review and manage automated validation failures for <span className="font-bold text-sidebar">{currentTrack.track_name}</span>.</p>
+          </div>
+
+          <button
+            onClick={() => { selectTrack(null, currentProject); navigate('/projects'); }}
+            className="self-start md:self-auto text-xs font-bold text-primary-orange hover:bg-orange-50 border border-orange-200 px-3.5 py-1.5 rounded-xl transition-all"
+          >
+            Switch Track / Project &rarr;
+          </button>
+        </div>
+
         <div className="mb-8 flex justify-between items-end">
           <div>
-            <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Validation Severity Queue</h1>
-            <p className="text-text-secondary mt-1">Review and manage automated validation failures.</p>
+            {/* The title has been moved to the breadcrumb area */}
           </div>
           <div className="flex gap-2">
             {['all', 'high', 'medium', 'low'].map(tab => (

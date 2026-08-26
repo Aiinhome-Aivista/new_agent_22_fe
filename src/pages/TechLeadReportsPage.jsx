@@ -1,15 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { DocumentArrowDownIcon, ChartBarIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { 
+  ChevronRightIcon,
+  FolderIcon,
+  QueueListIcon
+} from '@heroicons/react/24/outline';
 import { getTechLeadReportSummary, getTechLeadReports, downloadTechLeadReport } from '../api/api';
+import { useProject } from '../context/ProjectContext';
 
 export default function TechLeadReportsPage() {
+  const navigate = useNavigate();
+  const { currentProject, currentTrack, selectTrack } = useProject();
   const [reports, setReports] = useState([]);
   const [summary, setSummary] = useState({ total_passed: 0, warnings_and_waivers: 0, critical_failures: 0 });
   const [loading, setLoading] = useState(true);
   const [filterAppId, setFilterAppId] = useState('All');
   
   useEffect(() => {
-    Promise.all([getTechLeadReportSummary(), getTechLeadReports()])
+    if (!currentTrack) return;
+    
+    Promise.all([getTechLeadReportSummary(currentTrack.id), getTechLeadReports(currentTrack.id)])
       .then(([sumRes, repRes]) => {
         setSummary(sumRes.data || { total_passed: 0, warnings_and_waivers: 0, critical_failures: 0 });
         setReports(repRes.data || []);
@@ -19,7 +30,7 @@ export default function TechLeadReportsPage() {
         console.error(err);
         setLoading(false);
       });
-  }, []);
+  }, [currentTrack]);
 
   const handleDownload = async (id, title, format) => {
     try {
@@ -40,12 +51,45 @@ export default function TechLeadReportsPage() {
   const appIds = ['All', ...new Set(reports.map(r => r.application_id).filter(Boolean))];
   const filteredReports = filterAppId === 'All' ? reports : reports.filter(r => r.application_id === filterAppId);
 
+  if (!currentTrack || !currentProject) {
+    return <Navigate to="/projects" replace />;
+  }
+
   return (
     <div className="flex flex-col h-full bg-gray-50 p-8">
       <div className="animate-fade-in-up max-w-6xl mx-auto w-full">
-        <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Validation Reports & Audit</h1>
-          <p className="text-text-secondary mt-1">Review validation pass/fail statistics and download audit artifacts.</p>
+        
+        {/* Track Context & Breadcrumb Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            {/* Breadcrumb Navigation */}
+            <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary mb-1">
+              <button 
+                onClick={() => { selectTrack(null, null); navigate('/projects'); }}
+                className="hover:text-primary-orange transition-colors font-bold flex items-center gap-1"
+              >
+                <FolderIcon className="w-3.5 h-3.5 text-primary-orange" />
+                Projects Directory
+              </button>
+              <ChevronRightIcon className="w-3 h-3 text-placeholder" />
+              <span className="font-bold text-sidebar">{currentProject.name}</span>
+              <ChevronRightIcon className="w-3 h-3 text-placeholder" />
+              <span className="text-primary-orange font-extrabold flex items-center gap-1">
+                <QueueListIcon className="w-3.5 h-3.5" />
+                {currentTrack.track_name}
+              </span>
+            </div>
+
+            <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Validation Reports & Audit</h1>
+            <p className="text-text-secondary mt-1">Review validation pass/fail statistics and download audit artifacts for <span className="font-bold text-sidebar">{currentTrack.track_name}</span>.</p>
+          </div>
+
+          <button
+            onClick={() => { selectTrack(null, currentProject); navigate('/projects'); }}
+            className="self-start md:self-auto text-xs font-bold text-primary-orange hover:bg-orange-50 border border-orange-200 px-3.5 py-1.5 rounded-xl transition-all"
+          >
+            Switch Track / Project &rarr;
+          </button>
         </div>
 
         {/* Dashboard Metrics */}

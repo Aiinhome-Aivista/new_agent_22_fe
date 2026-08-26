@@ -52,7 +52,19 @@ export default function ReviewApprovalPage() {
         setReqData(resReq.data);
       }
       setGeneratedFiles(resFiles.data || []);
-      setReviews(resReviews.data || []);
+      const fetchedReviews = resReviews.data || [];
+      setReviews(fetchedReviews);
+      
+      if (fetchedReviews.length > 0) {
+        const lastReview = fetchedReviews[fetchedReviews.length - 1];
+        setFormData(prev => ({
+          ...prev,
+          reviewer_name: lastReview.reviewer_name || prev.reviewer_name || '',
+          decision: lastReview.decision || 'approved',
+          comments: lastReview.comments || ''
+        }));
+      }
+
       setLoadingReq(false);
     }).catch(err => {
       console.error(err);
@@ -347,7 +359,9 @@ export default function ReviewApprovalPage() {
             {!isArchitect && (
               <form onSubmit={handleOpenConfirm} className="bg-white p-6 rounded-2xl shadow-sm border border-border-light space-y-6">
                 <h2 className="text-xl font-bold text-gray-800">
-                  Submit Code Quality Review & Sign-Off
+                  {searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status) 
+                    ? 'Review Details' 
+                    : 'Submit Code Quality Review & Sign-Off'}
                 </h2>
 
                 <div>
@@ -357,23 +371,36 @@ export default function ReviewApprovalPage() {
                     type="text" 
                     value={formData.reviewer_name} 
                     onChange={(e) => setFormData({...formData, reviewer_name: e.target.value})} 
-                    className="w-full bg-input-bg border border-border-light rounded-lg p-2.5 text-sm focus:border-border-orange outline-none font-medium text-gray-800" 
+                    disabled={searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status)}
+                    className="w-full bg-input-bg border border-border-light rounded-lg p-2.5 text-sm focus:border-border-orange outline-none font-medium text-gray-800 disabled:opacity-60 disabled:bg-gray-100" 
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Review Decision</label>
                   <div className="flex gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-4 py-2.5 rounded-lg transition-colors">
-                      <input type="radio" name="decision" value="approved" checked={formData.decision === 'approved'} onChange={(e) => setFormData({...formData, decision: e.target.value})} className="w-4 h-4 text-emerald-600 focus:ring-emerald-600" />
+                    <label className={`flex items-center gap-2 border px-4 py-2.5 rounded-lg transition-colors ${
+                      searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status) 
+                      ? 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed' 
+                      : 'cursor-pointer bg-emerald-50 hover:bg-emerald-100 border-emerald-200'
+                    }`}>
+                      <input type="radio" name="decision" value="approved" checked={formData.decision === 'approved'} onChange={(e) => setFormData({...formData, decision: e.target.value})} disabled={searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status)} className="w-4 h-4 text-emerald-600 focus:ring-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed" />
                       <span className="text-sm font-bold text-emerald-800">Approve & Commit</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer bg-amber-50 hover:bg-amber-100 border border-amber-200 px-4 py-2.5 rounded-lg transition-colors">
-                      <input type="radio" name="decision" value="rework" checked={formData.decision === 'rework'} onChange={(e) => setFormData({...formData, decision: e.target.value})} className="w-4 h-4 text-amber-500 focus:ring-amber-500" />
+                    <label className={`flex items-center gap-2 border px-4 py-2.5 rounded-lg transition-colors ${
+                      searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status) 
+                      ? 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed' 
+                      : 'cursor-pointer bg-amber-50 hover:bg-amber-100 border-amber-200'
+                    }`}>
+                      <input type="radio" name="decision" value="rework" checked={formData.decision === 'rework'} onChange={(e) => setFormData({...formData, decision: e.target.value})} disabled={searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status)} className="w-4 h-4 text-amber-500 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed" />
                       <span className="text-sm font-bold text-amber-800">Request Rework</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer bg-red-50 hover:bg-red-100 border border-red-200 px-4 py-2.5 rounded-lg transition-colors">
-                      <input type="radio" name="decision" value="rejected" checked={formData.decision === 'rejected'} onChange={(e) => setFormData({...formData, decision: e.target.value})} className="w-4 h-4 text-red-600 focus:ring-red-600" />
+                    <label className={`flex items-center gap-2 border px-4 py-2.5 rounded-lg transition-colors ${
+                      searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status) 
+                      ? 'bg-gray-50 border-gray-200 opacity-70 cursor-not-allowed' 
+                      : 'cursor-pointer bg-red-50 hover:bg-red-100 border-red-200'
+                    }`}>
+                      <input type="radio" name="decision" value="rejected" checked={formData.decision === 'rejected'} onChange={(e) => setFormData({...formData, decision: e.target.value})} disabled={searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status)} className="w-4 h-4 text-red-600 focus:ring-red-600 disabled:opacity-50 disabled:cursor-not-allowed" />
                       <span className="text-sm font-bold text-red-800">Reject</span>
                     </label>
                   </div>
@@ -384,17 +411,20 @@ export default function ReviewApprovalPage() {
                   <textarea 
                     value={formData.comments} 
                     onChange={(e) => setFormData({...formData, comments: e.target.value})} 
+                    disabled={searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status)}
                     rows="3" 
-                    className="w-full bg-input-bg border border-border-light rounded-lg p-2.5 text-sm focus:border-border-orange outline-none font-medium text-gray-800" 
+                    className="w-full bg-input-bg border border-border-light rounded-lg p-2.5 text-sm focus:border-border-orange outline-none font-medium text-gray-800 disabled:opacity-60 disabled:bg-gray-100" 
                     placeholder="Optional review notes or guidelines..."
                   ></textarea>
                 </div>
 
+                {!(searchParams.get('viewOnly') === 'true' || ['approved', 'packaged', 'rejected'].includes(req?.status)) && (
                 <div className="pt-2 flex justify-end">
                   <button type="submit" disabled={loading} className="bg-primary-orange hover:bg-hover-orange text-white px-8 py-3 rounded-lg font-bold shadow-md transition-colors disabled:opacity-50 text-sm flex items-center gap-2">
                     <span>✍️</span> Approve Code Quality & Ready for Deployment
                   </button>
                 </div>
+                )}
               </form>
             )}
           </div>

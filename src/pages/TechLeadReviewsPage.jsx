@@ -1,29 +1,71 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { getTechLeadReviews } from '../api/api';
+import { useProject } from '../context/ProjectContext';
+import { 
+  ChevronRightIcon,
+  FolderIcon,
+  QueueListIcon
+} from '@heroicons/react/24/outline';
 
 export default function TechLeadReviewsPage() {
   const navigate = useNavigate();
+  const { currentProject, currentTrack, selectTrack } = useProject();
 
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getTechLeadReviews().then(res => {
-      setReviews(res.data || []);
+    getTechLeadReviews(currentTrack?.id).then(res => {
+      let fetchedReviews = res.data || [];
+
+      setReviews(fetchedReviews);
       setLoading(false);
     }).catch(err => {
       console.error(err);
       setLoading(false);
     });
-  }, []);
+  }, [currentTrack]);
+
+  if (!currentTrack || !currentProject) {
+    return <Navigate to="/projects" replace />;
+  }
 
   return (
     <div className="flex flex-col h-full bg-gray-50 p-8">
       <div className="animate-fade-in-up max-w-6xl mx-auto w-full">
-        <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Code Reviews & Approvals</h1>
-          <p className="text-text-secondary mt-1">Project-wise approval queue for generated microservices ready for Git commit.</p>
+        
+        {/* Track Context & Breadcrumb Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            {/* Breadcrumb Navigation */}
+            <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary mb-1">
+              <button 
+                onClick={() => { selectTrack(null, null); navigate('/projects'); }}
+                className="hover:text-primary-orange transition-colors font-bold flex items-center gap-1"
+              >
+                <FolderIcon className="w-3.5 h-3.5 text-primary-orange" />
+                Projects Directory
+              </button>
+              <ChevronRightIcon className="w-3 h-3 text-placeholder" />
+              <span className="font-bold text-sidebar">{currentProject.name}</span>
+              <ChevronRightIcon className="w-3 h-3 text-placeholder" />
+              <span className="text-primary-orange font-extrabold flex items-center gap-1">
+                <QueueListIcon className="w-3.5 h-3.5" />
+                {currentTrack.track_name}
+              </span>
+            </div>
+
+            <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">Code Reviews & Approvals</h1>
+            <p className="text-text-secondary mt-1">Project-wise approval queue for <span className="font-bold text-sidebar">{currentTrack.track_name}</span> generated microservices.</p>
+          </div>
+
+          <button
+            onClick={() => { selectTrack(null, currentProject); navigate('/projects'); }}
+            className="self-start md:self-auto text-xs font-bold text-primary-orange hover:bg-orange-50 border border-orange-200 px-3.5 py-1.5 rounded-xl transition-all"
+          >
+            Switch Track / Project &rarr;
+          </button>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-border-light/60 overflow-hidden">
@@ -56,7 +98,7 @@ export default function TechLeadReviewsPage() {
                     </span>
                   </td>
                   <td className="px-6 py-5 text-sm font-medium text-gray-500">{new Date(rev.date).toLocaleDateString()}</td>
-                  <td className="px-6 py-5 text-right flex justify-end">
+                  <td className="px-6 py-5 text-right flex justify-end gap-2">
                     <button 
                       onClick={() => navigate(`/requests/${rev.id}/review`)} 
                       disabled={['approved', 'packaged', 'rejected'].includes(rev.status)}
@@ -68,6 +110,14 @@ export default function TechLeadReviewsPage() {
                     >
                       {['approved', 'packaged'].includes(rev.status) ? 'Approved' : rev.status === 'rejected' ? 'Rejected' : 'Inspect & Sign-off'}
                     </button>
+                    {['approved', 'packaged', 'rejected'].includes(rev.status) && (
+                      <button 
+                        onClick={() => navigate(`/requests/${rev.id}/review?viewOnly=true`)} 
+                        className="px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                      >
+                        View
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

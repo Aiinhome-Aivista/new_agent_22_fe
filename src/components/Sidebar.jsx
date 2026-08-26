@@ -141,7 +141,7 @@ export default function Sidebar() {
                   } else if (item.path === '/dashboard-overview') {
                     isReallyActive = (currentPath === '/dashboard-overview' || currentPath === '/dashboard-under-construction');
                   } else if (item.name === 'Dashboard' || item.path.includes('dashboard')) {
-                    isReallyActive = currentPath.includes('dashboard');
+                    isReallyActive = (currentPath === item.path || (currentPath.includes('dashboard') && item.path.includes('dashboard')));
                   } else if (item.path === '/request/new') {
                     isReallyActive = (currentPath === '/request/new');
                   } else if (item.path === '/requests') {
@@ -150,16 +150,22 @@ export default function Sidebar() {
                     isReallyActive = (currentPath === '/blueprint' || currentPath === '/review/blueprint' || currentPath.includes('/blueprint') || currentPath.includes('/patterns'));
                   } else if (item.path === '/progress') {
                     isReallyActive = (currentPath === '/progress' || currentPath.includes('/generation'));
-                  } else if (item.path === '/validation' || item.path === '/techlead/validations' || item.path === '/techlead/reports') {
-                    isReallyActive = (currentPath === '/validation' || currentPath.includes('/validation') || currentPath === item.path);
+                  } else if (item.path === '/validation') {
+                    isReallyActive = (currentPath === '/validation');
+                  } else if (item.path === '/techlead/validations') {
+                    isReallyActive = (currentPath === '/techlead/validations' || currentPath.startsWith('/techlead/validations/'));
+                  } else if (item.path === '/techlead/reports') {
+                    isReallyActive = (currentPath === '/techlead/reports' || currentPath.startsWith('/techlead/reports/'));
                   } else if (item.path === '/packages') {
                     isReallyActive = (currentPath === '/packages' || currentPath.includes('/package') || currentPath.includes('/packaging'));
                   } else if (item.path === '/review/queue' || item.path === '/techlead/reviews') {
-                    isReallyActive = (currentPath === '/review/queue' || currentPath === '/techlead/reviews' || (currentPath.includes('/review') && !currentPath.includes('/blueprint')));
+                    isReallyActive = (currentPath === item.path || (currentPath.includes('/review') && !currentPath.includes('/blueprint')));
                   } else if (item.path === '/standards') {
-                    isReallyActive = (currentPath === '/standards');
+                    isReallyActive = (currentPath === '/standards' || currentPath.startsWith('/standards/'));
                   } else if (item.path === '/chat') {
                     isReallyActive = (currentPath === '/chat');
+                  } else {
+                    isReallyActive = (currentPath === item.path || currentPath.startsWith(item.path + '/'));
                   }
 
                   return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${

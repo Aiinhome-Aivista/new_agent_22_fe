@@ -123,9 +123,8 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep, 
 
     // Step 5: Review
     if (stepIndex === 5) {
-      if (reqStatus === 'approved') return 'completed';
+      if (['packaged', 'approved'].includes(reqStatus)) return 'completed';
       if (reqStatus === 'rework') return 'failed';
-      if (reqStatus === 'packaged') return 'active';
       return 'pending';
     }
 

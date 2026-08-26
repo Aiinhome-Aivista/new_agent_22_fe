@@ -3,6 +3,7 @@ import { getRequests } from '../api/api';
 import StatusBadge from './StatusBadge';
 import { useNavigate } from 'react-router-dom';
 import Loader from './Loader';
+import { useProject } from '../context/ProjectContext';
 
 export default function StepRequestTable({ activeStage }) {
   const [requests, setRequests] = useState([]);
@@ -10,13 +11,15 @@ export default function StepRequestTable({ activeStage }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const navigate = useNavigate();
+  const { currentTrack } = useProject();
 
   const totalPages = Math.ceil(requests.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentRequests = requests.slice(startIndex, startIndex + itemsPerPage);
 
   useEffect(() => {
-    getRequests().then(res => {
+    const params = currentTrack ? { track_id: currentTrack.id } : {};
+    getRequests(params).then(res => {
       const data = Array.isArray(res) ? res : (res.data || []);
       setRequests(data);
       setLoading(false);
@@ -24,7 +27,7 @@ export default function StepRequestTable({ activeStage }) {
       console.error(err);
       setLoading(false);
     });
-  }, []);
+  }, [currentTrack]);
 
   const handleNavigate = (reqId) => {
     localStorage.setItem('lastGenerationRequestId', reqId);

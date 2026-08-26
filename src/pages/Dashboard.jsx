@@ -4,22 +4,25 @@ import Loader from '../components/Loader';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import RequestTable from '../components/RequestTable';
+import { useProject } from '../context/ProjectContext';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { currentTrack } = useProject();
 
   useEffect(() => {
-    getRequests().then(data => {
+    const params = currentTrack ? { track_id: currentTrack.id } : {};
+    getRequests(params).then(data => {
       setRequests(data.data || []);
       setLoading(false);
     }).catch(err => {
       console.error(err);
       setLoading(false);
     });
-  }, []);
+  }, [currentTrack]);
 
   if (loading) return <Loader />;
 

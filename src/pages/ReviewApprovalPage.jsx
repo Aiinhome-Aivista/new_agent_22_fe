@@ -5,6 +5,8 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import StepRequestTable from '../components/StepRequestTable';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
+import FileTree from '../components/FileTree';
+import MermaidDiagram from '../components/MermaidDiagram';
 import { ArrowLeftIcon, CubeIcon, CodeBracketIcon, ArrowDownTrayIcon, CheckCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 export default function ReviewApprovalPage() {
@@ -247,17 +249,48 @@ export default function ReviewApprovalPage() {
                     <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
                   </span>
                 </summary>
-                <div className="p-6 pt-0 border-t border-border-light/50">
-                  <div className="bg-gray-900 rounded-xl p-4 overflow-hidden mt-4">
-                    <pre className="text-xs text-green-400 overflow-x-auto custom-scrollbar pb-2">
-                      <code>
-                        {reqData.blueprint.file_manifest ? 
-                          (function() {
-                            try { return JSON.stringify(JSON.parse(reqData.blueprint.file_manifest), null, 2); }
-                            catch(e) { return reqData.blueprint.file_manifest; }
-                          })() : "No blueprint found."}
-                      </code>
-                    </pre>
+                <div className="p-6 pt-0 border-t border-border-light/50 space-y-6 mt-4">
+                  
+                  {/* Class Design & AI Rationale */}
+                  <div className="bg-white p-6 rounded shadow border border-border-light">
+                    <h3 className="font-bold text-gray-700 mb-4">Class Design & AI Rationale</h3>
+                    <div className="prose prose-sm max-w-none text-gray-600 mb-6">
+                      <p><strong>Design:</strong><br/>
+                        {reqData.blueprint.class_design?.split(/(\*\*.*?\*\*)/g).map((part, idx) => 
+                          part.startsWith('**') && part.endsWith('**') ? 
+                          <strong key={idx} className="text-gray-800">{part.slice(2, -2)}</strong> : 
+                          <span key={idx}>{part}</span>
+                        )}
+                      </p>
+                      <div className="mt-4">
+                        <strong>Rationale:</strong><br/>
+                        {reqData.blueprint.generated_rationale?.split(/(\*\*.*?\*\*)/g).map((part, idx) => 
+                          part.startsWith('**') && part.endsWith('**') ? 
+                          <strong key={idx} className="text-gray-800">{part.slice(2, -2)}</strong> : 
+                          <span key={idx}>{part}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {reqData.blueprint.mermaid_diagram && (
+                      <div className="mb-6">
+                        <h4 className="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wider">Architecture Diagram</h4>
+                        <MermaidDiagram chart={reqData.blueprint.mermaid_diagram} />
+                      </div>
+                    )}
+
+                    {reqData.blueprint.alternative_designs && reqData.blueprint.alternative_designs.length > 0 && (
+                      <div className="mt-6 pt-6 border-t border-gray-100">
+                        <h4 className="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wider">Alternative Designs</h4>
+                        <div className="grid gap-4">
+                          {reqData.blueprint.alternative_designs.map((alt, idx) => (
+                            <div key={idx} className="bg-gray-50 border border-gray-200 p-4 rounded text-sm text-gray-700">
+                              {alt}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </details>

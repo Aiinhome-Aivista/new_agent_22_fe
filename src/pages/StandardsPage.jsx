@@ -15,7 +15,7 @@ export default function StandardsPage() {
   const fileInputRef = useRef(null);
   
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('standards');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('agent22_standards_tab') || 'standards');
   
   const [manualForm, setManualForm] = useState({ filename: '', folder: 'standards', content: '' });
   const [uploadForm, setUploadForm] = useState({ filename: '', folder: 'standards', content: '' });
@@ -37,6 +37,7 @@ export default function StandardsPage() {
 
   const tabs = [
     { id: 'standards', label: 'Architecture Standards' },
+    { id: 'miro_diagram', label: 'Miro Diagram' },
     { id: 'validation_rules', label: 'Validation Rules' },
     { id: 'sample_scripts', label: 'Sample Scripts' }
   ];
@@ -63,6 +64,7 @@ export default function StandardsPage() {
   };
 
   useEffect(() => {
+    if (currentTrack === undefined) return; // Prevent double load if context is initializing
     fetchStandards(true, activeTab);
   }, [currentTrack]);
 
@@ -75,6 +77,7 @@ export default function StandardsPage() {
           setConfirmModal(null);
           setIsEditing(false);
           setActiveTab(tabId);
+          localStorage.setItem('agent22_standards_tab', tabId);
           const filteredList = standards.filter(std => std.folder === tabId);
           setSelectedStandard(filteredList.length > 0 ? filteredList[0] : null);
         }
@@ -82,6 +85,7 @@ export default function StandardsPage() {
       return;
     }
     setActiveTab(tabId);
+    localStorage.setItem('agent22_standards_tab', tabId);
     const filteredList = standards.filter(std => std.folder === tabId);
     setSelectedStandard(filteredList.length > 0 ? filteredList[0] : null);
   };
@@ -357,10 +361,11 @@ export default function StandardsPage() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-extrabold text-sidebar tracking-tight">
-              {activeTab === 'standards' ? 'Architecture Standards' : activeTab === 'validation_rules' ? 'Validation Rules' : 'Sample Scripts'}
+              {activeTab === 'standards' ? 'Architecture Standards' : activeTab === 'validation_rules' ? 'Validation Rules' : activeTab === 'miro_diagram' ? 'Miro Diagram Flow' : 'Sample Scripts'}
             </h1>
             <p className="text-text-secondary mt-1">
               {activeTab === 'standards' && 'Manage blueprint generation rules and architectural design standards.'}
+              {activeTab === 'miro_diagram' && 'Upload a Miro Diagram (Image) to automatically extract workflow rules and naming conventions using Gemini Vision AI.'}
               {activeTab === 'validation_rules' && 'Manage automated code validation rules and compliance checks.'}
               {activeTab === 'sample_scripts' && 'Manage sample code generation scripts and reusable pattern templates.'}
             </p>
@@ -395,9 +400,10 @@ export default function StandardsPage() {
       <div className="flex flex-1 overflow-hidden px-6 pb-6 gap-6">
         {isEditing ? (
           /* Side-by-Side Dual Screen View */
-          <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6 h-full overflow-y-auto pr-1">
+          <div className={`w-full grid grid-cols-1 ${activeTab === 'miro_diagram' ? '' : 'lg:grid-cols-2'} gap-6 h-full overflow-y-auto pr-1`}>
             
             {/* LEFT SIDE: Manual File Creation */}
+            {activeTab !== 'miro_diagram' && (
             <div className={`bg-white border border-border-light rounded-2xl p-6 shadow-sm flex flex-col justify-between transition-all ${selectedUploadFiles.length > 0 ? 'opacity-60' : ''}`}>
               <div>
                 <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
@@ -467,6 +473,7 @@ export default function StandardsPage() {
                 </button>
               </div>
             </div>
+            )}
 
             {/* RIGHT SIDE: Direct File Upload & Auto-fill */}
             <div className="bg-white border border-border-light rounded-2xl p-6 shadow-sm flex flex-col justify-between">
@@ -487,7 +494,7 @@ export default function StandardsPage() {
                     ref={fileInputRef} 
                     onChange={handleFileSelectedForUpload} 
                     className="hidden" 
-                    accept=".md,.txt,.json,.yaml,.yml,.java,.py,.js,.sql,.properties,.pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.csv"
+                    accept={activeTab === 'miro_diagram' ? ".png,.jpg,.jpeg,.webp" : ".md,.txt,.json,.yaml,.yml,.java,.py,.js,.sql,.properties,.pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.csv"}
                   />
                   <button 
                     onClick={() => fileInputRef.current?.click()} 

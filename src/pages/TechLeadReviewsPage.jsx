@@ -101,9 +101,9 @@ export default function TechLeadReviewsPage() {
                   <td className="px-6 py-5 text-right flex justify-end gap-2">
                     <button 
                       onClick={() => navigate(`/requests/${rev.id}/review`)} 
-                      disabled={['approved', 'packaged', 'rejected'].includes(rev.status)}
+                      disabled={['approved', 'packaged', 'rejected'].includes(rev.status) || rev.validationStatus === 'Failed'}
                       className={`px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors ${
-                        ['approved', 'packaged', 'rejected'].includes(rev.status)
+                        ['approved', 'packaged', 'rejected'].includes(rev.status) || rev.validationStatus === 'Failed'
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         : 'bg-primary-orange hover:bg-hover-orange text-white'
                       }`}

@@ -33,7 +33,7 @@ export default function AllProjectsDashboardPage() {
   useEffect(() => {
     Promise.all([
       getDashboardMetrics('architect'),
-      getRequests()
+      getRequests({ track_id: 'ALL' })
     ]).then(([metricsRes, requestsRes]) => {
       if (metricsRes.success) setMetrics(metricsRes.data);
       if (requestsRes.success) setRequests(requestsRes.data || []);

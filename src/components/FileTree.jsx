@@ -19,10 +19,10 @@ export default function FileTree({ manifest }) {
             >
               <div className="flex items-center gap-3">
                 <span className="text-gray-400">📄</span>
-                <span className="font-mono text-sm font-bold text-slate-700">{file.filename}</span>
+                <span className="font-mono text-sm font-bold text-slate-700">{file.filename || file.name || file.file_name || file.fileName || 'Unknown File'}</span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-xs text-gray-500 w-48 truncate hidden sm:block" title={file.purpose}>{file.purpose}</span>
+                <span className="text-xs text-gray-500 w-48 truncate hidden sm:block" title={file.purpose || file.description || 'No description provided'}>{file.purpose || file.description || 'No description provided'}</span>
                 <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${
                   file.status === 'generated' ? 'bg-green-100 text-green-700 border border-green-200' : 
                   file.status === 'planned' ? 'bg-orange-50 text-primary-orange border border-border-orange/30' : 'bg-gray-100 text-gray-600'
@@ -42,7 +42,7 @@ export default function FileTree({ manifest }) {
               <div className="p-4 bg-slate-50 border-t border-slate-100 animate-fade-in-up">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">File Logic & Purpose</h4>
                 <p className="text-sm text-slate-700 leading-relaxed">
-                  {file.purpose}
+                  {file.purpose || file.description || 'No detailed description provided by AI.'}
                 </p>
               </div>
             )}

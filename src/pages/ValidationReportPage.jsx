@@ -105,7 +105,7 @@ export default function ValidationReportPage() {
                 <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-border-light">
                   <th className="p-4 font-medium">Rule</th>
                   <th className="p-4 font-medium">Status</th>
-                  <th className="p-4 font-medium">Severity</th>
+                  {/* <th className="p-4 font-medium">Severity</th> */}
                   <th className="p-4 font-medium">Message</th>
                   <th className="p-4 font-medium text-right">Action</th>
                 </tr>
@@ -126,14 +126,14 @@ export default function ValidationReportPage() {
                 ) : (
                   results.map((r, idx) => (
                     <tr key={idx} className="hover:bg-gray-50">
-                      <td className="p-4 text-sm font-medium text-gray-900">{r.rule_name}</td>
+                      <td className="p-4 text-sm font-medium text-gray-900 max-w-xs truncate" title={r.rule_name}>{r.rule_name}</td>
                       <td className="p-4">
                         <span className={`text-xs font-bold ${r.passed ? 'text-green-600' : 'text-red-600'}`}>
                           {r.passed ? 'PASS' : 'FAIL'}
                         </span>
                       </td>
-                      <td className="p-4"><StatusBadge status={r.severity} /></td>
-                      <td className="p-4 text-sm text-gray-600">{r.message}</td>
+                      {/* <td className="p-4"><StatusBadge status={r.severity} /></td> */}
+                      <td className="p-4 text-sm text-gray-600 max-w-xs truncate" title={r.message}>{r.message}</td>
                       <td className="p-4 text-right">
                         {!r.passed && (
                           <button

@@ -6,7 +6,9 @@ const api = axios.create({
 
 // Requirements
 export const getRequests = (params = {}) => {
-  if (!params.track_id) {
+  if (params.track_id === 'ALL') {
+    delete params.track_id;
+  } else if (!params.track_id) {
     const activeTrackStr = localStorage.getItem('agent22_active_track');
     if (activeTrackStr) {
       try {

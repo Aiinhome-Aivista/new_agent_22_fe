@@ -31,6 +31,7 @@ export default function BlueprintPage() {
   const [requestObj, setRequestObj] = useState(null);
   const [specObj, setSpecObj] = useState(null);
   const [jobObj, setJobObj] = useState(null);
+  const [refreshToggle, setRefreshToggle] = useState(false);
 
   useEffect(() => {
     setBlueprint(null);
@@ -83,8 +84,11 @@ export default function BlueprintPage() {
 
         setLoading(false);
 
+        const isGenerating = job && job.job_status === 'running';
+        const needsReworkAndGenerating = bp && bp.status === 'rework' && isGenerating;
+
         // Only poll again if blueprint is not yet available and job is still running/generating
-        if (!bp && job && job.job_status === 'running') {
+        if ((!bp || needsReworkAndGenerating) && isGenerating) {
           pollTimer = setTimeout(fetchStatus, 3000);
         }
       }).catch(err => {
@@ -103,7 +107,7 @@ export default function BlueprintPage() {
       isMounted = false;
       if (pollTimer) clearTimeout(pollTimer);
     };
-  }, [id]);
+  }, [id, refreshToggle]);
 
   const getCleanSystemSummary = () => {
     if (requestObj?.description && !requestObj.description.startsWith('[')) {
@@ -185,7 +189,7 @@ export default function BlueprintPage() {
     
     setShowReworkModal(false);
     setComments('');
-    setLoading(false);
+    setRefreshToggle(prev => !prev);
   };
 
   return (
@@ -272,7 +276,7 @@ export default function BlueprintPage() {
           </div>
         </div>
 
-        {blueprint ? (
+        {blueprint && blueprint.status !== 'rework' ? (
           <div className="grid gap-6">
 
             {/* AI Project Overview Container */}
@@ -446,7 +450,9 @@ export default function BlueprintPage() {
         ) : jobObj && jobObj.job_status === 'running' ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-12 h-12 border-2 border-transparent border-b-primary-orange rounded-full animate-spin mb-4"></div>
-            <h3 className="text-xl font-bold text-gray-700">AI is drafting your blueprint...</h3>
+            <h3 className="text-xl font-bold text-gray-700">
+              {blueprint?.status === 'rework' ? 'AI is re-drafting your blueprint based on Architect feedback...' : 'AI is drafting your blueprint...'}
+            </h3>
             <p className="text-gray-500 mt-2 text-center max-w-md">
               Please wait while the AI Architect designs your Kafka Streams topology, classes, and file manifest. This involves deep reasoning and may take a few minutes.
             </p>

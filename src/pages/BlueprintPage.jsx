@@ -208,7 +208,7 @@ export default function BlueprintPage() {
                   <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold border border-green-200">Approved by Architect</span>
                 )}
                 {requestObj.status === 'in_progress' && (
-                  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">Generation in Progress</span>
+                  <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-bold border border-orange-200">Generation in Progress</span>
                 )}
                 {(requestObj.status === 'packaged' || requestObj.status === 'validated') && (
                   <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-bold border border-purple-200">Packaged</span>
@@ -233,7 +233,7 @@ export default function BlueprintPage() {
                   </button>
                 )}
                 {requestObj.status === 'in_progress' && (
-                  <button onClick={() => navigate(`/requests/${id}/generation`)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-bold shadow-sm transition-colors">
+                  <button onClick={() => navigate(`/requests/${id}/generation`)} className="bg-primary-orange hover:bg-hover-orange text-white px-6 py-2 rounded font-bold shadow-sm transition-colors">
                     View Generation Progress
                   </button>
                 )}
@@ -302,13 +302,13 @@ export default function BlueprintPage() {
               </div>
 
               {/* Section 1: Project / System Summary */}
-              <div className="bg-white p-5 rounded-xl border border-blue-100/80 shadow-2xs space-y-2">
+              <div className="bg-white p-5 rounded-xl border border-orange-100/80 shadow-2xs space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-extrabold text-sidebar uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-primary-orange"></span>
                     1. Project / System Summary (What is Being Built)
                   </h4>
-                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                  <span className="text-[10px] font-bold text-primary-orange bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
                     System Scope
                   </span>
                 </div>
@@ -324,7 +324,7 @@ export default function BlueprintPage() {
                     <span className="w-2.5 h-2.5 rounded-full bg-primary-orange"></span>
                     2. Architecture Design Rationale / Justification (Why This Stack Was Chosen)
                   </h4>
-                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                  <span className="text-[10px] font-bold text-primary-orange bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
                     Design Justification
                   </span>
                 </div>

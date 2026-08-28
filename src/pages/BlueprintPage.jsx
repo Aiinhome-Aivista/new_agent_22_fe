@@ -232,7 +232,7 @@ export default function BlueprintPage() {
                   </button>
                 )}
                 {(requestObj.status === 'packaged' || requestObj.status === 'validated') && (
-                  <button onClick={() => navigate('/packages')} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-bold shadow-sm transition-colors">
+                  <button onClick={() => navigate('/packages')} className="bg-primary-orange hover:bg-hover-orange text-white px-6 py-2 rounded font-bold shadow-sm transition-colors">
                     View Generated Package
                   </button>
                 )}

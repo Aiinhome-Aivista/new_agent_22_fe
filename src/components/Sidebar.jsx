@@ -145,7 +145,7 @@ export default function Sidebar() {
                   } else if (item.path === '/request/new') {
                     isReallyActive = (currentPath === '/request/new');
                   } else if (item.path === '/requests') {
-                    isReallyActive = (currentPath === '/requests' || (currentPath.startsWith('/requests/') && !currentPath.includes('/blueprint') && !currentPath.includes('/validation') && !currentPath.includes('/generation') && !currentPath.includes('/package')));
+                    isReallyActive = (currentPath === '/requests' || (currentPath.startsWith('/requests/') && !currentPath.includes('/blueprint') && !currentPath.includes('/validation') && !currentPath.includes('/generation') && !currentPath.includes('/package') && !currentPath.includes('/review')));
                   } else if (item.path === '/review/blueprint' || item.path === '/blueprint') {
                     isReallyActive = (currentPath === '/blueprint' || currentPath === '/review/blueprint' || currentPath.includes('/blueprint') || currentPath.includes('/patterns'));
                   } else if (item.path === '/progress') {

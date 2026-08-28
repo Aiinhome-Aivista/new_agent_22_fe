@@ -97,63 +97,62 @@ export default function PackagesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col">
                 <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <span className="text-xl">📦</span> Download Skeleton
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
                   Your microservice skeleton is generated and validated. Download the ZIP file to extract the codebase, or trigger a direct commit to the configured Git repository.
                 </p>
-                {packages.map((pkg) => (
-                  <div key={pkg.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-3">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-gray-800">{pkg.request_name || `Package #${pkg.id}`}</span>
-                      <span className="text-xs font-mono text-gray-500 truncate max-w-[200px]" title={`package_${pkg.request_id}.zip`}>{`package_${pkg.request_id}.zip`}</span>
-                    </div>
-                    <a
-                      href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/packages/download/${pkg.id}`}
-                      className="w-full inline-block text-center bg-primary-orange hover:bg-hover-orange text-white py-2 rounded-lg font-medium shadow-sm transition-all hover:-translate-y-0.5"
-                      download
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
-                        Download ZIP
-                      </span>
-                    </a>
-                  </div>
-                ))}
-                {packages.length === 0 && (
-                  <p className="text-gray-500 text-sm italic mb-4">No packages available yet.</p>
-                )}
-
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h3 className="font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">File Manifest Checklist</h3>
-                <div className="space-y-3">
-                  {fileChecklist.map((file, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <div className="text-green-500"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg></div>
-                      <span className="text-sm font-medium text-gray-700 truncate">{file}</span>
+                <div className="flex-1">
+                  {packages.map((pkg) => (
+                    <div key={pkg.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-gray-800">{pkg.request_name || `Package #${pkg.id}`}</span>
+                        <span className="text-xs font-mono text-gray-500 truncate max-w-[200px]" title={`package_${pkg.request_id}.zip`}>{`package_${pkg.request_id}.zip`}</span>
+                      </div>
+                      <a
+                        href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/packages/download/${pkg.id}`}
+                        className="w-full inline-block text-center bg-primary-orange hover:bg-hover-orange text-white py-2 rounded-lg font-medium shadow-sm transition-all hover:-translate-y-0.5"
+                        download
+                      >
+                        <span className="flex items-center justify-center gap-2">
+                          <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
+                          Download ZIP
+                        </span>
+                      </a>
                     </div>
                   ))}
+                  {packages.length === 0 && (
+                    <p className="text-gray-500 text-sm italic mb-4">No packages available yet.</p>
+                  )}
                 </div>
               </div>
 
-              <div className="bg-emerald-50 p-6 rounded-xl shadow-sm border border-emerald-100">
+              <div className="bg-emerald-50 p-6 rounded-xl shadow-sm border border-emerald-100 flex flex-col">
                 <h3 className="font-bold text-emerald-800 mb-2">Validation Summary</h3>
                 <p className="text-sm text-emerald-700 mb-4">All pattern checks and logic validations passed successfully.</p>
-                <button onClick={() => navigate(`/requests/${id}/review`)} className="w-full bg-primary-orange hover:bg-hover-orange text-white py-3 rounded-lg font-bold shadow-sm transition-all text-center flex justify-center items-center gap-2">
-                  {reqData?.request?.status === 'approved' || reqData?.request?.status === 'packaged' 
-                    ? 'View Final Sign-off Details \u2192' 
-                    : 'Proceed to Tech Lead Review \u2192'}
-                </button>
+                <div className="mt-auto">
+                  <button onClick={() => navigate(`/requests/${id}/review`)} className="w-full bg-primary-orange hover:bg-hover-orange text-white py-3 rounded-lg font-bold shadow-sm transition-all text-center flex justify-center items-center gap-2">
+                    {reqData?.request?.status === 'approved' || reqData?.request?.status === 'packaged' 
+                      ? 'View Final Sign-off Details \u2192' 
+                      : 'Proceed to Tech Lead Review \u2192'}
+                  </button>
+                </div>
               </div>
             </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <h3 className="font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">File Manifest Checklist</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {fileChecklist.map((file, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="text-green-500 flex-shrink-0"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg></div>
+                    <span className="text-sm font-medium text-gray-700 truncate" title={file}>{file}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}

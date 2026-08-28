@@ -78,13 +78,6 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
                   >
                     View
                   </button>
-                ) : role === 'developer' && ['packaged', 'approved'].includes(req.status) ? (
-                  <button
-                    onClick={() => handleNavigate(`/packages?id=${req.id}`, req.id)}
-                    className="bg-primary-orange text-white hover:bg-hover-orange border border-primary-orange hover:border-hover-orange px-4 py-2 rounded-lg font-bold shadow-sm transition-all"
-                  >
-                    View
-                  </button>
                 ) : (
                   <button
                     onClick={() => {

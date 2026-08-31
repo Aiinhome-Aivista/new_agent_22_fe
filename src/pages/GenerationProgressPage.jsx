@@ -158,9 +158,9 @@ export default function GenerationProgressPage() {
   const displayList = (expectedFiles.length > 0 
     ? expectedFiles.map(ef => {
         const genFile = generatedFiles.find(gf => gf.file_name === ef.filename || gf.file_name === ef.name);
-        return genFile ? { ...genFile, isGenerated: true, needsWork: needsWorkMap[genFile.file_name] || false } : { file_name: ef.filename || ef.name, isGenerated: false };
+        return genFile ? { ...genFile, isGenerated: true, needsWork: Boolean(genFile.needs_work) || needsWorkMap[genFile.file_name] || false } : { file_name: ef.filename || ef.name, isGenerated: false };
       })
-    : generatedFiles.map(gf => ({ ...gf, isGenerated: true, needsWork: needsWorkMap[gf.file_name] || false }))
+    : generatedFiles.map(gf => ({ ...gf, isGenerated: true, needsWork: Boolean(gf.needs_work) || needsWorkMap[gf.file_name] || false }))
   ).filter(f => f.isGenerated || (!isCompleted && !isFailed));
 
   const isAlreadyValidated = ['validated', 'packaged', 'approved'].includes(reqData?.request?.status);

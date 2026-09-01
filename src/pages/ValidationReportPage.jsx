@@ -25,15 +25,15 @@ export default function ValidationReportPage() {
   const [loading, setLoading] = useState(true);
   const [fixingRule, setFixingRule] = useState(null);
 
-  const fetchResults = () => {
-    setLoading(true);
+  const fetchResults = (silent = false) => {
+    if (!silent) setLoading(true);
     getValidationResults(id).then(data => {
       setResults(data.data?.results || data.data || []);
       setSummary(data.data?.summary || '');
-      setLoading(false);
+      if (!silent) setLoading(false);
     }).catch(err => {
       console.error(err);
-      setLoading(false);
+      if (!silent) setLoading(false);
     });
   };
 
@@ -99,7 +99,7 @@ export default function ValidationReportPage() {
     setFixingRule(rule.rule_name);
     try {
       await fixValidation(id, rule.rule_name, rule.message);
-      fetchResults();
+      fetchResults(true);
     } catch (err) {
       console.error(err);
       alert('Auto-fix failed. Please check the logs.');

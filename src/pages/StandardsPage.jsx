@@ -40,6 +40,9 @@ export default function StandardsPage() {
   useEffect(() => {
     setGithubConnected(localStorage.getItem(`agent22_github_connected_${trackKey}`) === 'true');
   }, [trackKey]);
+  const [githubUsername, setGithubUsername] = useState('');
+  const [githubToken, setGithubToken] = useState('');
+  const [githubUser, setGithubUser] = useState(null);
   const [githubLoading, setGithubLoading] = useState(false);
   const [githubError, setGithubError] = useState('');
   const [githubSuccess, setGithubSuccess] = useState('');

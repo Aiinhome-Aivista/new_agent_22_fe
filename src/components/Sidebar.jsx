@@ -161,7 +161,7 @@ export default function Sidebar() {
                   } else if (item.path === '/review/queue' || item.path === '/techlead/reviews') {
                     isReallyActive = (currentPath === item.path || (currentPath.includes('/review') && !currentPath.includes('/blueprint')));
                   } else if (item.path === '/standards') {
-                    isReallyActive = (currentPath === '/standards' || currentPath.startsWith('/standards/'));
+                    isReallyActive = (currentPath === '/standards' || currentPath.startsWith('/standards/') || currentPath === '/github');
                   } else if (item.path === '/chat') {
                     isReallyActive = (currentPath === '/chat');
                   } else {

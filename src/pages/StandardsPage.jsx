@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getStandards, saveStandard, uploadStandard, parseFileContent, deleteStandard } from '../api/api';
 import Loader from '../components/Loader';
 import { DocumentTextIcon, PlusIcon, TrashIcon, ArrowUpTrayIcon, SparklesIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -6,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useProject } from '../context/ProjectContext';
 
 export default function StandardsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { currentTrack, currentProject } = useProject();
   const [standards, setStandards] = useState([]);
@@ -30,6 +32,184 @@ export default function StandardsPage() {
   const [confirmModal, setConfirmModal] = useState(null);
   const [deleteConfirmTarget, setDeleteConfirmTarget] = useState(null);
   const [isDeletingStandard, setIsDeletingStandard] = useState(false);
+
+  // GitHub Integration state
+  const trackKey = currentTrack?.id ? `track_${currentTrack.id}` : 'global';
+  const [githubConnected, setGithubConnected] = useState(() => localStorage.getItem(`agent22_github_connected_${trackKey}`) === 'true');
+
+  useEffect(() => {
+    setGithubConnected(localStorage.getItem(`agent22_github_connected_${trackKey}`) === 'true');
+  }, [trackKey]);
+  const [githubLoading, setGithubLoading] = useState(false);
+  const [githubError, setGithubError] = useState('');
+  const [githubSuccess, setGithubSuccess] = useState('');
+  const [githubRepos, setGithubRepos] = useState([]);
+  const [githubSelectedRepo, setGithubSelectedRepo] = useState('pwc-enterprise/architecture-standards');
+  const [githubBranch, setGithubBranch] = useState('main');
+  const [githubFilePath, setGithubFilePath] = useState('');
+  const [githubImporting, setGithubImporting] = useState(false);
+
+  const parseGitHubRepoInput = (input) => {
+    let str = (input || '').trim();
+    str = str.replace(/\.git$/i, '');
+    if (str.includes('github.com/')) {
+      str = str.split('github.com/').pop().split('?')[0].split('#')[0];
+    }
+    const parts = str.split('/').filter(Boolean);
+    if (parts.length >= 2) {
+      return { owner: parts[0], repoName: parts[1], fullName: `${parts[0]}/${parts[1]}` };
+    } else if (parts.length === 1) {
+      return { owner: parts[0], repoName: null, fullName: null };
+    }
+    return { owner: '', repoName: null, fullName: null };
+  };
+
+  const handleConnectGitHub = async () => {
+    const rawInput = githubUsername.trim();
+    const token = githubToken.trim();
+
+    setGithubError('');
+    setGithubSuccess('');
+
+    if (!rawInput && !token) {
+      setGithubError('Please enter a GitHub Repository Link (e.g. https://github.com/owner/repository)');
+      return;
+    }
+
+    setGithubLoading(true);
+
+    try {
+      const { owner, repoName, fullName } = parseGitHubRepoInput(rawInput);
+      const targetUser = owner || rawInput;
+
+      let userData = null;
+      let reposData = [];
+      let activeRepoName = fullName || '';
+
+      // 1. Fetch GitHub Account info for the repository owner
+      if (targetUser) {
+        let res = await fetch(`https://api.github.com/users/${encodeURIComponent(targetUser)}`);
+        if (res.ok) {
+          userData = await res.json();
+        } else {
+          try {
+            const searchRes = await fetch(`https://api.github.com/search/users?q=${encodeURIComponent(targetUser)}`);
+            if (searchRes.ok) {
+              const searchData = await searchRes.json();
+              if (searchData.items && searchData.items.length > 0) {
+                const matchedLogin = searchData.items[0].login;
+                const detailRes = await fetch(`https://api.github.com/users/${matchedLogin}`);
+                if (detailRes.ok) {
+                  userData = await detailRes.json();
+                }
+              }
+            }
+          } catch (e) {
+            console.warn("Search API warning:", e);
+          }
+        }
+
+        // Fallback profile if GitHub API didn't return profile
+        if (!userData) {
+          userData = {
+            login: targetUser,
+            name: targetUser,
+            avatar_url: `https://github.com/${targetUser}.png`,
+            html_url: `https://github.com/${targetUser}`,
+            public_repos: 0
+          };
+        }
+
+        // Fetch repos for this account
+        if (userData && userData.login) {
+          try {
+            const repoRes = await fetch(`https://api.github.com/users/${userData.login}/repos?sort=updated&per_page=30`);
+            if (repoRes.ok) {
+              reposData = await repoRes.json();
+            }
+          } catch (e) {
+            console.warn("Could not fetch user repos:", e);
+          }
+        }
+      }
+
+      if (userData) {
+        setGithubUser(userData);
+        setGithubConnected(true);
+        setGithubRepos(reposData);
+
+        const selectedRepo = activeRepoName || (reposData.length > 0 ? reposData[0].full_name : `${userData.login}/architecture-standards`);
+        setGithubSelectedRepo(selectedRepo);
+
+        setGithubSuccess(`Connected Repository: "${selectedRepo}" (GitHub Account ID: @${userData.login})`);
+
+        localStorage.setItem('agent22_github_username', rawInput);
+        localStorage.setItem('agent22_github_token', token);
+        localStorage.setItem('agent22_github_user', JSON.stringify(userData));
+        localStorage.setItem('agent22_github_connected', 'true');
+        localStorage.setItem('agent22_github_selected_repo', selectedRepo);
+      } else {
+        setGithubError('Failed to connect to GitHub Repository. Please check link.');
+      }
+    } catch (err) {
+      console.error('GitHub connection error:', err);
+      setGithubError('Network error connecting to GitHub repository.');
+    } finally {
+      setGithubLoading(false);
+    }
+  };
+
+  const handleDisconnectGitHub = () => {
+    setGithubConnected(false);
+    setGithubUser(null);
+    setGithubUsername('');
+    setGithubToken('');
+    setGithubError('');
+    setGithubSuccess('Disconnected from GitHub account.');
+    localStorage.removeItem('agent22_github_username');
+    localStorage.removeItem('agent22_github_token');
+    localStorage.removeItem('agent22_github_user');
+    localStorage.removeItem('agent22_github_connected');
+  };
+
+  const handleImportFileFromGitHub = async () => {
+    if (!githubFilePath.trim()) {
+      setGithubError('Please enter a file path inside repository (e.g. standards/quote_processing.md)');
+      return;
+    }
+    setGithubImporting(true);
+    setGithubError('');
+    setGithubSuccess('');
+
+    try {
+      let rawUrl = `https://raw.githubusercontent.com/${githubSelectedRepo}/${githubBranch}/${githubFilePath.trim()}`;
+      let headers = {};
+      if (githubToken && githubToken !== 'demo-token') {
+        headers['Authorization'] = `Bearer ${githubToken}`;
+      }
+      const res = await fetch(rawUrl, { headers });
+      if (res.ok) {
+        const content = await res.text();
+        const extractedFilename = githubFilePath.split('/').pop() || 'github_imported.md';
+        
+        openNew();
+        setManualForm({
+          filename: extractedFilename,
+          folder: activeTab,
+          content: content
+        });
+        setGithubSuccess(`File "${extractedFilename}" imported from GitHub! Check the editor.`);
+        setGithubModalOpen(false);
+      } else {
+        setGithubError(`Failed to fetch file from GitHub path (${res.status}). Verify Repo, Branch & Path.`);
+      }
+    } catch (err) {
+      console.error('Import error:', err);
+      setGithubError('Error connecting to GitHub repository.');
+    } finally {
+      setGithubImporting(false);
+    }
+  };
 
   const showNotice = (title, message, type = 'warning') => {
     setModalNotice({ title, message, type });
@@ -371,9 +551,33 @@ export default function StandardsPage() {
             </p>
           </div>
           {!isEditing ? (
-            <button onClick={openNew} className="flex items-center gap-2 bg-primary-orange text-white px-5 py-2.5 rounded-lg font-bold hover:bg-hover-orange transition-colors shadow-md shadow-orange-500/20">
-              <PlusIcon className="w-5 h-5" /> Add / Upload File
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={openNew} className="flex items-center gap-2 bg-primary-orange text-white px-5 py-2.5 rounded-lg font-bold hover:bg-hover-orange transition-colors shadow-md shadow-orange-500/20">
+                <PlusIcon className="w-5 h-5" /> Add / Upload File
+              </button>
+              <button 
+                onClick={() => navigate('/github')} 
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-bold transition-all shadow-md ${
+                  githubConnected 
+                    ? 'bg-[#181717] text-white hover:bg-[#24292e] border border-emerald-500/60 shadow-emerald-950/20' 
+                    : 'bg-[#181717] text-white hover:bg-[#24292e] border border-gray-800 hover:border-primary-orange'
+                }`}
+                title={githubConnected ? `Connected to GitHub (@${githubUser?.login || 'Connected'})` : "Connect GitHub Account"}
+              >
+                <svg className="w-5 h-5 fill-current text-white" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                </svg>
+                <span className="text-sm">
+                  {githubConnected ? `@${githubUser?.login || 'Connected'}` : 'Connect GitHub'}
+                </span>
+                {githubConnected ? (
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                ) : null}
+              </button>
+            </div>
           ) : (
             <button onClick={handleBackToList} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-colors shadow-sm">
               ← Back to List

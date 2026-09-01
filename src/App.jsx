@@ -16,6 +16,7 @@ import AuditTrailPage from './pages/AuditTrailPage';
 import AdvisorChatPage from './pages/AdvisorChatPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import StandardsPage from './pages/StandardsPage';
+import GitHubPage from './pages/GitHubPage';
 import TechLeadValidationsPage from './pages/TechLeadValidationsPage';
 import TechLeadReviewsPage from './pages/TechLeadReviewsPage';
 import TechLeadReportsPage from './pages/TechLeadReportsPage';
@@ -83,6 +84,7 @@ function App() {
                 element={<ReviewApprovalPage />}
               />
               <Route path="standards" element={<StandardsPage />} />
+              <Route path="github" element={<GitHubPage />} />
               <Route path="knowledge" element={<PlaceholderPage title="Knowledge Base" />} />
               <Route path="chat" element={<AdvisorChatPage />} />
               

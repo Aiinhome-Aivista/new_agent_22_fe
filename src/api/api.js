@@ -48,6 +48,8 @@ export const fixValidation = (reqId, ruleName, message) => api.post('/validation
 
 // Packages
 export const getPackages = () => api.get('/packages/').then(res => res.data);
+export const commitPackageToGit = (data) => api.post('/packages/commit', data).then(res => res.data);
+export const getLatestGitPush = (requestId) => api.get(`/packages/latest-push/${requestId}`).then(res => res.data);
 
 // Reviews
 export const getReviewQueue = () =>api.get('/review/queue').then(res => res.data);

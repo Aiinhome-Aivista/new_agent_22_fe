@@ -6,6 +6,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import StepRequestTable from '../components/StepRequestTable';
 import { ArrowLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import GitCommitModal from '../components/GitCommitModal';
 
 export default function PackagesPage() {
   const { id: pathId } = useParams();
@@ -21,6 +22,10 @@ export default function PackagesPage() {
 
 
   const [reqData, setReqData] = useState(null);
+  
+  const [isGitModalOpen, setIsGitModalOpen] = useState(false);
+  const [currentGitPackageId, setCurrentGitPackageId] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -112,16 +117,32 @@ export default function PackagesPage() {
                         <span className="font-bold text-gray-800">{pkg.request_name || `Package #${pkg.id}`}</span>
                         <span className="text-xs font-mono text-gray-500 truncate max-w-[200px]" title={`package_${pkg.request_id}.zip`}>{`package_${pkg.request_id}.zip`}</span>
                       </div>
-                      <a
-                        href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/packages/download/${pkg.id}`}
-                        className="w-full inline-block text-center bg-primary-orange hover:bg-hover-orange text-white py-2 rounded-lg font-medium shadow-sm transition-all hover:-translate-y-0.5"
-                        download
-                      >
-                        <span className="flex items-center justify-center gap-2">
-                          <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
-                          Download ZIP
-                        </span>
-                      </a>
+                      <div className="grid grid-cols-2 gap-3">
+                        <a
+                          href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/packages/download/${pkg.id}`}
+                          className="w-full inline-block text-center bg-primary-orange hover:bg-hover-orange text-white py-2 rounded-lg font-medium shadow-sm transition-all hover:-translate-y-0.5"
+                          download
+                        >
+                          <span className="flex items-center justify-center gap-2">
+                            <ArrowDownTrayIcon className="w-5 h-5 stroke-[2.5]" />
+                            Download ZIP
+                          </span>
+                        </a>
+                        <button
+                          onClick={() => {
+                            setCurrentGitPackageId(pkg.request_id);
+                            setIsGitModalOpen(true);
+                          }}
+                          className="w-full inline-block text-center bg-[#24292f] hover:bg-[#1f2328] text-white py-2 rounded-lg font-medium shadow-sm transition-all hover:-translate-y-0.5"
+                        >
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="w-5 h-5 fill-current" viewBox="0 0 16 16">
+                              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                            </svg>
+                            Push to GitHub
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   ))}
                   {packages.length === 0 && (
@@ -157,6 +178,30 @@ export default function PackagesPage() {
           </>
         )}
       </div>
+      
+      {/* Success Message Toast */}
+      {successMessage && (
+        <div className="fixed bottom-4 right-4 z-[100] bg-emerald-50 text-emerald-700 p-4 rounded-lg shadow-lg border border-emerald-100 flex items-center justify-between min-w-[300px]">
+          <span className="font-medium text-sm">{successMessage}</span>
+          <button 
+            onClick={() => setSuccessMessage(null)}
+            className="text-emerald-500 hover:text-emerald-700 p-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      )}
+
+      {/* Git Commit Modal */}
+      <GitCommitModal
+        isOpen={isGitModalOpen}
+        onClose={() => setIsGitModalOpen(false)}
+        requestId={currentGitPackageId}
+        onSuccess={(msg) => {
+          setSuccessMessage(msg);
+          setTimeout(() => setSuccessMessage(null), 5000);
+        }}
+      />
     </div>
   );
 }

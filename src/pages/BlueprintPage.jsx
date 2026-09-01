@@ -47,8 +47,8 @@ export default function BlueprintPage() {
           reqs = reqs.filter(r => ['draft', 'blueprint_review', 'approved', 'in_progress', 'validated', 'packaged', 'rework'].includes(r.status?.toLowerCase()));
         }
         if (currentTrack) {
-          reqs = reqs.filter(r => 
-            r.track_id === currentTrack.id || 
+          reqs = reqs.filter(r =>
+            r.track_id === currentTrack.id ||
             r.track_name === currentTrack.track_name ||
             (currentTrack.track_name && r.request_name && r.request_name.toLowerCase().includes(currentTrack.track_name.toLowerCase()))
           );
@@ -72,12 +72,12 @@ export default function BlueprintPage() {
         const spec = data?.data?.spec || null;
         const job = data?.data?.job || null;
         const bp = data?.data?.blueprint;
-        
+
         setRequestObj(req);
         setSpecObj(spec);
         setJobObj(job);
         setBlueprint(bp || null);
-        
+
         if (!bp?.assumptions || bp.assumptions.length === 0) {
           setAssumptionsAcknowledged(true);
         }
@@ -123,7 +123,7 @@ export default function BlueprintPage() {
             const userMsg = parsed.find(m => m.role === 'user' && m.text && m.text.length > 20);
             if (userMsg) return userMsg.text;
           }
-        } catch (e) {}
+        } catch (e) { }
       } else if (typeof hints === 'string' && hints.length > 30 && !hints.startsWith('[')) {
         return hints;
       }
@@ -183,10 +183,10 @@ export default function BlueprintPage() {
     if (!blueprint || !comments.trim()) return;
     setLoading(true);
     await reworkBlueprint(blueprint.id, comments);
-    
+
     // Trigger workflow again in draft mode to regenerate
     await runWorkflow(id, true);
-    
+
     setShowReworkModal(false);
     setComments('');
     setRefreshToggle(prev => !prev);
@@ -198,8 +198,8 @@ export default function BlueprintPage() {
       <div className="p-8 flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate(isArchitect ? '/review/blueprint' : -1)} 
+            <button
+              onClick={() => navigate(isArchitect ? '/review/blueprint' : -1)}
               className="p-2 -ml-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
               title={isArchitect ? "Back to Blueprint Reviews" : "Go Back"}
             >
@@ -208,9 +208,6 @@ export default function BlueprintPage() {
             <h2 className="text-xl font-bold text-gray-800">Generated Blueprint</h2>
             {!isArchitect && blueprint && requestObj && (
               <>
-                {['approved'].includes(requestObj.status?.toLowerCase()) && (
-                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold border border-green-200">Approved by Architect</span>
-                )}
                 {requestObj.status === 'in_progress' && (
                   <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-bold border border-orange-200">Generation in Progress</span>
                 )}
@@ -219,6 +216,11 @@ export default function BlueprintPage() {
                 )}
                 {['draft', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && (
                   <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">Pending Architect Review</span>
+                )}
+                {(blueprint.status === 'approved' || ['approved', 'in_progress', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase())) && (
+                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold border border-green-200">
+                    {blueprint.is_auto_approved ? 'Auto-Approved by Agent' : 'Approved by Architect'}
+                  </span>
                 )}
               </>
             )}
@@ -253,7 +255,7 @@ export default function BlueprintPage() {
               (blueprint.status === 'approved' || ['in_progress', 'approved', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase())) ? (
                 <>
                   <span className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-bold text-sm flex items-center border border-green-200">
-                    Approved by Architect
+                    {blueprint.is_auto_approved ? 'Auto-Approved by Agent' : 'Approved by Architect'}
                   </span>
                   <button onClick={() => navigate('/review/blueprint')} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded font-medium shadow-sm transition-colors">
                     Back to Blueprint Reviews
@@ -280,8 +282,36 @@ export default function BlueprintPage() {
           <div className="grid gap-6">
 
             {/* AI Project Overview Container */}
+            {blueprint.accuracy_score !== undefined && blueprint.accuracy_score !== null && (
+              <div className={`group p-6 rounded-2xl border shadow-sm cursor-help transition-all duration-300 ${blueprint.accuracy_score >= 80 ? 'bg-green-50 hover:bg-green-100 border-green-200' : 'bg-red-50 hover:bg-red-100 border-red-200'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`font-bold flex items-center gap-2 ${blueprint.accuracy_score >= 80 ? 'text-green-800' : 'text-red-800'}`}>
+                    <span className="text-xl">{blueprint.accuracy_score >= 80 ? '✅' : '❌'}</span>
+                    Architecture Standard Accuracy
+                  </h3>
+                  <span className={`text-2xl font-extrabold ${blueprint.accuracy_score >= 80 ? 'text-green-600' : 'text-red-600'}`}>
+                    {blueprint.accuracy_score}%
+                  </span>
+                </div>
+
+                {blueprint.accuracy_score >= 80 ? (
+                  <p className="text-sm text-green-700">The blueprint meets the minimum accuracy threshold. Hover to see detailed feedback.</p>
+                ) : (
+                  <p className="text-sm text-red-700">The blueprint failed to meet the minimum accuracy threshold. Hover to see detailed feedback.</p>
+                )}
+
+                {/* Hover Feedback Box */}
+                {blueprint.validation_feedback && (
+                  <div className="hidden group-hover:block mt-4 bg-white/80 p-4 rounded-xl border border-gray-200 shadow-inner animate-fade-in-up">
+                    <h4 className="text-sm font-bold text-gray-800 mb-2">Validation Feedback:</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-line">{blueprint.validation_feedback}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="bg-gradient-to-br from-white via-slate-50/80 to-orange-50/40 rounded-2xl p-6 border border-border-orange/40 shadow-sm relative overflow-hidden space-y-5">
-              
+
               {/* Container Top Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-light/60 pb-3">
                 <div className="flex items-center gap-3">
@@ -333,8 +363,8 @@ export default function BlueprintPage() {
                   </span>
                 </div>
                 <p className="text-xs text-text-primary leading-relaxed font-normal">
-                  {blueprint?.generated_rationale || 
-                   "This architecture was chosen because it follows a modular and event-driven approach, where each service and AI agent has a specific responsibility. This makes the system easier to maintain, scale, and extend. Apache Kafka enables real-time event processing and seamless communication between microservices and AI agents, while Kafka Streams supports continuous monitoring of KT activities, progress, risks, and knowledge gaps. This enables the system to provide timely recommendations, automated notifications, and real-time dashboards."}
+                  {blueprint?.generated_rationale ||
+                    "This architecture was chosen because it follows a modular and event-driven approach, where each service and AI agent has a specific responsibility. This makes the system easier to maintain, scale, and extend. Apache Kafka enables real-time event processing and seamless communication between microservices and AI agents, while Kafka Streams supports continuous monitoring of KT activities, progress, risks, and knowledge gaps. This enables the system to provide timely recommendations, automated notifications, and real-time dashboards."}
                 </p>
               </div>
 
@@ -409,19 +439,19 @@ export default function BlueprintPage() {
             <div className="bg-white p-6 rounded shadow border border-border-light">
               <h3 className="font-bold text-gray-700 mb-4">Class Design & AI Rationale</h3>
               <div className="prose prose-sm max-w-none text-gray-600 mb-6">
-                <p><strong>Design:</strong><br/>
-                  {blueprint.class_design?.split(/(\*\*.*?\*\*)/g).map((part, idx) => 
-                    part.startsWith('**') && part.endsWith('**') ? 
-                    <strong key={idx} className="text-gray-800">{part.slice(2, -2)}</strong> : 
-                    <span key={idx}>{part}</span>
+                <p><strong>Design:</strong><br />
+                  {blueprint.class_design?.split(/(\*\*.*?\*\*)/g).map((part, idx) =>
+                    part.startsWith('**') && part.endsWith('**') ?
+                      <strong key={idx} className="text-gray-800">{part.slice(2, -2)}</strong> :
+                      <span key={idx}>{part}</span>
                   )}
                 </p>
                 <div className="mt-4">
-                  <strong>Rationale:</strong><br/>
-                  {blueprint.generated_rationale?.split(/(\*\*.*?\*\*)/g).map((part, idx) => 
-                    part.startsWith('**') && part.endsWith('**') ? 
-                    <strong key={idx} className="text-gray-800">{part.slice(2, -2)}</strong> : 
-                    <span key={idx}>{part}</span>
+                  <strong>Rationale:</strong><br />
+                  {blueprint.generated_rationale?.split(/(\*\*.*?\*\*)/g).map((part, idx) =>
+                    part.startsWith('**') && part.endsWith('**') ?
+                      <strong key={idx} className="text-gray-800">{part.slice(2, -2)}</strong> :
+                      <span key={idx}>{part}</span>
                   )}
                 </div>
               </div>

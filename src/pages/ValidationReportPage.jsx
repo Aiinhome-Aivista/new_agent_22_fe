@@ -19,19 +19,21 @@ export default function ValidationReportPage() {
   const role = user?.role?.toLowerCase() || 'developer';
   const isTechLead = role === 'techlead' || role === 'tech lead' || role.includes('tech');
   const [results, setResults] = useState([]);
+  const [displayedResults, setDisplayedResults] = useState([]);
+  const [isRevealing, setIsRevealing] = useState(false);
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(true);
   const [fixingRule, setFixingRule] = useState(null);
 
-  const fetchResults = () => {
-    setLoading(true);
+  const fetchResults = (silent = false) => {
+    if (!silent) setLoading(true);
     getValidationResults(id).then(data => {
       setResults(data.data?.results || data.data || []);
       setSummary(data.data?.summary || '');
-      setLoading(false);
+      if (!silent) setLoading(false);
     }).catch(err => {
       console.error(err);
-      setLoading(false);
+      if (!silent) setLoading(false);
     });
   };
 
@@ -41,14 +43,63 @@ export default function ValidationReportPage() {
       return;
     }
     fetchResults();
+
+    // Poll every 5 seconds if results are not yet available
+    const intervalId = setInterval(() => {
+      getValidationResults(id).then(data => {
+        const fetchedResults = data.data?.results || data.data || [];
+        if (fetchedResults.length > 0) {
+          setResults(fetchedResults);
+          setSummary(data.data?.summary || '');
+          clearInterval(intervalId);
+        }
+      }).catch(err => {
+        console.error("Polling error:", err);
+      });
+    }, 5000);
+
+    return () => clearInterval(intervalId);
   }, [id]);
+
+  useEffect(() => {
+    if (results.length === 0) {
+      setDisplayedResults([]);
+      setIsRevealing(false);
+      return;
+    }
+    
+    // If we already have results (e.g. from clicking fix), skip animation
+    if (displayedResults.length > 0) {
+       setDisplayedResults(results);
+       setIsRevealing(false);
+       return;
+    }
+    
+    setIsRevealing(true);
+    let currentIndex = 0;
+    
+    const interval = setInterval(() => {
+      if (currentIndex < results.length) {
+        setDisplayedResults(prev => {
+          const next = [...prev, results[currentIndex]];
+          currentIndex++;
+          return next;
+        });
+      } else {
+        clearInterval(interval);
+        setIsRevealing(false);
+      }
+    }, 600); // Reveal one rule every 600ms
+    
+    return () => clearInterval(interval);
+  }, [results]);
 
   const handleFix = async (rule) => {
     if (fixingRule) return;
     setFixingRule(rule.rule_name);
     try {
       await fixValidation(id, rule.rule_name, rule.message);
-      fetchResults();
+      fetchResults(true);
     } catch (err) {
       console.error(err);
       alert('Auto-fix failed. Please check the logs.');
@@ -114,17 +165,23 @@ export default function ValidationReportPage() {
                 {loading ? (
                   <tr>
                     <td colSpan="4" className="p-8">
-                      <div className="flex justify-center items-center">
-                        <Loader />
+                      <div className="flex justify-center items-center py-12">
+                        <ArrowPathIcon className="w-8 h-8 animate-spin text-orange-400" />
                       </div>
                     </td>
                   </tr>
                 ) : results.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="p-8 text-center text-gray-500">No validation results available.</td>
+                    <td colSpan="4" className="p-8">
+                      <div className="flex flex-col justify-center items-center gap-3 text-gray-500 py-12">
+                        <ArrowPathIcon className="w-8 h-8 animate-spin text-orange-400" />
+                        <p className="font-medium text-sm">Waiting for validation results...</p>
+                        <p className="text-xs">This may take a few minutes if AI code generation is still in progress.</p>
+                      </div>
+                    </td>
                   </tr>
                 ) : (
-                  results.map((r, idx) => (
+                  displayedResults.map((r, idx) => (
                     <tr key={idx} className="hover:bg-gray-50">
                       <td className="p-4 text-sm font-medium text-gray-900 max-w-xs truncate" title={r.rule_name}>{r.rule_name}</td>
                       <td className="p-4">
@@ -157,6 +214,16 @@ export default function ValidationReportPage() {
                       </td>
                     </tr>
                   ))
+                )}
+                {isRevealing && (
+                  <tr>
+                    <td colSpan="4" className="p-4 text-center text-gray-500 text-sm">
+                      <div className="flex items-center justify-center gap-2">
+                        <ArrowPathIcon className="w-4 h-4 animate-spin text-orange-500" />
+                        <span>Validating next rule...</span>
+                      </div>
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>

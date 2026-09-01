@@ -280,6 +280,34 @@ export default function BlueprintPage() {
           <div className="grid gap-6">
 
             {/* AI Project Overview Container */}
+            {blueprint.accuracy_score !== undefined && blueprint.accuracy_score !== null && (
+              <div className={`group p-6 rounded-2xl border shadow-sm cursor-help transition-all duration-300 ${blueprint.accuracy_score >= 80 ? 'bg-green-50 hover:bg-green-100 border-green-200' : 'bg-red-50 hover:bg-red-100 border-red-200'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className={`font-bold flex items-center gap-2 ${blueprint.accuracy_score >= 80 ? 'text-green-800' : 'text-red-800'}`}>
+                    <span className="text-xl">{blueprint.accuracy_score >= 80 ? '✅' : '❌'}</span>
+                    Architecture Standard Accuracy
+                  </h3>
+                  <span className={`text-2xl font-extrabold ${blueprint.accuracy_score >= 80 ? 'text-green-600' : 'text-red-600'}`}>
+                    {blueprint.accuracy_score}%
+                  </span>
+                </div>
+                
+                {blueprint.accuracy_score >= 80 ? (
+                   <p className="text-sm text-green-700">The blueprint meets the minimum accuracy threshold. Hover to see detailed feedback.</p>
+                ) : (
+                   <p className="text-sm text-red-700">The blueprint failed to meet the minimum accuracy threshold. Hover to see detailed feedback.</p>
+                )}
+                
+                {/* Hover Feedback Box */}
+                {blueprint.validation_feedback && (
+                  <div className="hidden group-hover:block mt-4 bg-white/80 p-4 rounded-xl border border-gray-200 shadow-inner animate-fade-in-up">
+                    <h4 className="text-sm font-bold text-gray-800 mb-2">Validation Feedback:</h4>
+                    <p className="text-sm text-gray-700 whitespace-pre-line">{blueprint.validation_feedback}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
             <div className="bg-gradient-to-br from-white via-slate-50/80 to-orange-50/40 rounded-2xl p-6 border border-border-orange/40 shadow-sm relative overflow-hidden space-y-5">
               
               {/* Container Top Header */}

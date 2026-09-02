@@ -1,4 +1,4 @@
-export default function StatusBadge({ status }) {
+export default function StatusBadge({ status, isAutoApproved }) {
   const colors = {
     draft: 'bg-gray-100 text-gray-600 border-gray-200',
     in_progress: 'bg-orange-100 text-orange-700 border-orange-200',
@@ -14,9 +14,19 @@ export default function StatusBadge({ status }) {
 
   const c = colors[status] || colors.draft;
   
+  let displayText = status === 'validated' ? 'Approved' : (status ? status.replace('_', ' ') : '');
+  
+  if (status === 'validated' || status === 'approved') {
+    if (isAutoApproved === 1 || isAutoApproved === true) {
+      displayText = 'Auto-Approved by Agent';
+    } else if (isAutoApproved === 0 || isAutoApproved === false) {
+      displayText = 'Approved by Architect';
+    }
+  }
+  
   return (
     <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${c} capitalize`}>
-      {status === 'validated' ? 'Approved' : status.replace('_', ' ')}
+      {displayText}
     </span>
   );
 }

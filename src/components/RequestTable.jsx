@@ -54,7 +54,7 @@ export default function RequestTable({ requests, role, navigate, actionOverride 
                   {req.application_id}
                 </span>
               </td>
-              <td className="px-6 py-5"><StatusBadge status={req.status} /></td>
+              <td className="px-6 py-5"><StatusBadge status={req.status} isAutoApproved={req.is_auto_approved} /></td>
               <td className="px-6 py-5 text-sm font-medium text-text-secondary">{new Date(req.created_at).toLocaleDateString()}</td>
               <td className="px-6 py-5 text-sm font-medium text-right">
                 {actionOverride ? (

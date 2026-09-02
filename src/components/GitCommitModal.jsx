@@ -63,7 +63,7 @@ export default function GitCommitModal({ isOpen, onClose, requestId, onSuccess }
           branch,
           target_directory: targetDirectory,
           commit_message: commitMessage,
-          pushed_at: new Date().toISOString()
+          pushed_at: new Date().toLocaleString()
         });
         onSuccess(res.message);
         onClose();
@@ -149,7 +149,24 @@ export default function GitCommitModal({ isOpen, onClose, requestId, onSuccess }
                     <div>
                       <span className="block text-gray-500 mb-1">Date & Time</span>
                       <span className="font-medium text-gray-800">
-                        {new Date(latestPush.pushed_at).toLocaleString()}
+                        {(() => {
+                          const dateStr = latestPush.pushed_at;
+                          if (!dateStr) return '';
+                          let cleanStr = dateStr;
+                          if (typeof cleanStr === 'string') {
+                            if (cleanStr.includes('GMT')) cleanStr = cleanStr.replace(' GMT', '');
+                            if (cleanStr.endsWith('Z')) cleanStr = cleanStr.slice(0, -1);
+                          }
+                          const d = new Date(cleanStr);
+                          if (isNaN(d.getTime())) return dateStr;
+                          
+                          const yyyy = d.getFullYear();
+                          const mm = String(d.getMonth() + 1).padStart(2, '0');
+                          const dd = String(d.getDate()).padStart(2, '0');
+                          const timeStr = d.toLocaleTimeString('en-US');
+                          
+                          return `${yyyy}/${mm}/${dd}, ${timeStr}`;
+                        })()}
                       </span>
                     </div>
                     <div className="col-span-2">

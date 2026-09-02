@@ -42,6 +42,9 @@ export default function GitHubPage() {
   const [savingExtracted, setSavingExtracted] = useState(false);
   const [isExtracted, setIsExtracted] = useState(false);
 
+  const [githubBranches, setGithubBranches] = useState(['main']);
+  const [branchesLoading, setBranchesLoading] = useState(false);
+
   // Restore saved track-scoped session from LocalStorage on mount or when active track changes
   useEffect(() => {
     const savedConnected = localStorage.getItem(`agent22_github_connected_${trackKey}`) === 'true';
@@ -49,9 +52,11 @@ export default function GitHubPage() {
     const savedUsername = localStorage.getItem(`agent22_github_username_${trackKey}`) || '';
     const savedToken = localStorage.getItem(`agent22_github_token_${trackKey}`) || '';
     const savedSelectedRepo = localStorage.getItem(`agent22_github_selected_repo_${trackKey}`) || '';
+    const savedBranch = localStorage.getItem(`agent22_github_branch_${trackKey}`) || 'main';
 
     setGithubUsername(savedUsername);
     setGithubToken(savedToken);
+    setGithubBranch(savedBranch);
 
     if (savedConnected && savedUser) {
       try {
@@ -69,8 +74,10 @@ export default function GitHubPage() {
             .catch(err => console.warn("Repo reload warning:", err));
         }
 
-        // Fetch repo files
-        loadRepoFiles(repo, savedToken, 'main');
+        // Fetch repo branches and files
+        loadRepoBranches(repo, savedToken).then(activeBranch => {
+          loadRepoFiles(repo, savedToken, activeBranch || savedBranch);
+        });
       } catch (e) {
         console.error("Could not parse saved github user for track", e);
         setGithubConnected(false);
@@ -81,12 +88,13 @@ export default function GitHubPage() {
       setGithubUser(null);
       setGithubRepos([]);
       setGithubSelectedRepo('');
+      setGithubBranches(['main']);
       setRepoFiles([]);
       setSelectedFilePaths([]);
     }
   }, [trackKey]);
 
-  // Fetch repo files whenever selected repo changes
+  // Fetch repo branches & files whenever selected repo changes
   useEffect(() => {
     if (githubConnected && githubSelectedRepo) {
       setSelectedFilePaths([]);
@@ -95,9 +103,102 @@ export default function GitHubPage() {
       setIsExtracted(false);
       setExtractedContent('');
       setExtractedFilename('');
-      loadRepoFiles(githubSelectedRepo, githubToken, githubBranch);
+      
+      loadRepoBranches(githubSelectedRepo, githubToken).then(targetBranch => {
+        loadRepoFiles(githubSelectedRepo, githubToken, targetBranch || githubBranch);
+      });
     }
   }, [githubSelectedRepo, githubConnected]);
+
+  const loadRepoBranches = async (repoFullName, token = '') => {
+    if (!repoFullName || !repoFullName.includes('/')) return 'main';
+    setBranchesLoading(true);
+    const [owner, repo] = repoFullName.split('/');
+    try {
+      const res = await fetchGitHubApi(`https://api.github.com/repos/${owner}/${repo}/branches?per_page=100`, token);
+      if (res.ok) {
+        const branchesData = await res.json();
+        if (Array.isArray(branchesData) && branchesData.length > 0) {
+          const branchList = branchesData.map(b => b.name);
+          setGithubBranches(branchList);
+
+          let activeBranch = githubBranch;
+          if (!branchList.includes(githubBranch)) {
+            activeBranch = branchList.includes('main') ? 'main' : (branchList.includes('master') ? 'master' : branchList[0]);
+            setGithubBranch(activeBranch);
+          }
+          setBranchesLoading(false);
+          return activeBranch;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load repo branches:", e);
+    }
+    setGithubBranches(['main', 'master']);
+    setBranchesLoading(false);
+    return githubBranch || 'main';
+  };
+
+  const getGitHubHeaders = (token = '', extraHeaders = {}) => {
+    const headers = {
+      'Accept': 'application/vnd.github.v3+json',
+      ...extraHeaders
+    };
+    if (token && token.trim()) {
+      const cleanToken = token.trim();
+      if (cleanToken.startsWith('Bearer ') || cleanToken.startsWith('token ')) {
+        headers['Authorization'] = cleanToken;
+      } else if (cleanToken.startsWith('github_pat_')) {
+        headers['Authorization'] = `Bearer ${cleanToken}`;
+      } else {
+        // GitHub Classic PATs (ghp_...) require 'token ghp_...' format
+        headers['Authorization'] = `token ${cleanToken}`;
+      }
+    }
+    return headers;
+  };
+
+  const fetchGitHubApi = async (url, token = '') => {
+    let headers = getGitHubHeaders(token);
+    let res = await fetch(url, { headers });
+
+    // Fallback: If classic 'token' auth fails for a token without ghp_ prefix, retry with 'Bearer'
+    if (!res.ok && (res.status === 401 || res.status === 404) && token && !token.startsWith('github_pat_')) {
+      const cleanToken = token.trim();
+      const fallbackHeaders = getGitHubHeaders(token, { 'Authorization': `Bearer ${cleanToken}` });
+      const fallbackRes = await fetch(url, { headers: fallbackHeaders });
+      if (fallbackRes.ok) return fallbackRes;
+    }
+    return res;
+  };
+
+  const fetchRawFileContent = async (repoFullName, filePath, token = '', branch = 'main') => {
+    if (!repoFullName || !filePath) return null;
+    const [owner, repo] = repoFullName.split('/');
+
+    // 1. Try Contents API with raw accept header (Works for BOTH Private & Public repos)
+    try {
+      const headers = getGitHubHeaders(token, { 'Accept': 'application/vnd.github.v3.raw' });
+      let res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`, { headers });
+      if (!res.ok && branch !== 'master') {
+        res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=master`, { headers });
+      }
+      if (res.ok) return await res.text();
+    } catch (e) {
+      console.warn("Contents raw API error:", e);
+    }
+
+    // 2. Fallback to raw.githubusercontent.com
+    try {
+      const rawHeaders = getGitHubHeaders(token);
+      const rawRes = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}`, { headers: rawHeaders });
+      if (rawRes.ok) return await rawRes.text();
+    } catch (e) {
+      console.warn("Raw download error:", e);
+    }
+
+    return null;
+  };
 
   const loadRepoFiles = async (repoFullName, token = '', branch = 'main') => {
     if (!repoFullName || !repoFullName.includes('/')) return;
@@ -105,14 +206,12 @@ export default function GitHubPage() {
     setRepoFiles([]);
     
     const [owner, repo] = repoFullName.split('/');
-    const headers = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
       // 1. Try Git Tree API for full recursive file structure
-      let res = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`, { headers });
+      let res = await fetchGitHubApi(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`, token);
       if (!res.ok && branch !== 'master') {
-        res = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/master?recursive=1`, { headers });
+        res = await fetchGitHubApi(`https://api.github.com/repos/${owner}/${repo}/git/trees/master?recursive=1`, token);
       }
 
       if (res.ok) {
@@ -135,7 +234,7 @@ export default function GitHubPage() {
       }
 
       // 2. Fallback to Contents API
-      let contentsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents`, { headers });
+      let contentsRes = await fetchGitHubApi(`https://api.github.com/repos/${owner}/${repo}/contents`, token);
       if (contentsRes.ok) {
         const data = await contentsRes.json();
         if (Array.isArray(data)) {
@@ -164,12 +263,23 @@ export default function GitHubPage() {
       str = str.split('github.com/').pop().split('?')[0].split('#')[0];
     }
     const parts = str.split('/').filter(Boolean);
+    let owner = '';
+    let repoName = null;
+    let fullName = null;
+    let branch = null;
+
     if (parts.length >= 2) {
-      return { owner: parts[0], repoName: parts[1], fullName: `${parts[0]}/${parts[1]}` };
+      owner = parts[0];
+      repoName = parts[1];
+      fullName = `${parts[0]}/${parts[1]}`;
+      if (parts.length >= 4 && parts[2] === 'tree') {
+        branch = parts[3];
+      }
     } else if (parts.length === 1) {
-      return { owner: parts[0], repoName: null, fullName: null };
+      owner = parts[0];
     }
-    return { owner: '', repoName: null, fullName: null };
+
+    return { owner, repoName, fullName, branch };
   };
 
   const handleConnectGitHub = async () => {
@@ -186,67 +296,146 @@ export default function GitHubPage() {
 
     setGithubLoading(true);
 
+    // 1. If PAT token is explicitly provided, validate token credentials & owner match
+    let authenticatedUser = null;
+    if (token) {
+      try {
+        const tokenValRes = await fetchGitHubApi('https://api.github.com/user', token);
+        if (!tokenValRes.ok) {
+          setGithubError(`The Personal Access Token (PAT) provided is invalid or expired (HTTP ${tokenValRes.status}). Please check your PAT or leave the PAT field empty for public repositories.`);
+          setGithubLoading(false);
+          return;
+        }
+        authenticatedUser = await tokenValRes.json();
+      } catch (tokenErr) {
+        setGithubError('Could not validate Personal Access Token (PAT). Please check your internet connection or token format.');
+        setGithubLoading(false);
+        return;
+      }
+    }
+
     try {
-      const { owner, repoName, fullName } = parseGitHubRepoInput(rawInput);
-      const targetUser = owner || rawInput;
+      const { owner, repoName, fullName, branch: urlBranch } = parseGitHubRepoInput(rawInput);
+      const targetBranch = urlBranch || githubBranch || 'main';
+      if (urlBranch) setGithubBranch(urlBranch);
 
-      let userData = null;
-      let reposData = [];
-      let activeRepoName = fullName || '';
-
-      if (targetUser) {
-        let res = await fetch(`https://api.github.com/users/${encodeURIComponent(targetUser)}`);
-        if (res.ok) {
-          userData = await res.json();
-        } else {
-          try {
-            const searchRes = await fetch(`https://api.github.com/search/users?q=${encodeURIComponent(targetUser)}`);
-            if (searchRes.ok) {
-              const searchData = await searchRes.json();
-              if (searchData.items && searchData.items.length > 0) {
-                const matchedLogin = searchData.items[0].login;
-                const detailRes = await fetch(`https://api.github.com/users/${matchedLogin}`);
-                if (detailRes.ok) {
-                  userData = await detailRes.json();
-                }
-              }
-            }
-          } catch (e) {
-            console.warn("Search API warning:", e);
-          }
-        }
-
-        if (!userData) {
-          userData = {
-            login: targetUser,
-            name: targetUser,
-            avatar_url: `https://github.com/${targetUser}.png`,
-            html_url: `https://github.com/${targetUser}`,
-            public_repos: 0
-          };
-        }
-
-        if (userData && userData.login) {
-          try {
-            const repoRes = await fetch(`https://api.github.com/users/${userData.login}/repos?sort=updated&per_page=30`);
-            if (repoRes.ok) {
-              reposData = await repoRes.json();
-            }
-          } catch (e) {
-            console.warn("Could not fetch user repos:", e);
-          }
+      // Validate account match: If PAT is provided, it must belong to the repository owner
+      if (authenticatedUser && owner) {
+        const tokenUsername = authenticatedUser.login ? authenticatedUser.login.toLowerCase() : '';
+        const urlOwnerName = owner.toLowerCase();
+        if (tokenUsername !== urlOwnerName) {
+          setGithubError(
+            `Mismatched PAT Credentials: The Personal Access Token (PAT) provided belongs to "@${authenticatedUser.login}", but the repository URL belongs to "@${owner}". Please use a PAT from "@${owner}" or leave the PAT field empty for public repositories.`
+          );
+          setGithubLoading(false);
+          return;
         }
       }
 
-      if (userData) {
+      if (fullName && owner && repoName) {
+        // User passed a specific repository URL (e.g. https://github.com/owner/repository)
+        const repoRes = await fetchGitHubApi(`https://api.github.com/repos/${owner}/${repoName}`, token);
+        if (!repoRes.ok) {
+          if (repoRes.status === 404 || repoRes.status === 401) {
+            setGithubError(
+              token 
+                ? `GitHub Repository "${fullName}" could not be accessed. For private repositories, please ensure your Personal Access Token (PAT) has the "repo" scope checked on GitHub.` 
+                : `GitHub Repository "${fullName}" was not found or is private. Please enter a Personal Access Token (PAT) with "repo" scope.`
+            );
+          } else {
+            setGithubError(`Failed to connect to GitHub Repository "${fullName}" (HTTP ${repoRes.status}).`);
+          }
+          setGithubLoading(false);
+          return;
+        }
+
+        // Fetch repository branches to validate specified URL branch
+        let availableBranches = ['main'];
+        try {
+          const branchRes = await fetchGitHubApi(`https://api.github.com/repos/${owner}/${repoName}/branches?per_page=100`, token);
+          if (branchRes.ok) {
+            const bData = await branchRes.json();
+            if (Array.isArray(bData) && bData.length > 0) {
+              availableBranches = bData.map(b => b.name);
+              setGithubBranches(availableBranches);
+            }
+          }
+        } catch (bErr) {
+          console.warn("Could not validate branches:", bErr);
+        }
+
+        // If a specific branch was provided in URL (e.g. /tree/maindfghh) and does NOT exist
+        if (urlBranch && !availableBranches.includes(urlBranch)) {
+          setGithubError(`Branch "${urlBranch}" was not found in repository "${fullName}". Please check the branch name in your URL.`);
+          setGithubLoading(false);
+          return;
+        }
+
+        const activeBranch = urlBranch || (availableBranches.includes('main') ? 'main' : (availableBranches.includes('master') ? 'master' : availableBranches[0]));
+        setGithubBranch(activeBranch);
+
+        const repoData = await repoRes.json();
+        const userData = repoData.owner || {
+          login: owner,
+          avatar_url: `https://github.com/${owner}.png`,
+          html_url: `https://github.com/${owner}`
+        };
+
+        // Fetch additional public repos for owner if accessible
+        let reposData = [repoData];
+        try {
+          const userReposRes = await fetchGitHubApi(`https://api.github.com/users/${owner}/repos?sort=updated&per_page=30`, token);
+          if (userReposRes.ok) {
+            const list = await userReposRes.json();
+            if (Array.isArray(list) && list.length > 0) reposData = list;
+          }
+        } catch (e) {
+          console.warn("Could not fetch user repos:", e);
+        }
+
         setGithubUser(userData);
         setGithubConnected(true);
         setGithubRepos(reposData);
 
-        const selectedRepo = activeRepoName || (reposData.length > 0 ? reposData[0].full_name : `${userData.login}/architecture-standards`);
+        const selectedRepo = repoData.full_name || fullName;
         setGithubSelectedRepo(selectedRepo);
+        setGithubSuccess(`Connected Repository: "${selectedRepo}" (Branch: "${activeBranch}") for active track.`);
 
-        setGithubSuccess(`Connected Repository: "${selectedRepo}" for active track.`);
+        // Save session strictly for THIS ACTIVE TRACK
+        localStorage.setItem(`agent22_github_username_${trackKey}`, rawInput);
+        localStorage.setItem(`agent22_github_token_${trackKey}`, token);
+        localStorage.setItem(`agent22_github_user_${trackKey}`, JSON.stringify(userData));
+        localStorage.setItem(`agent22_github_connected_${trackKey}`, 'true');
+        localStorage.setItem(`agent22_github_selected_repo_${trackKey}`, selectedRepo);
+        localStorage.setItem(`agent22_github_branch_${trackKey}`, activeBranch);
+
+        loadRepoFiles(selectedRepo, token, activeBranch);
+      } else {
+        // User passed a username/handle (e.g. owner)
+        const targetUser = owner || rawInput;
+        const userRes = await fetchGitHubApi(`https://api.github.com/users/${encodeURIComponent(targetUser)}`, token);
+        if (!userRes.ok) {
+          setGithubError(`GitHub Account or User "${targetUser}" not found. Please check the username or URL.`);
+          setGithubLoading(false);
+          return;
+        }
+
+        const userData = await userRes.json();
+        let reposData = [];
+        try {
+          const repoRes = await fetchGitHubApi(`https://api.github.com/users/${userData.login}/repos?sort=updated&per_page=30`, token);
+          if (repoRes.ok) reposData = await repoRes.json();
+        } catch (e) {
+          console.warn("Could not fetch user repos:", e);
+        }
+
+        setGithubUser(userData);
+        setGithubConnected(true);
+        setGithubRepos(reposData);
+
+        const selectedRepo = reposData.length > 0 ? reposData[0].full_name : `${userData.login}/repository`;
+        setGithubSelectedRepo(selectedRepo);
+        setGithubSuccess(`Connected GitHub Account @${userData.login} for active track.`);
 
         // Save session strictly for THIS ACTIVE TRACK
         localStorage.setItem(`agent22_github_username_${trackKey}`, rawInput);
@@ -256,8 +445,6 @@ export default function GitHubPage() {
         localStorage.setItem(`agent22_github_selected_repo_${trackKey}`, selectedRepo);
 
         loadRepoFiles(selectedRepo, token, 'main');
-      } else {
-        setGithubError('Failed to connect to GitHub Repository. Please check link.');
       }
     } catch (err) {
       console.error('GitHub connection error:', err);
@@ -318,13 +505,11 @@ export default function GitHubPage() {
     setActiveViewingContent('');
     setGithubError('');
     try {
-      const rawUrl = file.download_url || `https://raw.githubusercontent.com/${githubSelectedRepo}/${githubBranch}/${file.path}`;
-      const res = await fetch(rawUrl);
-      if (res.ok) {
-        const text = await res.text();
+      const text = await fetchRawFileContent(githubSelectedRepo, file.path, githubToken, githubBranch);
+      if (text !== null) {
         setActiveViewingContent(text);
       } else {
-        setActiveViewingContent('// Failed to load file content from GitHub.');
+        setActiveViewingContent('// Failed to load file content from GitHub. Ensure PAT has repo access.');
       }
     } catch (e) {
       setActiveViewingContent('// Network error loading file content.');
@@ -350,10 +535,8 @@ export default function GitHubPage() {
       for (const path of targetPaths) {
         const fileObj = repoFiles.find(f => f.path === path);
         if (fileObj) {
-          const rawUrl = fileObj.download_url || `https://raw.githubusercontent.com/${githubSelectedRepo}/${githubBranch}/${fileObj.path}`;
-          const res = await fetch(rawUrl);
-          if (res.ok) {
-            const text = await res.text();
+          const text = await fetchRawFileContent(githubSelectedRepo, fileObj.path, githubToken, githubBranch);
+          if (text !== null) {
             const blob = new Blob([text], { type: 'text/plain' });
             formData.append('file', blob, fileObj.name);
             combinedText += `\n\n--- Source: ${fileObj.path} ---\n` + text;
@@ -571,7 +754,7 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
   };
 
   return (
-    <div className="animate-fade-in-up flex flex-col h-full max-w-7xl mx-auto px-6 py-6 space-y-6">
+    <div className="animate-fade-in-up flex flex-col max-w-7xl mx-auto space-y-4 pb-2">
       {/* Page Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-5">
         <div className="flex items-center gap-4">
@@ -662,23 +845,53 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-600 font-bold">Active Repository:</span>
-              {githubRepos.length > 0 ? (
-                <select 
-                  value={githubSelectedRepo}
-                  onChange={e => setGithubSelectedRepo(e.target.value)}
-                  className="bg-white border border-gray-300 rounded-xl px-3 py-1.5 text-xs text-sidebar outline-none focus:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 font-mono font-bold shadow-sm"
-                >
-                  {githubRepos.map(r => (
-                    <option key={r.id} value={r.full_name}>{r.full_name}</option>
-                  ))}
-                </select>
-              ) : (
-                <span className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl text-xs text-primary-orange font-mono font-bold shadow-sm">
-                  {githubSelectedRepo || `${githubUser?.login}/repository`}
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-600 font-bold">Active Repository:</span>
+                {githubRepos.length > 0 ? (
+                  <select 
+                    value={githubSelectedRepo}
+                    onChange={e => setGithubSelectedRepo(e.target.value)}
+                    className="bg-white border border-gray-300 rounded-xl px-3 py-1.5 text-xs text-sidebar outline-none focus:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 font-mono font-bold shadow-sm cursor-pointer"
+                  >
+                    {githubRepos.map(r => (
+                      <option key={r.id || r.full_name} value={r.full_name}>{r.full_name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl text-xs text-primary-orange font-mono font-bold shadow-sm">
+                    {githubSelectedRepo || `${githubUser?.login}/repository`}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-600 font-bold flex items-center gap-1">
+                  <span>🌿</span> Branch:
                 </span>
-              )}
+                {branchesLoading ? (
+                  <span className="text-xs text-gray-400 font-mono italic animate-pulse">Loading branches...</span>
+                ) : githubBranches.length > 0 ? (
+                  <select 
+                    value={githubBranch}
+                    onChange={e => {
+                      const selectedB = e.target.value;
+                      setGithubBranch(selectedB);
+                      localStorage.setItem(`agent22_github_branch_${trackKey}`, selectedB);
+                      loadRepoFiles(githubSelectedRepo, githubToken, selectedB);
+                    }}
+                    className="bg-white border border-gray-300 rounded-xl px-3 py-1.5 text-xs text-sidebar outline-none focus:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 font-mono font-bold shadow-sm cursor-pointer"
+                  >
+                    {githubBranches.map((b, idx) => (
+                      <option key={idx} value={b}>{b}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl text-xs text-sidebar font-mono font-bold shadow-sm">
+                    {githubBranch}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -726,7 +939,7 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
           </div>
 
           {/* Full Screen Code Display Box */}
-          <div className="bg-[#fafafa] border border-gray-200 rounded-2xl p-6 overflow-x-auto shadow-inner min-h-[500px]">
+          <div className="bg-[#fafafa] border border-gray-200 rounded-2xl p-5 overflow-auto shadow-inner max-h-[calc(100vh-450px)] min-h-[280px]">
             {viewingLoading ? (
               <div className="py-24 text-center space-y-3">
                 <svg className="animate-spin h-8 w-8 text-primary-orange mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -816,7 +1029,7 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
                     <p className="text-xs text-gray-500 font-bold">Fetching repository files live from GitHub...</p>
                   </div>
                 ) : filteredFiles.length > 0 ? (
-                  <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white max-h-[460px]">
+                  <div className="overflow-auto rounded-xl border border-gray-200 bg-white max-h-[calc(100vh-420px)] min-h-[250px]">
                     <table className="w-full text-left text-xs text-gray-700">
                       <thead className="bg-gray-50 text-gray-600 font-bold uppercase text-[10px] tracking-wider border-b border-gray-200 sticky top-0 bg-gray-50 z-10">
                         <tr>
@@ -838,7 +1051,7 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
                         {filteredFiles.map((file, idx) => {
                           const isSelected = selectedFilePaths.includes(file.path);
                           return (
-                            <tr key={idx} className={`transition-colors ${isSelected ? 'bg-orange-50/70' : 'hover:bg-orange-50/30'}`}>
+                            <tr key={idx} className={`hover:bg-orange-50/50 transition-colors ${isSelected ? 'bg-orange-50/70 font-semibold' : ''}`}>
                               <td className="p-3 text-center">
                                 <input 
                                   type="checkbox"
@@ -847,10 +1060,9 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
                                   className="w-3.5 h-3.5 text-primary-orange accent-primary-orange rounded cursor-pointer"
                                 />
                               </td>
-                              <td className="p-3 font-mono">
-                                <span className="font-bold text-sidebar block truncate max-w-[200px]" title={file.path}>
-                                  {file.path}
-                                </span>
+                              <td className="p-3 font-mono text-[11px] text-sidebar font-medium flex items-center gap-2 max-w-[280px] truncate" title={file.path}>
+                                <span>📄</span>
+                                <span className="truncate">{file.path}</span>
                               </td>
                               <td className="p-3 text-gray-500 font-mono text-[11px]">
                                 {formatFileSize(file.size)}
@@ -858,9 +1070,9 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
                               <td className="p-3 text-right">
                                 <button 
                                   onClick={() => handleOpenFullPageViewer(file)}
-                                  className="px-3 py-1 bg-white border border-gray-300 hover:border-primary-orange text-gray-700 hover:text-primary-orange rounded-lg text-[11px] font-bold transition-all shadow-sm flex items-center gap-1 ml-auto"
+                                  className="px-2.5 py-1 bg-white hover:bg-orange-100 border border-gray-200 hover:border-primary-orange text-gray-700 hover:text-primary-orange rounded-lg text-[11px] font-bold transition-all shadow-sm"
                                 >
-                                  👁️ View
+                                  View Code
                                 </button>
                               </td>
                             </tr>
@@ -870,32 +1082,29 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
                     </table>
                   </div>
                 ) : (
-                  <div className="py-12 text-center space-y-2 bg-gray-50 rounded-xl border border-gray-200 p-6">
-                    <span className="text-3xl">📂</span>
-                    <p className="text-xs text-sidebar font-bold">No files found in repository "{githubSelectedRepo}".</p>
+                  <div className="py-10 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <p className="text-xs text-gray-500 font-bold">No files found matching "{fileSearchQuery}".</p>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* RIGHT SIDE: AI Extracted Standard & Save Panel (Matching Add / Upload File UI) */}
-          <div className="bg-white border border-border-light rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4 min-h-[520px]">
-            <div>
-              <div className="flex items-center gap-2 pb-3 border-b border-gray-100 mb-4">
+          {/* RIGHT SIDE: AI Extracted Standard & Save Panel */}
+          <div className="bg-white border border-border-light rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
                 <div className="w-8 h-8 rounded-lg bg-orange-100 text-primary-orange flex items-center justify-center font-bold">✨</div>
                 <div>
-                  <h3 className="font-extrabold text-sidebar text-base">Extracted Rules & Review</h3>
-                  <p className="text-xs text-gray-500">
-                    {isExtracted ? 'Review extracted rules, edit if needed, and save to your tab.' : 'Select files on the left panel and click "Extract Rules with AI".'}
-                  </p>
+                  <h3 className="font-extrabold text-sidebar text-base">Extracted Architecture Rules</h3>
+                  <p className="text-xs text-gray-500">Review AI extracted rules and save to your Standards tabs.</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="block text-xs font-bold text-gray-500 mb-1">Rule / Standard Filename</label>
+                  <div className="w-1/2">
+                    <label className="block text-xs font-bold text-gray-500 mb-1">Standard File Name</label>
                     <input 
                       type="text" 
                       value={extractedFilename}
@@ -925,10 +1134,10 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
                     <span className="text-[10px] text-gray-400 font-mono">Markdown</span>
                   </label>
                   <textarea 
-                    rows={14}
+                    rows={10}
                     value={extractedContent}
                     onChange={e => setExtractedContent(e.target.value)}
-                    className="w-full bg-white border border-gray-200 rounded-xl p-4 font-mono text-xs text-sidebar outline-none focus:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 resize-none shadow-sm leading-relaxed min-h-[340px] hover:border-primary-orange transition-all"
+                    className="w-full bg-white border border-gray-200 rounded-xl p-4 font-mono text-xs text-sidebar outline-none focus:border-primary-orange focus:ring-2 focus:ring-primary-orange/20 resize-none shadow-sm leading-relaxed max-h-[calc(100vh-500px)] min-h-[220px] overflow-y-auto hover:border-primary-orange transition-all"
                     placeholder="Extracted rules will appear here after selecting file(s) and clicking 'Extract Rules with AI'..."
                   />
                 </div>

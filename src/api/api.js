@@ -75,6 +75,7 @@ export const getStandards = (trackId) => api.get('/standards/', { params: { trac
 export const saveStandard = (data) => api.post('/standards/', data).then(res => res.data);
 export const uploadStandard = (formData) => api.post('/standards/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => res.data);
 export const parseFileContent = (formData) => api.post('/standards/parse-file', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => res.data);
+export const generateGithubRules = (formData) => api.post('/standards/generate-github-rules', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(res => res.data);
 export const deleteStandard = (id) => api.delete(`/standards/${id}`).then(res => res.data);
 
 // Environments

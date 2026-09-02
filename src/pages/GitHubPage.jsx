@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { saveStandard, parseFileContent } from '../api/api';
+import { saveStandard, parseFileContent, generateGithubRules } from '../api/api';
 import { useProject } from '../context/ProjectContext';
 
 export default function GitHubPage() {
@@ -552,7 +552,7 @@ export default function GitHubPage() {
 
       // Call backend LLM parse endpoint
       try {
-        const aiRes = await parseFileContent(formData);
+        const aiRes = await generateGithubRules(formData);
         if (aiRes && aiRes.content) {
           parsedContent = aiRes.content;
         } else if (aiRes && aiRes.items && aiRes.items.length > 0) {

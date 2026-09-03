@@ -50,6 +50,17 @@ export default function StatusBadge({ status, isAutoApproved, req, activeStage }
            displayText = 'Pending Validation';
            c = colors.draft;
        }
+    } else if (activeStage === 'review') {
+       if (req.status === 'validated') {
+           displayText = 'Pending Review';
+           c = colors.in_progress;
+       } else if (req.status === 'approved' || req.status === 'packaged') {
+           displayText = 'Approved';
+           c = colors.success;
+       } else if (req.status === 'rejected') {
+           displayText = 'Rejected';
+           c = colors.error;
+       }
     }
   }
 

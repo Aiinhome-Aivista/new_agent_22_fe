@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { getTechLeadValidations, actionValidation } from '../api/api';
+import { getTechLeadValidations, actionValidation, inspectValidation } from '../api/api';
 import { useProject } from '../context/ProjectContext';
 import { 
   ChevronRightIcon,
@@ -19,6 +19,8 @@ export default function TechLeadValidationsPage() {
   const [modalType, setModalType] = useState(null); // 'waive', 'resolve', 'inspect'
   const [activeValidation, setActiveValidation] = useState(null);
   const [note, setNote] = useState('');
+  const [isInspecting, setIsInspecting] = useState(false);
+  const [inspectionData, setInspectionData] = useState(null);
 
   const fetchValidations = async () => {
     setLoading(true);
@@ -35,11 +37,25 @@ export default function TechLeadValidationsPage() {
     fetchValidations();
   }, [currentTrack]);
 
-  const openModal = (e, type, val) => {
+  const openModal = async (e, type, val) => {
     e.preventDefault();
     setModalType(type);
     setActiveValidation(val);
     setNote('');
+
+    if (type === 'inspect') {
+      setIsInspecting(true);
+      setInspectionData(null);
+      try {
+        const res = await inspectValidation(val.id);
+        if (res.success && res.data) {
+           setInspectionData(res.data);
+        }
+      } catch (e) {
+        console.error("Inspection error:", e);
+      }
+      setIsInspecting(false);
+    }
   };
 
   const closeModal = () => {
@@ -68,9 +84,9 @@ export default function TechLeadValidationsPage() {
 
   const getSeverityBadge = (severity) => {
     switch(severity) {
-      case 'high': return <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold uppercase shadow-sm">High</span>;
-      case 'medium': return <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold uppercase shadow-sm">Medium</span>;
-      case 'low': return <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold uppercase shadow-sm">Low</span>;
+      case 'error': return <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-bold uppercase shadow-sm">Error</span>;
+      case 'warning': return <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold uppercase shadow-sm">Warning</span>;
+      case 'info': return <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-bold uppercase shadow-sm">Info</span>;
       default: return null;
     }
   };
@@ -123,7 +139,7 @@ export default function TechLeadValidationsPage() {
             {/* The title has been moved to the breadcrumb area */}
           </div>
           <div className="flex gap-2">
-            {['all', 'high', 'medium', 'low'].map(tab => (
+            {['all', 'error', 'warning', 'info'].map(tab => (
               <button 
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -170,11 +186,11 @@ export default function TechLeadValidationsPage() {
                     </button>
                     <button 
                       onClick={(e) => openModal(e, 'resolve', val)}
-                      className="bg-blue-50 border border-blue-200 hover:border-blue-400 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                      className="bg-primary-orange text-white hover:bg-hover-orange border border-primary-orange hover:border-hover-orange px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
                     >
                       Resolve
                     </button>
-                    {val.severity_display !== 'high' && (
+                    {val.severity_display !== 'error' && (
                       <button 
                         onClick={(e) => openModal(e, 'waive', val)}
                         className="bg-amber-50 border border-amber-200 hover:border-amber-400 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
@@ -222,15 +238,38 @@ export default function TechLeadValidationsPage() {
 
               {modalType === 'inspect' && (
                 <>
-                  <div className="bg-slate-900 p-4 rounded-lg overflow-x-auto">
-                    <p className="text-xs font-mono text-gray-400 mb-2">// Affected code excerpt could be fetched here</p>
-                    <pre className="text-sm font-mono text-green-400">
-                      <code>{`public class ${activeValidation?.rule_name.split('.')[0] || 'App'} {\n  // Validation failed here\n}`}</code>
-                    </pre>
+                  <div className="bg-slate-900 p-4 rounded-lg overflow-x-auto min-h-[120px] flex flex-col justify-center relative">
+                    {isInspecting ? (
+                       <div className="flex flex-col items-center justify-center space-y-3 py-4">
+                         <div className="w-6 h-6 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>
+                         <p className="text-xs font-mono text-green-400 animate-pulse">AI Agent inspecting workspace...</p>
+                       </div>
+                    ) : (
+                       <>
+                         <p className="text-xs font-mono text-gray-400 mb-2">// Code excerpt affected by validation rule</p>
+                         <pre className="text-sm font-mono text-green-400 whitespace-pre-wrap">
+                           <code>{inspectionData?.excerpt || `public class ${activeValidation?.rule_name.split('.')[0] || 'App'} {\n  // Validation failed here\n}`}</code>
+                         </pre>
+                       </>
+                    )}
                   </div>
-                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                    <p className="text-sm font-bold text-blue-800 mb-1">AI Suggestion:</p>
-                    <p className="text-sm text-blue-700">Ensure the relevant standard is applied before final commit.</p>
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg relative overflow-hidden min-h-[90px] flex flex-col justify-center">
+                    {isInspecting ? (
+                       <div className="animate-pulse flex space-x-4">
+                         <div className="flex-1 space-y-2 py-1">
+                           <div className="h-3 bg-blue-300/50 rounded w-1/4"></div>
+                           <div className="space-y-2">
+                             <div className="h-2 bg-blue-300/40 rounded"></div>
+                             <div className="h-2 bg-blue-300/40 rounded w-5/6"></div>
+                           </div>
+                         </div>
+                       </div>
+                    ) : (
+                       <>
+                         <p className="text-sm font-bold text-blue-800 mb-1">AI Fix Suggestion:</p>
+                         <p className="text-sm text-blue-700">{inspectionData?.suggestion || 'Ensure the relevant standard is applied before final commit.'}</p>
+                       </>
+                    )}
                   </div>
                 </>
               )}
@@ -285,7 +324,7 @@ export default function TechLeadValidationsPage() {
               {modalType === 'resolve' && (
                 <button
                   onClick={handleConfirmAction}
-                  className="px-4 py-2 rounded-lg text-sm font-bold transition-colors bg-blue-600 text-white hover:bg-blue-700"
+                  className="px-4 py-2 rounded-lg text-sm font-bold transition-colors bg-primary-orange text-white hover:bg-hover-orange shadow-sm"
                 >
                   Mark Resolved
                 </button>

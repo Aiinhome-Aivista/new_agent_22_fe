@@ -86,6 +86,7 @@ export const updateEnvironment = (envName, data) => api.put(`/environments/${env
 // Tech Lead
 export const getTechLeadValidations = (trackId) => api.get('/techlead/validations', { params: { track_id: trackId } }).then(res => res.data);
 export const actionValidation = (id, action) => api.post(`/techlead/validations/${id}/action`, { action }).then(res => res.data);
+export const inspectValidation = (id) => api.get(`/techlead/validations/${id}/inspect`).then(res => res.data);
 export const getTechLeadReviews = (trackId) => api.get('/techlead/reviews', { params: { track_id: trackId } }).then(res => res.data);
 export const signoffReview = (data) => api.post('/techlead/reviews/signoff', data).then(res => res.data);
 export const getTechLeadReportSummary = (trackId) => api.get('/techlead/reports/summary', { params: { track_id: trackId } }).then(res => res.data);

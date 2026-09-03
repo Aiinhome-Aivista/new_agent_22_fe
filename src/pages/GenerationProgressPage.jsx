@@ -60,7 +60,7 @@ export default function GenerationProgressPage() {
           setReqData(res.data);
           
           const data = res.data;
-          const isComp = ['validated', 'packaged', 'approved'].includes(data?.request?.status) || 
+          const isComp = ['validated', 'packaged'].includes(data?.request?.status) || 
                          (data?.blueprint?.status === 'approved' && ['Validation', 'Packaging', 'Finished'].includes(data?.job?.current_step));
           const isFail = data?.job?.job_status === 'failed';
           
@@ -140,7 +140,7 @@ export default function GenerationProgressPage() {
   const logLines = rawLog.trim().length > 0 ? rawLog.split('\n').filter(line => line.trim().length > 0) : simulatedLogs;
   const jobStatus = reqData?.job?.job_status;
   const isFailed = jobStatus === 'failed';
-  const isCompleted = ['validated', 'packaged', 'approved'].includes(reqData?.request?.status) || 
+  const isCompleted = ['validated', 'packaged'].includes(reqData?.request?.status) || 
                       (reqData?.blueprint?.status === 'approved' && ['Validation', 'Packaging', 'Finished'].includes(reqData?.job?.current_step));
 
   // Determine expected files from blueprint manifest
@@ -163,10 +163,10 @@ export default function GenerationProgressPage() {
     : generatedFiles.map(gf => ({ ...gf, isGenerated: true, needsWork: Boolean(gf.needs_work) || needsWorkMap[gf.file_name] || false }))
   ).filter(f => f.isGenerated || (!isCompleted && !isFailed));
 
-  const isAlreadyValidated = ['validated', 'packaged', 'approved'].includes(reqData?.request?.status);
+  const isAlreadyValidated = ['validated', 'packaged'].includes(reqData?.request?.status);
 
   // Determine coverage percentage for UI badge
-  const coverage = displayList.length > 0 && generatedFiles.length === displayList.length ? "100% GENERATED" : "IN PROGRESS";
+  const coverage = isCompleted ? "100% GENERATED" : "IN PROGRESS";
 
   return (
     <div className="flex flex-col h-full bg-[#fcf9f8]">

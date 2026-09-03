@@ -1,4 +1,4 @@
-export default function StatusBadge({ status, isAutoApproved }) {
+export default function StatusBadge({ status, isAutoApproved, req, activeStage }) {
   const colors = {
     draft: 'bg-gray-100 text-gray-600 border-gray-200',
     in_progress: 'bg-orange-100 text-orange-700 border-orange-200',
@@ -10,10 +10,10 @@ export default function StatusBadge({ status, isAutoApproved }) {
     info: 'bg-blue-50 text-blue-600 border-blue-200',
     warning: 'bg-amber-50 text-amber-600 border-amber-200',
     error: 'bg-red-50 text-red-600 border-red-200',
+    success: 'bg-green-50 text-green-600 border-green-200',
   };
 
-  const c = colors[status] || colors.draft;
-  
+  let c = colors[status] || colors.draft;
   let displayText = status === 'validated' ? 'Approved' : (status ? status.replace('_', ' ') : '');
   
   if (status === 'validated' || status === 'approved') {
@@ -24,8 +24,37 @@ export default function StatusBadge({ status, isAutoApproved }) {
     }
   }
   
+  if (req && activeStage) {
+    if (activeStage === 'generation') {
+       if (req.job_status === 'failed' && req.current_step === 'Generation') {
+           displayText = 'Generation Failed';
+           c = colors.error;
+       } else if (['validated', 'packaged'].includes(req.status) || ['Validation', 'Packaging', 'Finished'].includes(req.current_step)) {
+           displayText = '100% Generated';
+           c = colors.success;
+       } else if (req.current_step === 'Generation') {
+           displayText = 'In Progress';
+           c = colors.in_progress;
+       }
+    } else if (activeStage === 'validation') {
+       if (req.error_count > 0 || (req.job_status === 'failed' && req.current_step === 'Validation')) {
+           displayText = 'Validation failed';
+           c = colors.error;
+       } else if (['validated', 'packaged'].includes(req.status) || ['Packaging', 'Finished'].includes(req.current_step)) {
+           displayText = 'Validation Passed';
+           c = colors.success;
+       } else if (req.current_step === 'Validation') {
+           displayText = 'In Progress';
+           c = colors.in_progress;
+       } else if (req.status === 'blueprint_review' || req.current_step === 'Blueprint' || req.current_step === 'Generation' || req.status === 'in_progress') {
+           displayText = 'Pending Validation';
+           c = colors.draft;
+       }
+    }
+  }
+
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${c} capitalize`}>
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${c} capitalize whitespace-nowrap`}>
       {displayText}
     </span>
   );

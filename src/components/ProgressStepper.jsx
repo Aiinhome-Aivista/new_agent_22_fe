@@ -66,9 +66,6 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep, 
     const jobStatus = reqData.job?.job_status;
     const currentStep = reqData.job?.current_step;
 
-    // If request is fully approved, all stages are completed (Green Tick)
-    if (reqStatus === 'approved') return 'completed';
-
     // Step 0: Intake
     if (stepIndex === 0) return 'completed';
 
@@ -87,10 +84,10 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep, 
 
     // Step 2: Generation
     if (stepIndex === 2) {
-      if (['validated', 'packaged', 'approved'].includes(reqStatus) || (bpStatus === 'approved' && ['Validation', 'Packaging', 'Finished'].includes(currentStep))) {
+      if (['validated', 'packaged'].includes(reqStatus) || (bpStatus === 'approved' && ['Validation', 'Packaging', 'Finished'].includes(currentStep))) {
         return 'completed';
       }
-      if (bpStatus === 'approved' && (reqStatus === 'in_progress' || currentStep === 'Generation')) {
+      if (bpStatus === 'approved' && (reqStatus === 'in_progress' || reqStatus === 'approved' || currentStep === 'Generation')) {
         return 'active';
       }
       if (jobStatus === 'failed' && currentStep === 'Generation') return 'failed';
@@ -99,7 +96,7 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep, 
 
     // Step 3: Validation
     if (stepIndex === 3) {
-      if (['validated', 'packaged', 'approved'].includes(reqStatus)) {
+      if (['validated', 'packaged'].includes(reqStatus)) {
         return hasValErrors ? 'failed' : 'completed';
       }
       if (currentStep === 'Validation') {
@@ -111,7 +108,7 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep, 
 
     // Step 4: Packages
     if (stepIndex === 4) {
-      if (['packaged', 'approved'].includes(reqStatus)) {
+      if (['packaged'].includes(reqStatus)) {
         return 'completed';
       }
       if (currentStep === 'Packaging') {
@@ -123,7 +120,7 @@ export default function ProgressStepper({ requestId: propRequestId, activeStep, 
 
     // Step 5: Review
     if (stepIndex === 5) {
-      if (['packaged', 'approved'].includes(reqStatus)) return 'completed';
+      if (['packaged'].includes(reqStatus)) return 'completed';
       if (reqStatus === 'rework') return 'failed';
       return 'pending';
     }

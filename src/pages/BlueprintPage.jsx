@@ -214,7 +214,7 @@ export default function BlueprintPage() {
                 {(requestObj.status === 'packaged' || requestObj.status === 'validated') && (
                   <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-bold border border-purple-200">Packaged</span>
                 )}
-                {['draft', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && (
+                {['draft', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && blueprint.status !== 'approved' && (
                   <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">Pending Architect Review</span>
                 )}
                 {(blueprint.status === 'approved' || ['approved', 'in_progress', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase())) && (
@@ -228,7 +228,7 @@ export default function BlueprintPage() {
           <div className="flex gap-4">
             {!isArchitect && blueprint && requestObj ? (
               <>
-                {requestObj.status === 'approved' && (
+                {(requestObj.status === 'approved' || blueprint.status === 'approved') && !['in_progress', 'packaged', 'validated'].includes(requestObj.status?.toLowerCase()) && (
                   <button onClick={() => navigate(`/requests/${id}/generation`)} className="bg-primary-orange hover:bg-hover-orange text-white px-6 py-2 rounded font-bold shadow-sm transition-colors">
                     Proceed to Code Generation
                   </button>
@@ -243,7 +243,7 @@ export default function BlueprintPage() {
                     View Generation Progress
                   </button>
                 )}
-                {['draft', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && (
+                {['draft', 'rework', 'pending review'].includes(requestObj.status?.toLowerCase()) && blueprint.status !== 'approved' && (
                   <button disabled className="bg-gray-200 text-gray-500 cursor-not-allowed px-6 py-2 rounded font-medium transition-colors">
                     Waiting for Architect Approval
                   </button>

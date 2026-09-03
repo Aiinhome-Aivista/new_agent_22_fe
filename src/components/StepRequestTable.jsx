@@ -108,7 +108,7 @@ export default function StepRequestTable({ activeStage }) {
                   </span>
                 </td>
                 <td className="px-6 py-5">
-                  <StatusBadge status={req.status} isAutoApproved={req.is_auto_approved} />
+                  <StatusBadge status={req.status} isAutoApproved={req.is_auto_approved} req={req} activeStage={activeStage} />
                 </td>
                 <td className="px-6 py-5 text-sm text-text-secondary font-medium">
                   {new Date(req.created_at).toLocaleDateString()}

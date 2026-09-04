@@ -383,6 +383,8 @@ export default function StandardsPage() {
             content: item.content,
             created_by: getAuthorIdentifier(),
             track_id: trackIdVal,
+            track_name: currentTrack?.track_name || null,
+            project_id: currentProject?.id ? parseInt(currentProject.id, 10) : null,
             is_edit: false
           });
         }
@@ -393,6 +395,8 @@ export default function StandardsPage() {
           content: uploadForm.content,
           created_by: getAuthorIdentifier(),
           track_id: trackIdVal,
+          track_name: currentTrack?.track_name || null,
+          project_id: currentProject?.id ? parseInt(currentProject.id, 10) : null,
           is_edit: !!selectedStandard
         });
 
@@ -420,9 +424,20 @@ export default function StandardsPage() {
     selectedUploadFiles.forEach(file => {
       formData.append('file', file);
     });
+    if (currentTrack?.id) {
+      formData.append('track_id', currentTrack.id);
+    }
+    if (currentTrack?.track_name) {
+      formData.append('track_name', currentTrack.track_name);
+    }
+    if (currentProject?.id) {
+      formData.append('project_id', currentProject.id);
+    }
+    formData.append('created_by', getAuthorIdentifier());
 
     try {
       const res = await parseFileContent(formData);
+
       if (res.success) {
         setUploadForm({
           filename: res.filename || 'extracted_standard.md',

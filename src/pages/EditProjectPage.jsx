@@ -23,8 +23,6 @@ export default function EditProjectPage() {
 
   const [projectName, setProjectName] = useState('');
   const [client, setClient] = useState('pwc');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [status, setStatus] = useState('ACTIVE');
   const [description, setDescription] = useState('');
   const [tracks, setTracks] = useState([]);
@@ -37,8 +35,6 @@ export default function EditProjectPage() {
     if (existing) {
       setProjectName(existing.name || '');
       setClient(existing.client || 'pwc');
-      setStartDate(existing.start_date || '');
-      setEndDate(existing.end_date || '');
       setStatus(existing.status || 'ACTIVE');
       setDescription(existing.description || '');
       setTracks(existing.tracks ? existing.tracks.map(t => ({ ...t })) : []);
@@ -78,8 +74,6 @@ export default function EditProjectPage() {
     const payload = {
       name: projectName,
       client,
-      start_date: startDate,
-      end_date: endDate,
       status,
       description,
       tracks
@@ -166,33 +160,7 @@ export default function EditProjectPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Start Date */}
-            <div>
-              <label className="block text-xs font-bold text-sidebar uppercase tracking-wider mb-1.5">
-                Start Date
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-4 py-2.5 bg-input-bg border border-border-light rounded-xl text-sm font-semibold text-text-primary focus:ring-1 focus:ring-primary-orange focus:border-border-orange outline-none transition-all"
-              />
-            </div>
-
-            {/* End Date */}
-            <div>
-              <label className="block text-xs font-bold text-sidebar uppercase tracking-wider mb-1.5">
-                End Date
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-4 py-2.5 bg-input-bg border border-border-light rounded-xl text-sm font-semibold text-text-primary focus:ring-1 focus:ring-primary-orange focus:border-border-orange outline-none transition-all"
-              />
-            </div>
-
+          <div className="grid grid-cols-1 gap-5">
             {/* Status */}
             <div>
               <label className="block text-xs font-bold text-sidebar uppercase tracking-wider mb-1.5">

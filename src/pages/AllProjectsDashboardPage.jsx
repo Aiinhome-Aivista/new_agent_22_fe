@@ -236,8 +236,7 @@ export default function AllProjectsDashboardPage() {
                       <p className="text-[11px] font-medium text-text-secondary mb-3">{project.client || 'pwc'}</p>
                     </div>
 
-                    <div className="border-t border-slate-200/60 pt-2.5 flex items-center justify-between text-[11px]">
-                      <span className="text-text-secondary font-mono">{project.start_date || '2026-07-01'}</span>
+                    <div className="border-t border-slate-200/60 pt-2.5 flex items-center justify-end text-[11px]">
                       <span className="font-extrabold text-primary-orange group-hover:translate-x-1 transition-transform flex items-center gap-1">
                         View Tracks &rarr;
                       </span>

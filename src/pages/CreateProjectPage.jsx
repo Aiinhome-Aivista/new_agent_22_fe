@@ -16,16 +16,8 @@ export default function CreateProjectPage() {
   const navigate = useNavigate();
   const { createNewProject } = useProject();
 
-  // Dynamic Dates
-  const today = new Date();
-  const sixMonthsLater = new Date(today.getFullYear(), today.getMonth() + 6, today.getDate());
-  const defaultStartDate = today.toISOString().split('T')[0];
-  const defaultEndDate = sixMonthsLater.toISOString().split('T')[0];
-
   const [projectName, setProjectName] = useState('');
   const [client, setClient] = useState('pwc');
-  const [startDate, setStartDate] = useState(defaultStartDate);
-  const [endDate, setEndDate] = useState(defaultEndDate);
   const [description, setDescription] = useState('');
 
   // Clean empty tracks list state
@@ -66,8 +58,6 @@ export default function CreateProjectPage() {
     const payload = {
       name: projectName,
       client,
-      start_date: startDate,
-      end_date: endDate,
       description,
       status: 'ACTIVE',
       tracks: tracks
@@ -143,27 +133,6 @@ export default function CreateProjectPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-text-secondary mb-1.5">Start Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full p-3 bg-input-bg border border-border-light rounded-xl text-sm text-text-primary focus:ring-1 focus:ring-primary-orange focus:border-border-orange outline-none transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-text-secondary mb-1.5">End Date</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full p-3 bg-input-bg border border-border-light rounded-xl text-sm text-text-primary focus:ring-1 focus:ring-primary-orange focus:border-border-orange outline-none transition-all"
-              />
-            </div>
-          </div>
 
           <div>
             <label className="block text-xs font-bold text-text-secondary mb-1.5">Description (Optional)</label>

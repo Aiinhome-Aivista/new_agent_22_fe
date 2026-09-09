@@ -342,17 +342,7 @@ export default function ProjectsDirectoryPage({ onOpenTrackDashboard }) {
                       </div>
                       <p className="text-xs font-semibold text-text-secondary mb-4">{project.client || 'pwc'}</p>
 
-                      {/* Dates */}
-                      <div className="text-xs text-text-secondary space-y-1.5 mb-6 bg-slate-50 border border-slate-100 p-3 rounded-xl">
-                        <div className="flex justify-between">
-                          <span className="font-medium text-text-secondary">Start Date:</span>
-                          <span className="font-mono text-sidebar font-bold">{project.start_date || '2026-07-01'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium text-text-secondary">End Date:</span>
-                          <span className="font-mono text-sidebar font-bold">{project.end_date || '2027-02-27'}</span>
-                        </div>
-                      </div>
+
                     </div>
 
                     {/* Footer Action Bar */}

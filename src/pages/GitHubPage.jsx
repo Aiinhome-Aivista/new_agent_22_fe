@@ -734,7 +734,7 @@ public class Handler1TransformerSupplier implements ValueTransformerWithKeySuppl
       setGithubSuccess(`Successfully saved "${extractedFilename.trim()}" into "${folderLabels[extractedFolder]}" for ${currentTrack?.track_name || 'Active Track'}!`);
       setSelectedFilePaths([]);
       setIsExtracted(false);
-      setViewingFile(null);
+      setActiveViewingFile(null);
       setExtractedContent('');
       setExtractedFilename('');
     } catch (e) {

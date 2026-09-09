@@ -309,7 +309,7 @@ export default function ProjectsDirectoryPage({ onOpenTrackDashboard }) {
                     {/* Top Info Section */}
                     <div>
                       <div className="flex justify-between items-start mb-1">
-                        <h3 className="text-xl font-extrabold text-sidebar group-hover:text-primary-orange transition-colors">
+                        <h3 className="text-md font-extrabold text-sidebar group-hover:text-primary-orange transition-colors">
                           {project.name}
                         </h3>
 

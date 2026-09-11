@@ -419,25 +419,6 @@ export default function BlueprintPage() {
               </div>
             )}
 
-            <div className="bg-orange-50/20 border border-border-orange/30 p-6 rounded-lg shadow-sm">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4">
-                <span className="text-xl">🛡️</span> Architecture Standards Checklist
-              </h3>
-              <div className="space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" checked readOnly className="w-4 h-4 text-primary-orange accent-[#FF5A14] rounded focus:ring-primary-orange" />
-                  <span className="text-sm font-medium text-slate-700">Processor-Handler-Supplier Separation</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" checked readOnly className="w-4 h-4 text-primary-orange accent-[#FF5A14] rounded focus:ring-primary-orange" />
-                  <span className="text-sm font-medium text-slate-700">State Store & Ordering Logic</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" checked readOnly className="w-4 h-4 text-primary-orange accent-[#FF5A14] rounded focus:ring-primary-orange" />
-                  <span className="text-sm font-medium text-slate-700">DLQ Error Topic Configuration</span>
-                </label>
-              </div>
-            </div>
 
             <div className="bg-white p-6 rounded shadow border border-border-light">
               <h3 className="font-bold text-gray-700 mb-4">File Manifest</h3>
